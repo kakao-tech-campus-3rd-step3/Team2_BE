@@ -55,6 +55,16 @@ gitGraph
   - 예시
     - `BTSK-1/flareseek/social_login`
 
+#### Branch Rules
+
+##### develop, main
+
+- creations, updates, deletions 제한
+- PR로만 merge 가능
+- 2명 이상의 리뷰어 승인 필요
+- PR 승인 후 커밋이 발생하면 다시 승인 필요
+- status check 통과 필요
+
 #### Commit meesage
 
 - 50자 이내로 작성해주세요. 그 외에 정해진 규칙은 없습니다.
