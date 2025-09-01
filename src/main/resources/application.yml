@@ -15,6 +15,12 @@ spring:
   liquibase:
     enabled: false
 
+  # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
+  security:
+    user:
+      name: pullit
+      password: pullit
+
   # Spring Boot DevTools 설정
   devtools:
     restart:
@@ -46,12 +52,11 @@ info:
     name: Pullit Local Development
     description: Pullit 스터디 플랫폼 로컬 개발 환경
 
-cors:
-  allowed-origins: ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
-
 logging:
   level:
     org.springframework.security: error
+
+# 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
 management:
   endpoints:
@@ -62,4 +67,6 @@ management:
     health:
       show-details: always  # 헬스 체크 상세 정보 표시
 
-
+cors:
+  allowed-origins:
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
