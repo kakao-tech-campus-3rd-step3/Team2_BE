@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "cors")
 public class WebCorsProps {
 
-    private List<String> allowedOrigins = new ArrayList<>(List.of("http://localhost:3000"));
+  private List<String> allowedOrigins = new ArrayList<>(List.of("http://localhost:3000"));
 
 }
 
