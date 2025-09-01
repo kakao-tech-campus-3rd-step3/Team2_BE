@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: pullit
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/pullit_local?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  liquibase:
+    enabled: false
+
+  # Spring Boot DevTools 설정
+  devtools:
+    restart:
+      enabled: true
+      additional-paths:
+        - "src/main/java"
+      additional-exclude: "static/**,public/**"
+      # 변경 감지 간격을 1초로 설정 (기본값: 1초)
+      poll-interval: 1000ms
+      # 재시작 전 대기 시간 (기본값: 400ms)
+      quiet-period: 400ms
+      # 재시작 트리거 파일 지정
+      trigger-file: ".reloadtrigger"
+    livereload:
+      enabled: true
+      # 라이브 리로드 포트 지정 (기본값: 35729)
+      port: 35729
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: true
+    # TODO : 운영에서 전체 트레이스 포함할지
+    include-stacktrace: ALWAYS
+
+info:
+  app:
+    name: Pullit Local Development
+    description: Pullit 스터디 플랫폼 로컬 개발 환경
+
+cors:
+  allowed-origins: ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
+
+logging:
+  level:
+    org.springframework.security: error
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 모든 엔드포인트 노출
+  endpoint:
+    health:
+      show-details: always  # 헬스 체크 상세 정보 표시
+
+
