@@ -23,6 +23,7 @@ gitGraph
   commit id:"init"
   branch develop
   checkout develop
+  commit id: "dev"
   branch "issue-number/author/feature"
   commit id:"feature"
   checkout develop
@@ -31,7 +32,6 @@ gitGraph
   commit id: "refactor"
   checkout develop
   merge "refactor" id:"refactor merge"
-  commit id:"release snapshot"
   branch "release/yyyy-mm-dd"
   checkout "release/yyyy-mm-dd"
   commit id:"snapshot"
