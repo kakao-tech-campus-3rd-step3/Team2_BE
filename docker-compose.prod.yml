@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # 운영용 Spring Boot 애플리케이션
+  pullit-prod-app:
+    image: ${DOCKER_REGISTRY}:latest
+    container_name: pullit-prod-app
+    restart: unless-stopped
+    ports:
+      - "80:8080"  # 80 포트로 외부 노출
+    environment:
+      # 데이터베이스 연결 설정
+      - DB_URL=jdbc:mariadb://pullit-prod-db:3306/pullit_prod?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      # Spring 프로필 - 운영 환경
+      - SPRING_PROFILES_ACTIVE=prod
+      # JVM 옵션 (메모리 및 GC 최적화)
+      - JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      # CORS 설정
+      - ACCESS_CONTROL_ALLOWED_ORIGINS=${ACCESS_CONTROL_ALLOWED_ORIGINS}
+    depends_on:
+      pullit-prod-db:
+        condition: service_healthy
+    networks:
+      - pullit-prod-network
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true  # 보안 강화
+
+  # 운영용 MariaDB 데이터베이스
+  pullit-prod-db:
+    image: mariadb:10.11
+    container_name: pullit-prod-db
+    restart: unless-stopped
+    environment:
+      - MARIADB_DATABASE=pullit_prod
+      - MARIADB_USER=${DB_USERNAME}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MARIADB_CHARSET=utf8mb4
+      - MARIADB_COLLATION=utf8mb4_unicode_ci
+    volumes:
+      - pullit_prod_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro  # 읽기 전용으로 마운트
+    networks:
+      - pullit-prod-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USERNAME}", "-p${DB_PASSWORD}" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+09:00
+      - --innodb-buffer-pool-size=256M  # 운영용 메모리 설정
+      - --max-connections=200  # 최대 연결 수 제한
+    security_opt:
+      - no-new-privileges:true  # 보안 강화
+
+volumes:
+  pullit_prod_data:
+    driver: local
+
+networks:
+  pullit-prod-network:
+    driver: bridge

@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # QA용 Spring Boot 애플리케이션
   pullit-qa-app:
-    image: ${DOCKER_REGISTRY}/pullit-qa:latest
+    image: ${DOCKER_REGISTRY}:latest
     container_name: pullit-qa-app
     restart: unless-stopped
     ports:
