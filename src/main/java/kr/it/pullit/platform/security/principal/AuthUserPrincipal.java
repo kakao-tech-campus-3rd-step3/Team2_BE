@@ -1,5 +1,3 @@
 package kr.it.pullit.platform.security.principal;
 
-public class AuthUserPrincipal {
-}
-
+public class AuthUserPrincipal {}

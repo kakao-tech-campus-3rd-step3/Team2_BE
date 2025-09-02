@@ -17,12 +17,14 @@ public class WebConfig implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    String[] origins = props.getAllowedOrigins().stream()
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .toArray(String[]::new);
+    String[] origins =
+        props.getAllowedOrigins().stream()
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .toArray(String[]::new);
 
-    registry.addMapping("/api/**")
+    registry
+        .addMapping("/api/**")
         .allowedOrigins(origins)
         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
         .allowedHeaders("*")
@@ -30,4 +32,3 @@ public class WebConfig implements WebMvcConfigurer {
         .maxAge(3600);
   }
 }
-

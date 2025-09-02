@@ -1,4 +1,3 @@
 package kr.it.pullit.shared.types;
 
-public class YearWeek {
-}
+public class YearWeek {}

@@ -1,5 +1,3 @@
 package kr.it.pullit.modules.member.repository;
 
-public interface MemberRepository {
-}
-
+public interface MemberRepository {}

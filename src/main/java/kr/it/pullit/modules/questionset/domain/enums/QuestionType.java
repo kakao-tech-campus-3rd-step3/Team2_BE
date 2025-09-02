@@ -1,4 +1,3 @@
 package kr.it.pullit.modules.questionset.domain.enums;
 
-public enum QuestionType {
-}
+public enum QuestionType {}

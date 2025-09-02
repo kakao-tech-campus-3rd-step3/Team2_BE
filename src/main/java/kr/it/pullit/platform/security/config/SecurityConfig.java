@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -16,17 +15,17 @@ public class SecurityConfig {
   @Bean
   @Profile("!no-auth")
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors(cors -> {
-        })
+    http.cors(cors -> {})
         .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
-            .permitAll()
-            .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
-            .authenticated()
-            .anyRequest().authenticated()
-        );
+        .authorizeHttpRequests(
+            authorize ->
+                authorize
+                    .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
+                    .permitAll()
+                    .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
+                    .authenticated()
+                    .anyRequest()
+                    .authenticated());
     // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
 
     return http.build();
@@ -35,20 +34,19 @@ public class SecurityConfig {
   @Bean
   @Profile("no-auth")
   public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors(cors -> {
-        })
+    http.cors(cors -> {})
         .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
-            .permitAll()
-            .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
-            .authenticated()
-            .anyRequest().permitAll()
-        );
+        .authorizeHttpRequests(
+            authorize ->
+                authorize
+                    .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
+                    .permitAll()
+                    .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
+                    .authenticated()
+                    .anyRequest()
+                    .permitAll());
     // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
 
     return http.build();
   }
 }
-

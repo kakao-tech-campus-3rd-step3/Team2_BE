@@ -1,5 +1,3 @@
 package kr.it.pullit.platform.security.handler;
 
-public class RestAuthenticationEntryPoint {
-}
-
+public class RestAuthenticationEntryPoint {}
