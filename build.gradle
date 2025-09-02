@@ -26,7 +26,7 @@ spotless {
 checkstyle {
     toolVersion = '11.0.1'
     configFile = file("config/checkstyle/google_checks.xml")
-    configProperties["org.checkstyle.google.suppressionfilter.config"] = file("config/checkstyle/suppressions.xml")
+    configProperties["org.checkstyle.google.suppressionfilter.config"] = file("config/checkstyle/checkstyle-suppressions.xml")
     ignoreFailures = false
     maxWarnings = 0
 }
