@@ -11,6 +11,7 @@
 [Git Convention](#git-convention)<br/>
 [Code Convention](#code-convention)<br/>
 [Project Structure](#project-structure)<br/>
+[Environment setup](#environment-setup)<br/>
 
 ## Git Convention
 
@@ -105,3 +106,36 @@ gitGraph
 ## Project Structure
 
 TBD
+
+## Environment setup
+
+### Checkstyle
+
+(intellij 기준)
+
+1. Marketplace에서 Checkstyle-IDEA 설치
+2. Settings > Tools > Checkstyle 이동
+3. Configuration File > + 클릭
+4. Use a local check configuration 선택 > config/checkstyle/google_checks.xml 선택
+5. Description에 'Google Style - custom' 입력 후 Next
+
+### Google Java Format
+
+(intellij 기준)
+
+1. Marketplace에서 google-java-format 설치
+2. Help > Edit Custom VM Options 선택
+3. 기존 내용 + 아래 내용 추가
+
+```
+--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+```
+
+4. 재시작
+
+참조: [https://github.com/google/google-java-format/blob/master/README.md#intellij-jre-config](https://github.com/google/google-java-format/blob/master/README.md#intellij-jre-config)
