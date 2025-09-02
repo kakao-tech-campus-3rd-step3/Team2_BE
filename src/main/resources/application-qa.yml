@@ -30,6 +30,7 @@ server:
     include-exception: true  # QA에서는 예외 정보 확인 가능
     include-stacktrace: on_param # 요청 시에만 스택트레이스 표시
     include-message: always
+  forward-headers-strategy: framework
 
 info:
   app:
@@ -57,4 +58,4 @@ management:
 cors:
   allowed-origins:
     - "https://qa.pull.it.kr"
-    - "http://local.pull.it.kr:3000"
+    - "http://local.pull.it.kr:5173"
