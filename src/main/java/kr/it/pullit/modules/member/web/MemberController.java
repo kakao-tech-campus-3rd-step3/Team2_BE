@@ -1,5 +1,3 @@
 package kr.it.pullit.modules.member.web;
 
-public class MemberController {
-}
-
+public class MemberController {}
