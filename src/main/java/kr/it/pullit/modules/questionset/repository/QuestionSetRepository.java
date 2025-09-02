@@ -1,4 +1,3 @@
 package kr.it.pullit.modules.questionset.repository;
 
-public interface QuestionSetRepository {
-}
+public interface QuestionSetRepository {}

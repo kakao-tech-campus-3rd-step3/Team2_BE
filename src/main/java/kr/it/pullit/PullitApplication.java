@@ -9,5 +9,4 @@ public class PullitApplication {
   public static void main(String[] args) {
     SpringApplication.run(PullitApplication.class, args);
   }
-
 }

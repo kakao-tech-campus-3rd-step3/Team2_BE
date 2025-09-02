@@ -1,5 +1,3 @@
 package kr.it.pullit.shared.error;
 
-public class GlobalExceptionAdvice {
-}
-
+public class GlobalExceptionAdvice {}

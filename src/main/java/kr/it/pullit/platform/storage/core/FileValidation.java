@@ -1,4 +1,3 @@
 package kr.it.pullit.platform.storage.core;
 
-public class FileValidation {
-}
+public class FileValidation {}
