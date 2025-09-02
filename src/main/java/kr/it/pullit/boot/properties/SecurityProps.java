@@ -1,5 +1,3 @@
 package kr.it.pullit.boot.properties;
 
-public class SecurityProps {
-}
-
+public class SecurityProps {}

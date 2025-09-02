@@ -1,4 +1,3 @@
 package kr.it.pullit.modules.questionset.repository.adapter.jpa;
 
-public interface QuestionSetJpaRepository {
-}
+public interface QuestionSetJpaRepository {}
