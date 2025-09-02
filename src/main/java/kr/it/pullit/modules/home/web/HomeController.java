@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HomeController {
 
-    @GetMapping("/")
-    public ResponseEntity<String> home() {
-        return ResponseEntity.ok("Pullit API Server is running!");
-    }
+  @GetMapping("/")
+  public ResponseEntity<String> home() {
+    return ResponseEntity.ok("Pullit API Server is running!");
+  }
 
-    @GetMapping("/health")
-    public ResponseEntity<String> health() {
-        return ResponseEntity.ok("OK");
-    }
+  @GetMapping("/health")
+  public ResponseEntity<String> health() {
+    return ResponseEntity.ok("OK");
+  }
 }
