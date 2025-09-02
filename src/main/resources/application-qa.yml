@@ -58,4 +58,4 @@ management:
 cors:
   allowed-origins:
     - "https://qa.pull.it.kr"
-    - "http://local.pull.it.kr:3000"
+    - "http://local.pull.it.kr:5173"
