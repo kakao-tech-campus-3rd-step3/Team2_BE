@@ -13,38 +13,26 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   @Bean
-  @Profile("!no-auth")
+  @Profile("!no-auth & !qa")
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> {})
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-            authorize ->
-                authorize
-                    .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
-                    .permitAll()
-                    .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
-                    .authenticated()
-                    .anyRequest()
-                    .authenticated());
+    http.cors(cors -> {
+    }).csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(authorize -> authorize
+        .requestMatchers("/", "/api", "/api/health", "/oauth/callback/**", "/login/oauth2/code/**")
+        .permitAll().requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
+        .authenticated().anyRequest().authenticated());
     // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
 
     return http.build();
   }
 
   @Bean
-  @Profile("no-auth")
+  @Profile({"no-auth", "qa"})
   public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> {})
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(
-            authorize ->
-                authorize
-                    .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
-                    .permitAll()
-                    .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
-                    .authenticated()
-                    .anyRequest()
-                    .permitAll());
+    http.cors(cors -> {
+    }).csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
+            .authenticated().anyRequest().permitAll());
     // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
 
     return http.build();

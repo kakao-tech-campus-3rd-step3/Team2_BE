@@ -50,10 +50,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,metrics,env"  # QA에서는 추가 엔드포인트 노출
+        include: "health,info,metrics,env"  # QA에서는 제한적 노출
+      base-path: "/actuator"  # 기본 경로 명시
   endpoint:
     health:
       show-details: always  # QA에서는 항상 상세 정보 표시
+
+# Rate Limiting 설정 (Resilience4j)
+resilience4j:
+  ratelimiter:
+    instances:
+      default:
+        limitForPeriod: 2500 # 기간 내 허용 요청 수
+        limitRefreshPeriod: 1m # 기간 (1분)
+        timeoutDuration: 0 # 대기 시간 없음 (즉시 실패)
+        registerHealthIndicator: true
 
 cors:
   allowed-origins:
