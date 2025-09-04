@@ -25,11 +25,9 @@ public class Member extends BaseEntity {
   @Column(nullable = false, unique = true)
   private String email;
 
-  @Column
-  private String name;
+  @Column private String name;
 
-  @Column
-  private String profileImageUrl;
+  @Column private String profileImageUrl;
 
   @Enumerated(EnumType.STRING)
   @Column

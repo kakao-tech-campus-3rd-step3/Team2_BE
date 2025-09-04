@@ -18,8 +18,9 @@ public abstract class TestContainerTest {
 
   private static final String MARIA_DB_IMAGE = "mariadb:12.0.2";
 
-  @SuppressWarnings("resource,unused")
-  @Container @ServiceConnection
+  @SuppressWarnings("resource, unused")
+  @Container
+  @ServiceConnection
   private static final MariaDBContainer<?> MARIA_DB_CONTAINER =
       new MariaDBContainer<>(DockerImageName.parse(MARIA_DB_IMAGE))
           .withDatabaseName("pullit")
