@@ -1,6 +1,5 @@
 package kr.it.pullit.platform.web;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;

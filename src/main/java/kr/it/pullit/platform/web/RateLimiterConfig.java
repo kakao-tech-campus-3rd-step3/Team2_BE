@@ -21,8 +21,8 @@ public class RateLimiterConfig {
   @Before("within(@org.springframework.web.bind.annotation.RestController *)")
   public void beforeRestController() {
     if (!rateLimiter.acquirePermission()) {
-      throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-          "You have exhausted your API request quota.");
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS, "You have exhausted your API request quota.");
     }
   }
 }
