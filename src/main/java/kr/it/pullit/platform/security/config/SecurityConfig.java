@@ -13,14 +13,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   @Bean
-  @Profile("!no-auth")
+  @Profile("!no-auth & !qa")
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> {})
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
+                    .requestMatchers(
+                        "/", "/api", "/api/health", "/oauth/callback/**", "/login/oauth2/code/**")
                     .permitAll()
                     .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
                     .authenticated()
@@ -32,15 +33,13 @@ public class SecurityConfig {
   }
 
   @Bean
-  @Profile("no-auth")
+  @Profile({"no-auth", "qa"})
   public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> {})
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/", "/health", "/oauth/callback/**", "/login/oauth2/code/**")
-                    .permitAll()
                     .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
                     .authenticated()
                     .anyRequest()

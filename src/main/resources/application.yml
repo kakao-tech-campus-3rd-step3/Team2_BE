@@ -70,3 +70,5 @@ management:
 cors:
   allowed-origins:
     - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
+  # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
+  max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
