@@ -1,3 +1,4 @@
+// 프로젝트 플러그인 설정
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.5'
@@ -6,16 +7,19 @@ plugins {
     id 'checkstyle'
 }
 
+// 프로젝트 기본 정보
 group = 'kr.it.pullit'
 version = '0.0.1-SNAPSHOT'
 description = 'pullit'
 
+// Java 버전 설정 (JDK 21 사용)
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
+// 코드 포맷팅 설정 (Google Java Format 사용)
 spotless {
     java {
         googleJavaFormat('1.28.0')
@@ -23,6 +27,7 @@ spotless {
     }
 }
 
+// 코드 스타일 검사 설정 (Google Checkstyle 사용)
 checkstyle {
     toolVersion = '11.0.1'
     configFile = file("config/checkstyle/google_checks.xml")
@@ -31,6 +36,7 @@ checkstyle {
     maxWarnings = 0
 }
 
+// 코드 품질 통합 체크 태스크
 tasks.register("codeCheck") {
     group = "verification"
     description = "Run all code quality checks."
@@ -38,21 +44,26 @@ tasks.register("codeCheck") {
     dependsOn("checkstyleMain")
 }
 
+// 의존성 구성 설정
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
 }
 
+// 의존성 저장소 설정 (Maven Central 사용)
 repositories {
     mavenCentral()
 }
 
+// Spring Cloud 버전 설정
 ext {
     set('springCloudVersion', "2025.0.0")
 }
 
+// 의존성 설정
 dependencies {
+    // Spring Boot 스타터 (코어 기능)
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -61,30 +72,54 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    // 코드 생성 도구
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // 데이터베이스 마이그레이션 도구
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'org.liquibase:liquibase-core'
+
+    // 회로 차단기 및 탄력성 패턴
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+
+    // AOP 및 개발 도구
     implementation 'org.springframework.boot:spring-boot-starter-aop'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-devtools'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+    // 모니터링 및 데이터베이스 드라이버
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    annotationProcessor 'org.projectlombok:lombok'
+
+    // 테스트 의존성
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'com.h2database:h2'
+
+    // 통합 테스트 도구 (Testcontainers)
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mariadb'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 }
 
+// 의존성 버전 관리 (BOM 사용)
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "org.testcontainers:testcontainers-bom:1.20.1"
     }
 }
 
+// 테스트 실행 설정 (JUnit 5 사용)
 tasks.named('test') {
     useJUnitPlatform()
 }
