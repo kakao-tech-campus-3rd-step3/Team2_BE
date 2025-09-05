@@ -21,6 +21,7 @@ public class QuestionSet {
   private String title;
   private String difficulty;
   private String type;
+  /* 문제 수 */
   private Integer questionLength;
   private Date createTime;
 }

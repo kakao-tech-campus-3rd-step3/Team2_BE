@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import java.util.List;
 import lombok.NoArgsConstructor;
 
+/** */
 @Entity
 @NoArgsConstructor
 public class Question {
@@ -22,6 +23,16 @@ public class Question {
   private String answer;
   private String explanation;
 
+  /**
+   * Question 생성자
+   *
+   * @param sourceId 문제 출처 ID
+   * @param questionSetId 문제집 ID
+   * @param questionText 문제 제목
+   * @param options 선지 목록 (오답만)
+   * @param answer 정답
+   * @param explanation 해설
+   */
   public Question(
       Long sourceId,
       Long questionSetId,
