@@ -1,3 +1,21 @@
 package kr.it.pullit.platform.storage.core;
 
-public class StorageProps {}
+import java.time.Duration;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix = "app.storage.s3")
+@Getter
+@Setter
+public class StorageProps {
+
+  private String bucketName;
+  private String region;
+  private String accessKey;
+  private String secretKey;
+  private Duration presignedUrlExpiration = Duration.ofMinutes(15);
+  private String basePath = "learning-sources";
+}

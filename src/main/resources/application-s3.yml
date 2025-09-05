@@ -1,0 +1,10 @@
+# S3 설정 (운영 환경에서는 환경변수나 외부 설정으로 관리)
+app:
+  storage:
+    s3:
+      bucket-name: ${S3_BUCKET_NAME:pullit-dev-bucket}
+      region: ${S3_REGION:ap-northeast-2}
+      access-key: ${S3_ACCESS_KEY:your-access-key}
+      secret-key: ${S3_SECRET_KEY:your-secret-key}
+      presigned-url-expiration: PT15M # 15분
+      base-path: learning-sources
