@@ -56,9 +56,9 @@ repositories {
     mavenCentral()
 }
 
-// Spring Cloud 버전 설정
+// Spring Cloud 버전 설정 awspring/spring-cloud-aws GitHub 릴리스 페이지 확인
 ext {
-    set('springCloudVersion', "2023.0.3")
+    set('springCloudVersion', "2025.0.0")
 }
 
 // 의존성 설정
@@ -94,9 +94,10 @@ dependencies {
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-    // AWS S3 SDK
-    implementation 'software.amazon.awssdk:s3:2.21.29'
-    implementation 'software.amazon.awssdk:auth:2.21.29'
+    // AWS
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.4.0")
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     // 테스트 의존성
