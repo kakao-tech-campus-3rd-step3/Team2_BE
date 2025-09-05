@@ -58,7 +58,7 @@ repositories {
 
 // Spring Cloud 버전 설정
 ext {
-    set('springCloudVersion', "2025.0.0")
+    set('springCloudVersion', "2023.0.3")
 }
 
 // 의존성 설정
