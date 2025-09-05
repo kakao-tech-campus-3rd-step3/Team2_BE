@@ -4,6 +4,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -14,6 +15,7 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class TestContainerTest {
 
   private static final String MARIA_DB_IMAGE = "mariadb:12.0.2";
@@ -25,5 +27,6 @@ public abstract class TestContainerTest {
       new MariaDBContainer<>(DockerImageName.parse(MARIA_DB_IMAGE))
           .withDatabaseName("pullit")
           .withUsername("test")
-          .withPassword("test");
+          .withPassword("test")
+          .withReuse(true);
 }

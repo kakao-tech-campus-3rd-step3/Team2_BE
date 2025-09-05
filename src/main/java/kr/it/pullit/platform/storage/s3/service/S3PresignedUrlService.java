@@ -34,6 +34,4 @@ public class S3PresignedUrlService implements S3PublicApi {
 
     return new PresignedUrlResponse(presignedUrl.toString(), filePath);
   }
-
-
 }

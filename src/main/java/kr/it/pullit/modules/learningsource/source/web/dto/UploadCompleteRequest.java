@@ -31,5 +31,3 @@ public class UploadCompleteRequest {
     this.fileSizeBytes = fileSizeBytes;
   }
 }
-
-

@@ -2,19 +2,24 @@ package kr.it.pullit.integration.testcontainers.modules.learningsource.source.se
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.web.dto.UploadResponse;
 import kr.it.pullit.support.TestContainerTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class SourceServiceIntegrationTest extends TestContainerTest {
 
-  @Autowired
-  private SourcePublicApi sourcePublicApi;
+  private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+
+  @Autowired private SourcePublicApi sourcePublicApi;
 
   @Test
-  void PDF_파일_업로드_URL_생성_성공() {
+  void shouldGenerateUploadUrlSuccessfullyForPdfFile() {
     // given
     String fileName = "study-material.pdf";
     String contentType = "application/pdf";
@@ -35,7 +40,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
   }
 
   @Test
-  void 비PDF_파일_업로드_시_검증_실패() {
+  void shouldFailValidationForNonPdfFileUpload() {
     // given
     String fileName = "diagram.png";
     String contentType = "image/png";
@@ -44,12 +49,13 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-            .isInstanceOf(IllegalArgumentException.class).hasMessage("PDF 파일만 업로드 가능합니다.");
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("PDF 파일만 업로드 가능합니다.");
   }
 
   @Test
-  void 큰_파일_업로드_URL_생성_성공() {
+  void shouldGenerateUploadUrlSuccessfullyForLargeFile() {
     // given
     String fileName = "large-document.pdf";
     String contentType = "application/pdf";
@@ -67,7 +73,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
   }
 
   @Test
-  void 다양한_회원의_파일_경로_구분() {
+  void shouldCreateDistinctFilePathsForDifferentMembers() {
     // given
     String fileName = "test.pdf";
     String contentType = "application/pdf";
@@ -87,7 +93,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
   }
 
   @Test
-  void 동일한_파일명도_고유한_경로_생성() {
+  void shouldCreateUniquePathForSameFileName() {
     // given
     String fileName = "duplicate.pdf";
     String contentType = "application/pdf";
@@ -106,7 +112,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
   }
 
   @Test
-  void 파일_크기_0_검증_실패() {
+  void shouldFailValidationForZeroFileSize() {
     // given
     String fileName = "zero-size.pdf";
     String contentType = "application/pdf";
@@ -115,12 +121,13 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-            .isInstanceOf(IllegalArgumentException.class).hasMessage("유효하지 않은 파일 크기입니다.");
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("유효하지 않은 파일 크기입니다.");
   }
 
   @Test
-  void 파일_크기_초과_검증_실패() {
+  void shouldFailValidationForExceededFileSize() {
     // given
     String fileName = "too-large.pdf";
     String contentType = "application/pdf";
@@ -129,13 +136,13 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
   }
 
   @Test
-  void Presigned_URL_형식_검증() {
+  void shouldVerifyPresignedUrlFormat() {
     // given
     String fileName = "validation-test.pdf";
     String contentType = "application/pdf";
@@ -158,7 +165,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
   }
 
   @Test
-  void 파일_경로_정책_검증() {
+  void shouldVerifyFilePathPolicy() {
     // given
     String fileName = "path-policy-test.pdf";
     String contentType = "application/pdf";
@@ -177,7 +184,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
   }
 
   @Test
-  void 실제_파일_업로드_테스트() {
+  void shouldUploadFileToS3Successfully() {
     // given
     String fileName = "real-upload-test.pdf";
     String contentType = "application/pdf";
@@ -213,14 +220,15 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
       System.out.println(
           "🌐 URL: " + presignedUrl.substring(0, Math.min(presignedUrl.length(), 100)) + "...");
 
-      java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-      java.net.http.HttpRequest request =
-          java.net.http.HttpRequest.newBuilder().uri(java.net.URI.create(presignedUrl))
-              .PUT(java.net.http.HttpRequest.BodyPublishers.ofByteArray(fileContent))
-              .header("Content-Type", contentType).build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(java.net.URI.create(presignedUrl))
+              .PUT(HttpRequest.BodyPublishers.ofByteArray(fileContent))
+              .header("Content-Type", contentType)
+              .build();
 
-      java.net.http.HttpResponse<String> response =
-          client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response =
+          HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
       System.out.println("📊 HTTP Status: " + response.statusCode());
       System.out.println("📋 Response Headers: " + response.headers().map());
@@ -235,7 +243,6 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
       }
     } catch (Exception e) {
       System.err.println("❌ S3 업로드 예외 발생: " + e.getMessage());
-      e.printStackTrace();
       return false;
     }
   }
