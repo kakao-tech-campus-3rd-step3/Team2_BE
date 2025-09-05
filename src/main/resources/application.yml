@@ -4,13 +4,13 @@ spring:
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: ${DB_URL:jdbc:mariadb://localhost:3306/pullit_local?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    url: jdbc:mariadb://localhost:3306/mydatabase?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: myuser
+    password: secret
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
 
   liquibase:
     enabled: false
@@ -72,3 +72,16 @@ cors:
     - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
+
+oauth:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID:}
+    client-secret: ${KAKAO_CLIENT_SECRET:}
+    redirect-uri: ${KAKAO_REDIRECT_URI:}
+    kauth-url: https://kauth.kakao.com
+    authorize-path: /oauth/authorize
+    token-path: /oauth/token
+    user-info-path: /v2/user/me
+
+app:
+  base-url: ${BASE_URL:}

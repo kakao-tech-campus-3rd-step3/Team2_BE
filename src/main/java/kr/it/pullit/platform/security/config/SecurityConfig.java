@@ -21,7 +21,12 @@ public class SecurityConfig {
             authorize ->
                 authorize
                     .requestMatchers(
-                        "/", "/api", "/api/health", "/oauth/callback/**", "/login/oauth2/code/**")
+                        "/",
+                        "/api",
+                        "/api/health",
+                        "/oauth/callback/**",
+                        "/login/oauth2/code/**",
+                        "/oauth/authorize/**")
                     .permitAll()
                     .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
                     .authenticated()
