@@ -6,6 +6,7 @@ import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.QuestionSetDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class QuestionSetService implements QuestionSetPublicApi {
@@ -17,6 +18,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
     this.questionSetRepository = questionSetRepository;
   }
 
+  @Transactional(readOnly = true)
   public QuestionSetDto questionSetGetById(Long id) {
     QuestionSet questionSet =
         questionSetRepository
