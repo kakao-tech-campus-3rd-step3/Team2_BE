@@ -1,6 +1,6 @@
 package kr.it.pullit.modules.questionset.web.dto;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import lombok.Getter;
 
@@ -13,7 +13,7 @@ public class QuestionSetDto {
   private final String difficulty;
   private final String type;
   private final Integer questionLength;
-  private final Date createTime;
+  private final LocalDateTime createTime;
 
   public QuestionSetDto(QuestionSet questionSet) {
     this.id = questionSet.getId();
