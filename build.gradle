@@ -26,7 +26,9 @@ spotless {
 checkstyle {
     toolVersion = '11.0.1'
     configFile = file("config/checkstyle/google_checks.xml")
-    configProperties["org.checkstyle.google.suppressionfilter.config"] = file("config/checkstyle/suppressions.xml")
+    configProperties["org.checkstyle.google.suppressionfilter.config"] = file("config/checkstyle/checkstyle-suppressions.xml")
+    ignoreFailures = false
+    maxWarnings = 0
 }
 
 tasks.register("codeCheck") {
@@ -64,6 +66,8 @@ dependencies {
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
