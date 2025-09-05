@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.util.Date;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,5 +23,5 @@ public class QuestionSet {
   private String type;
   /* 문제 수 */
   private Integer questionLength;
-  private Date createTime;
+  private LocalDateTime createTime;
 }
