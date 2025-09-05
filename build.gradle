@@ -63,6 +63,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
