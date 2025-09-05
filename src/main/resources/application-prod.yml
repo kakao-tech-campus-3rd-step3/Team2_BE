@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: pullit
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/pullit_prod?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # 프로덕션에서는 validate로 변경
+    show-sql: false
+
+  liquibase:
+    enabled: false
+
+  # 프로덕션에서는 DevTools 비활성화
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: false  # 프로덕션에서는 예외 상세 정보 숨김
+    include-stacktrace: NEVER
+    include-message: always
+
+info:
+  app:
+    name: Pullit Production
+    description: Pullit 스터디 플랫폼 운영 환경
+
+logging:
+  level:
+    root: info
+    org.springframework.security: warn
+    kr.it.pullit: info
+  # 프로덕션 로그 파일 설정 (선택사항)
+  # file:
+  #   name: logs/pullit-prod.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics"  # 프로덕션에서는 제한적 노출
+  endpoint:
+    health:
+      show-details: when-authorized  # 인증된 사용자만 상세 정보 확인
+
+cors:
+  allowed-origins:
+    - "https://www.pull.it.kr"
+    - "https://pull.it.kr"

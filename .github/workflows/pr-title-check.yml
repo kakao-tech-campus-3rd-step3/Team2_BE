@@ -1,0 +1,40 @@
+name: PR Title Check
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+jobs:
+  check-pr-title:
+    name: check-pr-title
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: deepakputhraya/action-pr-title@master
+        with:
+          regex: '^(btsk-\d+|hotfix):\s.+'
+          github_token: ${{ github.token }}
+
+      - name: Add comment if title is invalid
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: failure()
+        with:
+          header: pr-title-lint-error
+          message: |
+            PR 제목을 아래와 같이 작성해주세요.
+
+            ```
+              - btsk-<이슈번호>: <내용>
+              - hotfix: <내용>
+            ```
+      - name: Delete comment if title is valid
+        if: success()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint-error
+          delete: true
