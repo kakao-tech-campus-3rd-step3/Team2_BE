@@ -61,7 +61,11 @@ info:
 
 logging:
   level:
-    org.springframework.security: error
+    ROOT: DEBUG
+    java.lang.ProcessBuilder: INFO
+    sun.rmi.loader: WARN
+    sun.rmi.transport.tcp: WARN
+    javax.management.remote.rmi: WARN
 
 # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
