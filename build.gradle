@@ -15,7 +15,7 @@ description = 'pullit'
 // Java 버전 설정 (JDK 21 사용)
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 

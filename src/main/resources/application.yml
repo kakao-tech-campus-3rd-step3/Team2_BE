@@ -61,7 +61,11 @@ info:
 
 logging:
   level:
-    org.springframework.security: error
+    ROOT: DEBUG
+    java.lang.ProcessBuilder: INFO
+    sun.rmi.loader: WARN
+    sun.rmi.transport.tcp: WARN
+    javax.management.remote.rmi: WARN
 
 # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
@@ -78,6 +82,7 @@ cors:
   allowed-origins:
     - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
+<<<<<<< Updated upstream
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
 
 oauth:
@@ -92,3 +97,6 @@ oauth:
 
 app:
   base-url: ${BASE_URL:}
+=======
+  max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
+>>>>>>> Stashed changes
