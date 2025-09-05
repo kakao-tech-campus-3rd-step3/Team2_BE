@@ -43,8 +43,13 @@ public class Source extends BaseEntity {
   private SourceStatus status;
 
   @Builder
-  public Source(Long memberId, String originalName, String contentType, String filePath,
-      Long fileSizeBytes, SourceStatus status) {
+  public Source(
+      Long memberId,
+      String originalName,
+      String contentType,
+      String filePath,
+      Long fileSizeBytes,
+      SourceStatus status) {
     this.memberId = memberId;
     this.originalName = originalName;
     this.contentType = contentType;
@@ -52,6 +57,4 @@ public class Source extends BaseEntity {
     this.fileSizeBytes = fileSizeBytes;
     this.status = status != null ? status : SourceStatus.UPLOADED;
   }
-
-
 }
