@@ -19,6 +19,6 @@ public class SourceService implements SourcePublicApi {
     PresignedUrlResponse response =
         s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId);
 
-    return new UploadResponse(response.getUploadUrl(), response.getFilePath());
+    return new UploadResponse(response.uploadUrl(), response.filePath());
   }
 }
