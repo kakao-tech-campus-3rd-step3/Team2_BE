@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.questionset.web;
 
 import kr.it.pullit.modules.questionset.service.QuestionSetService;
-import kr.it.pullit.modules.questionset.web.dto.QuestionSetDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

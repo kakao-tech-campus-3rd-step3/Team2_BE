@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.questionset.web.dto;
+package kr.it.pullit.modules.questionset.web.dto.response;
 
 import java.util.Date;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
