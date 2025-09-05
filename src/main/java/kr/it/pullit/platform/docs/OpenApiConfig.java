@@ -7,24 +7,13 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
-
 @OpenAPIDefinition(
-        info = @Info(
-                title = "Pullit API",
-                version = "v1",
-                description = "팀 내부 개발용 OpenAPI 문서"
-        ),
-        servers = {
-                @Server(url = "https://api-qa.pull.it.kr", description = "QA Server")
-        }
-)
+    info = @Info(title = "Pullit API", version = "v1", description = "팀 내부 개발용 OpenAPI 문서"),
+    servers = {@Server(url = "https://api-qa.pull.it.kr", description = "QA Server")})
 @SecurityScheme(
-        name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",           // Authorization: Bearer <token>
-        bearerFormat = "JWT"
-)
+    name = "bearerAuth",
+    type = SecuritySchemeType.HTTP,
+    scheme = "bearer", // Authorization: Bearer <token>
+    bearerFormat = "JWT")
 @Configuration
-public class OpenApiConfig {
-
-}
+public class OpenApiConfig {}

@@ -12,7 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-
   @Bean
   @Profile("!no-auth & !qa")
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -30,9 +29,8 @@ public class SecurityConfig {
                     .authenticated());
     // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
 
-        return http.build();
-    }
-
+    return http.build();
+  }
 
   @Bean
   @Profile({"no-auth", "qa"})
@@ -48,6 +46,6 @@ public class SecurityConfig {
                     .permitAll());
     // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
 
-        return http.build();
-    }
+    return http.build();
+  }
 }
