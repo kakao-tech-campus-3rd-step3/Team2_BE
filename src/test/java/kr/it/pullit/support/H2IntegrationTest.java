@@ -7,5 +7,4 @@ import org.springframework.test.context.ActiveProfiles;
 @Disabled
 @ActiveProfiles("h2")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public abstract class H2IntegrationTest {
-}
+public abstract class H2IntegrationTest {}

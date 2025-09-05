@@ -16,10 +16,8 @@ public class KakaoOAuthClient {
   @Bean(name = "kakaoRestClient")
   public RestClient kakaoRestClient(RestTemplateBuilder builder) {
     RestTemplate restTemplate =
-        builder
-            .connectTimeout(Duration.ofSeconds(CONNECTION_TIME_OUT_SECOND))
-            .readTimeout(Duration.ofSeconds(READ_TIME_OUT_SECOND))
-            .build();
+        builder.setConnectTimeout(Duration.ofSeconds(CONNECTION_TIME_OUT_SECOND))
+            .setReadTimeout(Duration.ofSeconds(READ_TIME_OUT_SECOND)).build();
     return RestClient.create(restTemplate);
   }
 }
