@@ -2,7 +2,7 @@ package kr.it.pullit.platform.storage.s3.client;
 
 import java.net.URL;
 import java.time.Duration;
-import kr.it.pullit.platform.storage.core.StorageProps;
+import kr.it.pullit.platform.storage.core.S3StorageProps;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -18,12 +18,12 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @Component
 public class S3FileStorageClientManagingClient implements FileStorageClient {
 
-  private final StorageProps storageProps;
+  private final S3StorageProps s3StorageProps;
   private final S3Client s3Client;
   private final S3Presigner s3Presigner;
 
-  public S3FileStorageClientManagingClient(StorageProps storageProps) {
-    this.storageProps = storageProps;
+  public S3FileStorageClientManagingClient(S3StorageProps s3StorageProps) {
+    this.s3StorageProps = s3StorageProps;
     this.s3Client = createS3Client();
     this.s3Presigner = createS3Presigner();
   }
@@ -32,7 +32,7 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   public URL generatePresignedUploadUrl(String filePath, String contentType, Duration expiration) {
     PutObjectRequest putObjectRequest =
         PutObjectRequest.builder()
-            .bucket(storageProps.getBucketName())
+            .bucket(s3StorageProps.getBucketName())
             .key(filePath)
             .contentType(contentType)
             .build();
@@ -49,7 +49,7 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   @Override
   public void deleteFile(String filePath) {
     DeleteObjectRequest deleteRequest =
-        DeleteObjectRequest.builder().bucket(storageProps.getBucketName()).key(filePath).build();
+        DeleteObjectRequest.builder().bucket(s3StorageProps.getBucketName()).key(filePath).build();
 
     s3Client.deleteObject(deleteRequest);
   }
@@ -58,7 +58,7 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   public boolean fileExists(String filePath) {
     try (S3Client s3Client = createS3Client()) {
       HeadObjectRequest headRequest =
-          HeadObjectRequest.builder().bucket(storageProps.getBucketName()).key(filePath).build();
+          HeadObjectRequest.builder().bucket(s3StorageProps.getBucketName()).key(filePath).build();
 
       s3Client.headObject(headRequest);
       return true;
@@ -71,26 +71,26 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   public String getFileUrl(String filePath) {
     return String.format(
         "https://%s.s3.%s.amazonaws.com/%s",
-        storageProps.getBucketName(), storageProps.getRegion(), filePath);
+        s3StorageProps.getBucketName(), s3StorageProps.getRegion(), filePath);
   }
 
   private S3Client createS3Client() {
     return S3Client.builder()
-        .region(Region.of(storageProps.getRegion()))
+        .region(Region.of(s3StorageProps.getRegion()))
         .credentialsProvider(
             StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(
-                    storageProps.getAccessKey(), storageProps.getSecretKey())))
+                    s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey())))
         .build();
   }
 
   private S3Presigner createS3Presigner() {
     return S3Presigner.builder()
-        .region(Region.of(storageProps.getRegion()))
+        .region(Region.of(s3StorageProps.getRegion()))
         .credentialsProvider(
             StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(
-                    storageProps.getAccessKey(), storageProps.getSecretKey())))
+                    s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey())))
         .build();
   }
 }

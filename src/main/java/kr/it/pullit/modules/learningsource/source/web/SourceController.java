@@ -2,6 +2,7 @@ package kr.it.pullit.modules.learningsource.source.web;
 
 import jakarta.validation.Valid;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.web.dto.UploadCompleteRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.UploadRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.UploadResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,19 @@ public class SourceController {
     // TODO: 실제 인증 구현 후 현재 사용자 ID 가져오기
     Long memberId = 1L;
 
-    return ResponseEntity.ok(
-        sourcePublicApi.generateUploadUrl(
-            request.getFileName(), request.getContentType(), request.getFileSize(), memberId));
+    UploadResponse uploadResponse = sourcePublicApi.generateUploadUrl(request.getFileName(),
+        request.getContentType(), request.getFileSize(), memberId);
+
+    return ResponseEntity.ok(uploadResponse);
+  }
+
+  @PostMapping("/upload-complete")
+  public ResponseEntity<Void> processUploadComplete(
+      @Valid @RequestBody UploadCompleteRequest request) {
+    // TODO: 실제 인증 구현 후 현재 사용자 ID 가져오기
+    Long memberId = 1L;
+
+    sourcePublicApi.processUploadComplete(request, memberId);
+    return ResponseEntity.ok().build();
   }
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.storage.s3")
 @Getter
 @Setter
-public class StorageProps {
+public class S3StorageProps {
 
   private String bucketName;
   private String region;

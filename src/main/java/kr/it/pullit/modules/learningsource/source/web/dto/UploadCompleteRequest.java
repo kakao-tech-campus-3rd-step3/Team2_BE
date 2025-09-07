@@ -23,8 +23,8 @@ public class UploadCompleteRequest {
   @Positive(message = "파일 크기는 양수여야 합니다")
   private Long fileSizeBytes;
 
-  public UploadCompleteRequest(
-      String filePath, String originalName, String contentType, Long fileSizeBytes) {
+  public UploadCompleteRequest(String filePath, String originalName, String contentType,
+      Long fileSizeBytes) {
     this.filePath = filePath;
     this.originalName = originalName;
     this.contentType = contentType;
