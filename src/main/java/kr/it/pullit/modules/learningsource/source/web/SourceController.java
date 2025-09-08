@@ -30,7 +30,7 @@ public class SourceController {
 
     SourceUploadResponse uploadResponse =
         sourcePublicApi.generateUploadUrl(
-            request.getFileName(), request.getContentType(), request.getFileSize(), memberId);
+            request.fileName(), request.contentType(), request.fileSize(), memberId);
 
     return ResponseEntity.ok(uploadResponse);
   }
