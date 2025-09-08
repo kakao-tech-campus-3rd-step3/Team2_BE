@@ -98,7 +98,7 @@ gitGraph
 
 예시
 
-- `BTSK-1: 소셜 로그인 및 소셜 회원가입` (Good)
+- `btsk-1: 소셜 로그인 및 소셜 회원가입` (Good)
 - ~~`BTSK-1: 기능 추가`~~ (Bad)
 
 ## Code Convention
