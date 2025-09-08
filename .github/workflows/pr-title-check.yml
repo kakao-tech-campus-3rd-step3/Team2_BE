@@ -10,6 +10,7 @@ on:
 
 jobs:
   check-pr-title:
+    if: ${{ github.event.pull_request.state == 'open' && !github.event.pull_request.draft }}
     name: check-pr-title
     runs-on: ubuntu-latest
     permissions:
