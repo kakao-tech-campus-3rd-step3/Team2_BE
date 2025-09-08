@@ -1,7 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.repository;
 
 import java.util.List;
-import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.repository.adapter.jpa.SourceJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,16 +17,11 @@ public class SourceRepositoryImpl implements SourceRepository {
     return sourceJpaRepository.save(source);
   }
 
-  @Override
-  public Optional<Source> findById(Long id) {
-    return sourceJpaRepository.findById(id);
-  }
-
-  @Override
-  public Optional<Source> findByIdAndMemberId(Long id, Long memberId) {
-    return sourceJpaRepository.findByIdAndMemberId(id, memberId);
-  }
-
+  /**
+   * 사용처 : 학습 소스 목록 조회 api
+   * @param memberId
+   * @return
+   */
   @Override
   public List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
     return sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
