@@ -21,23 +21,25 @@
 
 ```mermaid
 gitGraph
-  commit id:"init"
+  commit id: "init"
   branch develop
   checkout develop
   commit id: "dev"
-  branch "issue-number/author/feature"
-  commit id:"feature"
+  branch issue-number/author/feature
+  commit id: "feature"
   checkout develop
-  merge "issue-number/author/feature" id:"features merge"
-  branch "refactor"
+  merge issue-number/author/feature id: "feature merge"
+  branch release/yyyy-mm-dd
+  checkout release/yyyy-mm-dd
+  commit id: "snapshot"
+  branch refactor
   commit id: "refactor"
-  checkout develop
-  merge "refactor" id:"refactor merge"
-  branch "release/yyyy-mm-dd"
-  checkout "release/yyyy-mm-dd"
-  commit id:"snapshot"
+  checkout release/yyyy-mm-dd
+  merge refactor id:"refactor merge"
   checkout main
-  merge "release/yyyy-mm-dd" id:"main merge"
+  merge release/yyyy-mm-dd id:"release merge"
+  checkout develop
+  merge main id: "sync"
 ```
 
 #### Branch list
