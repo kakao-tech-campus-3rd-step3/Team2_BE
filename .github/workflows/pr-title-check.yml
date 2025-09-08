@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: deepakputhraya/action-pr-title@master
         with:
-          regex: '^(btsk-\d+|hotfix):\s.+'
+          regex: '^(review-\d+|btsk-\d+|hotfix):\s.+'
           github_token: ${{ github.token }}
 
       - name: Add comment if title is invalid
@@ -30,6 +30,7 @@ jobs:
 
             ```
               - btsk-<이슈번호>: <내용>
+              - review-<번호>: <내용>
               - hotfix: <내용>
             ```
       - name: Delete comment if title is valid
