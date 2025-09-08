@@ -24,18 +24,16 @@ public class SourceService implements SourcePublicApi {
   private final SourceRepository sourceRepository;
 
   @Override
-  public SourceUploadResponse generateUploadUrl(String fileName, String contentType, Long fileSize,
-      Long memberId) {
+  public SourceUploadResponse generateUploadUrl(
+      String fileName, String contentType, Long fileSize, Long memberId) {
     PresignedUrlResponse response =
         s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId);
 
-    return new SourceUploadResponse(response.uploadUrl(), response.filePath(), fileName,
-        contentType, fileSize);
+    return new SourceUploadResponse(
+        response.uploadUrl(), response.filePath(), fileName, contentType, fileSize);
   }
 
-  /**
-   * 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다.
-   */
+  /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */
   @Override
   public void processUploadComplete(SourceUploadCompleteRequest request, Long memberId) {
     if (!fileStorageClient.fileExists(request.getFilePath())) {
@@ -47,8 +45,12 @@ public class SourceService implements SourcePublicApi {
     }
 
     SourceCreationParam sourceCreationParam =
-        new SourceCreationParam(memberId, request.getOriginalName(), request.getFilePath(),
-            request.getContentType(), request.getFileSizeBytes());
+        new SourceCreationParam(
+            memberId,
+            request.getOriginalName(),
+            request.getFilePath(),
+            request.getContentType(),
+            request.getFileSizeBytes());
 
     Source source = Source.create(sourceCreationParam);
 
@@ -58,6 +60,7 @@ public class SourceService implements SourcePublicApi {
   @Override
   public List<SourceResponse> getMySources(Long memberId) {
     return sourceRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
-        .map(SourceResponse::from).collect(Collectors.toList());
+        .map(SourceResponse::from)
+        .collect(Collectors.toList());
   }
 }

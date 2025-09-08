@@ -7,8 +7,8 @@ import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 
 public interface SourcePublicApi {
 
-  SourceUploadResponse generateUploadUrl(String fileName, String contentType, Long fileSize,
-      Long memberId);
+  SourceUploadResponse generateUploadUrl(
+      String fileName, String contentType, Long fileSize, Long memberId);
 
   void processUploadComplete(SourceUploadCompleteRequest request, Long memberId);
 

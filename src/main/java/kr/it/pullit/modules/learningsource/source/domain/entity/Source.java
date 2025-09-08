@@ -43,8 +43,13 @@ public class Source extends BaseEntity {
   private SourceStatus status;
 
   @Builder
-  public Source(Long memberId, String originalName, String contentType, String filePath,
-      Long fileSizeBytes, SourceStatus status) {
+  public Source(
+      Long memberId,
+      String originalName,
+      String contentType,
+      String filePath,
+      Long fileSizeBytes,
+      SourceStatus status) {
     this.memberId = memberId;
     this.originalName = originalName;
     this.contentType = contentType;
@@ -54,8 +59,13 @@ public class Source extends BaseEntity {
   }
 
   public static Source create(SourceCreationParam param) {
-    return Source.builder().memberId(param.memberId()).originalName(param.originalName())
-        .filePath(param.filePath()).contentType(param.contentType())
-        .fileSizeBytes(param.fileSizeBytes()).status(SourceStatus.UPLOADED).build();
+    return Source.builder()
+        .memberId(param.memberId())
+        .originalName(param.originalName())
+        .filePath(param.filePath())
+        .contentType(param.contentType())
+        .fileSizeBytes(param.fileSizeBytes())
+        .status(SourceStatus.UPLOADED)
+        .build();
   }
 }

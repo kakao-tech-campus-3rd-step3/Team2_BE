@@ -19,9 +19,12 @@ public class SourceResponse {
   private LocalDateTime createdAt;
 
   public static SourceResponse from(Source source) {
-    return SourceResponse.builder().id(source.getId()).originalName(source.getOriginalName())
-        .status(source.getStatus()).fileSizeBytes(source.getFileSizeBytes())
-        .createdAt(source.getCreatedAt()).build();
+    return SourceResponse.builder()
+        .id(source.getId())
+        .originalName(source.getOriginalName())
+        .status(source.getStatus())
+        .fileSizeBytes(source.getFileSizeBytes())
+        .createdAt(source.getCreatedAt())
+        .build();
   }
 }
-

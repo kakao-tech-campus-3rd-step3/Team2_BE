@@ -28,8 +28,9 @@ public class SourceController {
     // TODO: 실제 인증 구현 후 현재 사용자 ID 가져오기
     Long memberId = 1L;
 
-    SourceUploadResponse uploadResponse = sourcePublicApi.generateUploadUrl(request.getFileName(),
-        request.getContentType(), request.getFileSize(), memberId);
+    SourceUploadResponse uploadResponse =
+        sourcePublicApi.generateUploadUrl(
+            request.getFileName(), request.getContentType(), request.getFileSize(), memberId);
 
     return ResponseEntity.ok(uploadResponse);
   }

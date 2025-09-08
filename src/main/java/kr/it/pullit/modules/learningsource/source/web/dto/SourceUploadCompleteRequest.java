@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 /**
  * 소스 파일 업로드 완료 요청 DTO
  *
- * <p>
- * S3에 파일 업로드가 완료되었음을 알리는 요청 객체입니다.
- * 프론트엔드는 업로드 URL 요청 시 받은 정보를 이 객체에 담아 전송합니다.
- * </p>
+ * <p>S3에 파일 업로드가 완료되었음을 알리는 요청 객체입니다. 프론트엔드는 업로드 URL 요청 시 받은 정보를 이 객체에 담아 전송합니다.
  *
  * @author Pullit Development Team
  * @since 1.0.0
@@ -46,8 +43,12 @@ public class SourceUploadCompleteRequest {
    * @param contentType 파일 MIME 타입
    * @param fileSizeBytes 파일 크기 (바이트)
    */
-  public SourceUploadCompleteRequest(String uploadId, String filePath, String originalName,
-      String contentType, Long fileSizeBytes) {
+  public SourceUploadCompleteRequest(
+      String uploadId,
+      String filePath,
+      String originalName,
+      String contentType,
+      Long fileSizeBytes) {
     this.uploadId = uploadId;
     this.filePath = filePath;
     this.originalName = originalName;
