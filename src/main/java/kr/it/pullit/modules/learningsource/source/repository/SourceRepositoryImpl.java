@@ -18,10 +18,10 @@ public class SourceRepositoryImpl implements SourceRepository {
   }
 
   /**
-   * 사용처 : 학습 소스 목록 조회 api
+   * 사용처: 학습 소스 목록 조회 API.
    *
-   * @param memberId
-   * @return
+   * @param memberId 조회 대상 회원 식별자
+   * @return 생성일시 최신순의 소스 목록
    */
   @Override
   public List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
