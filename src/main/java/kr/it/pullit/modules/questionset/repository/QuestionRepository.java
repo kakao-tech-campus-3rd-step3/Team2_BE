@@ -1,3 +1,6 @@
 package kr.it.pullit.modules.questionset.repository;
 
-public interface QuestionRepository {}
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface QuestionRepository extends JpaRepository<QuestionSet, Long> {}
