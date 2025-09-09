@@ -20,8 +20,12 @@ import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 
 public class GeminiClient implements LlmClient {
   // TODO: config로 빼기
+  @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
   final int MIN_OPTION_COUNT = 4;
+
+  @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
   final int MAX_OPTION_COUNT = 4;
+
   final String questionId = LlmGeneratedQuestionDto.Fields.id;
   final String questionTextFieldName = LlmGeneratedQuestionDto.Fields.questionText;
   final String wrongsFieldName = LlmGeneratedQuestionDto.Fields.wrongs;
