@@ -57,4 +57,15 @@ public class Source extends BaseEntity {
     this.fileSizeBytes = fileSizeBytes;
     this.status = status != null ? status : SourceStatus.UPLOADED;
   }
+
+  public static Source create(SourceCreationParam param) {
+    return Source.builder()
+        .memberId(param.memberId())
+        .originalName(param.originalName())
+        .filePath(param.filePath())
+        .contentType(param.contentType())
+        .fileSizeBytes(param.fileSizeBytes())
+        .status(SourceStatus.UPLOADED)
+        .build();
+  }
 }

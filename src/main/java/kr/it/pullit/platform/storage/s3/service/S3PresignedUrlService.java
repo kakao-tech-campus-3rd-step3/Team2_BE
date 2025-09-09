@@ -4,7 +4,7 @@ import java.net.URL;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.core.FilePathPolicy;
 import kr.it.pullit.platform.storage.core.FileValidation;
-import kr.it.pullit.platform.storage.core.StorageProps;
+import kr.it.pullit.platform.storage.core.S3StorageProps;
 import kr.it.pullit.platform.storage.s3.client.FileStorageClient;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class S3PresignedUrlService implements S3PublicApi {
   private final FileStorageClient fileStorageClient;
   private final FileValidation fileValidation;
   private final FilePathPolicy filePathPolicy;
-  private final StorageProps storageProps;
+  private final S3StorageProps s3StorageProps;
 
   public PresignedUrlResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId) {
@@ -30,7 +30,7 @@ public class S3PresignedUrlService implements S3PublicApi {
     // Presigned URL 생성
     URL presignedUrl =
         fileStorageClient.generatePresignedUploadUrl(
-            filePath, contentType, storageProps.getPresignedUrlExpiration());
+            filePath, contentType, s3StorageProps.getPresignedUrlExpiration());
 
     return new PresignedUrlResponse(presignedUrl.toString(), filePath);
   }
