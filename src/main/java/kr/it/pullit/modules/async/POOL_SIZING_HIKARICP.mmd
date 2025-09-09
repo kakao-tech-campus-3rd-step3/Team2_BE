@@ -1,0 +1,36 @@
+graph TD
+    A["사용자 요청(HTTP)"] --> B["톰캣 스레드"]
+    B --> C["컨트롤러"]
+    C --> D["@Async 서비스 호출"]
+    D --> E{"ThreadPoolTaskExecutor"}
+
+    subgraph "Async ThreadPool"
+        E -->|corePoolSize 내| F["워커 스레드 실행"]
+        E -->|corePoolSize 포화| G["작업 큐 대기"]
+        G -->|큐 포화 & maxPoolSize 지정| H["maxPoolSize까지 확장"]
+        H --> F
+        G -->|큐 포화 & max 미지정| I["CallerRunsPolicy 수행(톰캣 스레드)"]
+    end
+
+    F --> J["Repository/DB 호출"]
+
+    subgraph "HikariCP"
+        J --> K{"Connection Pool"}
+        K -->|유휴 있음| L["커넥션 획득"]
+        K -->|없음| M["대기 또는 타임아웃"]
+    end
+
+    L --> N[["DB"]]
+    N --> L
+    L --> O["결과 반환"]
+    O --> F
+
+    subgraph "Sizing Decisions"
+        P["CPU 코어 수, 목표 CPU 사용률, I/O 대기계수"] --> Q["corePoolSize = cores * util * (1 + block)"]
+        R["Hikari 공식 connections = cores*2 + spindle"] --> K
+    end
+
+    style I fill:#fee,stroke:#c00,stroke-width:1px
+    style H fill:#eef,stroke:#00c,stroke-width:1px
+    style Q fill:#efe,stroke:#0a0,stroke-width:1px
+    style R fill:#efe,stroke:#0a0,stroke-width:1px

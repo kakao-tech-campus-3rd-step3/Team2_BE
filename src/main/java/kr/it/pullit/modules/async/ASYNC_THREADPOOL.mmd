@@ -1,0 +1,50 @@
+graph TD
+    A["HTTP 요청"] --> B["컨트롤러"]
+    B --> C["@Async 메서드 호출"]
+    C --> D{TaskExecutor 제출}
+
+    subgraph Async ThreadPool
+        D -->|core 이내| E["워커 스레드 실행"]
+        D -->|core 포화| F["작업 큐 대기 요청"]
+
+        F --> QB["Queue bounded"]
+        QB -->|No unbounded| QWU["대기(확장 없음)"]
+        QB -->|Yes| QF["Queue full"]
+
+        QF -->|No| QW["대기(큐 여유)"]
+        QF -->|Yes| MX["currentPoolSize < maxPoolSize"]
+
+        MX -->|Yes| G["스레드 확장(최대 max까지)"]
+        MX -->|No| H["Rejected → CallerRunsPolicy(요청 스레드 수행)"]
+    end
+
+    E --> I["DB/외부 API 호출"]
+    I --> J[작업 완료]
+    J --> K[후속 처리/로그]
+
+    subgraph Params
+        L["core = cores * util * (1 + block)"]
+        M["queue = 기본 unbounded(무제한)"]
+        N["max = 필요 시에만 제한"]
+    end
+
+    L --> D
+    M --> QB
+    N --> MX
+
+    subgraph Policy
+        P1["Queue 기본: unbounded → 확장 없음"]
+        P2["Rejected: CallerRunsPolicy(자연 역압, 유실 방지)"]
+        P3["Core 계산식: cores × targetCpuUtil × (1 + blockingCoeff)"]
+    end
+
+    P1 --> QWU
+    P2 --> H
+    P3 --> L
+
+    style H fill:#fee,stroke:#c00,stroke-width:1px
+    style G fill:#eef,stroke:#00c,stroke-width:1px
+    style L fill:#efe,stroke:#0a0,stroke-width:1px
+    style P2 fill:#fee,stroke:#c00,stroke-width:1px
+    style P1 fill:#eef,stroke:#00c,stroke-width:1px
+    style P3 fill:#efe,stroke:#0a0,stroke-width:1px
