@@ -1,9 +1,16 @@
 package kr.it.pullit.modules.learningsource.source.api;
 
-import kr.it.pullit.modules.learningsource.source.web.dto.UploadResponse;
+import java.util.List;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 
 public interface SourcePublicApi {
 
-  UploadResponse generateUploadUrl(
+  SourceUploadResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId);
+
+  void processUploadComplete(SourceUploadCompleteRequest request, Long memberId);
+
+  List<SourceResponse> getMySources(Long memberId);
 }
