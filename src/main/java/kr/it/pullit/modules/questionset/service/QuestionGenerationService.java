@@ -4,5 +4,4 @@ import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import org.springframework.stereotype.Service;
 
 @Service
-public class QuestionGenerationService implements QuestionSetPublicApi {
-}
+public class QuestionGenerationService implements QuestionSetPublicApi {}

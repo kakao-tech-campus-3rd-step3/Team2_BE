@@ -19,18 +19,16 @@ import kr.it.pullit.modules.questionset.api.SseDataCallback;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 
 public class GeminiClient implements LlmClient {
-  private final Client client = new Client();
-  private final ObjectMapper mapper = new ObjectMapper();
-
   // TODO: config로 빼기
   final int MIN_OPTION_COUNT = 4;
   final int MAX_OPTION_COUNT = 4;
-
   final String questionId = LlmGeneratedQuestionDto.Fields.id;
   final String questionTextFieldName = LlmGeneratedQuestionDto.Fields.questionText;
   final String wrongsFieldName = LlmGeneratedQuestionDto.Fields.wrongs;
   final String answerFieldName = LlmGeneratedQuestionDto.Fields.answer;
   final String explanationFieldName = LlmGeneratedQuestionDto.Fields.explanation;
+  private final Client client = new Client();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   private GenerateContentConfig getConfig(int questionCount) {
     ImmutableMap<String, Object> schema =
