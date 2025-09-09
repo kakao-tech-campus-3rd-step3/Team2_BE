@@ -7,6 +7,15 @@ spring:
     url: jdbc:mariadb://localhost:3306/mydatabase?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: myuser
     password: secret
+    hikari:
+      # HikariCP 공식 가이드: connections = ((core_count * 2) + effective_spindle_count)
+      # - core_count: 물리적 CPU 코어 수
+      # - effective_spindle_count: 디스크 수 (1-4개)
+      maximum-pool-size: 10          # 기본값: 10 (4코어 기준: ((4*2)+2)=10)
+      minimum-idle: 10               # maximum-pool-size와 동일하게 설정 (고정 풀 크기)
+      connection-timeout: 30000      # 기본값: 30초
+      idle-timeout: 600000           # 기본값: 10분
+      max-lifetime: 1800000          # 기본값: 30분
 
   jpa:
     hibernate:
@@ -76,7 +85,17 @@ management:
         include: "*"  # 모든 엔드포인트 노출
   endpoint:
     health:
-      show-details: always  # 헬스 체크 상세 정보 표시
+      show-details: always
+
+# =================================================================================================
+# Pullit 커스텀 설정
+# =================================================================================================
+pullit:
+  async:
+    io:
+      # I/O-bound 비동기 작업 스레드 풀 설정
+      target-cpu-utilization: 0.3    # 목표 CPU 사용률 (30%)
+      blocking-coefficient: 0.9       # I/O 대기 계수 (90% I/O 대기)
 
 cors:
   allowed-origins:
