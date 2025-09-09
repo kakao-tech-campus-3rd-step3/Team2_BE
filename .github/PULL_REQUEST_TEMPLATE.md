@@ -4,6 +4,6 @@
 
 <!-- 어떤 PR인지 자세히 설명해주세요 -->
 
-Release Notes:
+<!--Release Notes:
 
-- N/A _or_ Added/Fixed/Improved ...
+- N/A _or_ Added/Fixed/Improved ...-->
