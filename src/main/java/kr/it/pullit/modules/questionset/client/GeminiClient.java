@@ -22,8 +22,9 @@ public class GeminiClient implements LlmClient {
   private final Client client = new Client();
   private final ObjectMapper mapper = new ObjectMapper();
 
-  final int MIN_QUESTION_COUNT = 4;
-  final int MAX_QUESTION_COUNT = 4;
+  // TODO: config로 빼기
+  final int MIN_OPTION_COUNT = 4;
+  final int MAX_OPTION_COUNT = 4;
 
   final String questionId = LlmGeneratedQuestionDto.Fields.id;
   final String questionTextFieldName = LlmGeneratedQuestionDto.Fields.questionText;
@@ -68,13 +69,52 @@ public class GeminiClient implements LlmClient {
                   optionsFieldName,
                   answerFieldName,
                   explanationFieldName)));
+  private GenerateContentConfig getConfig(int questionCount) {
+    ImmutableMap<String, Object> schema =
+        ImmutableMap.of(
+            "type",
+            "array",
+            "minItems",
+            questionCount,
+            "maxItems",
+            questionCount,
+            "items",
+            ImmutableMap.of(
+                "type",
+                "object",
+                "properties",
+                ImmutableMap.of(
+                    questionId,
+                    ImmutableMap.of("type", "integer"),
+                    questionTextFieldName,
+                    ImmutableMap.of("type", "string"),
+                    ImmutableMap.of(
+                        "type",
+                        "array",
+                        "items",
+                        ImmutableMap.of("type", "string"),
+                        "minItems",
+                        MIN_OPTION_COUNT,
+                        "maxItems",
+                        MAX_OPTION_COUNT),
+                    answerFieldName,
+                    ImmutableMap.of("type", "string"),
+                    explanationFieldName,
+                    ImmutableMap.of("type", "string")),
+                "required",
+                ImmutableList.of(
+                    questionId,
+                    questionTextFieldName,
+                    wrongsFieldName,
+                    answerFieldName,
+                    explanationFieldName)));
 
-  GenerateContentConfig config =
-      GenerateContentConfig.builder()
-          .responseMimeType("application/json")
-          .candidateCount(1)
-          .responseJsonSchema(schema)
-          .build();
+    return GenerateContentConfig.builder()
+        .responseMimeType("application/json")
+        .candidateCount(1)
+        .responseJsonSchema(schema)
+        .build();
+  }
 
   // TODO: SuppressWarnings 제거
   @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
@@ -82,7 +122,7 @@ public class GeminiClient implements LlmClient {
   public List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
       String prompt, String pdfFilePath, String model) {
     if (model == null) {
-      model = "gemini-2.5-flash";
+      model = "gemini-2.5-flash-lite";
     }
 
     try {
@@ -90,7 +130,8 @@ public class GeminiClient implements LlmClient {
       Content content =
           Content.fromParts(Part.fromBytes(pdfData, "application/pdf"), Part.fromText(prompt));
 
-      GenerateContentResponse response = client.models.generateContent(model, content, config);
+      GenerateContentResponse response =
+          client.models.generateContent(model, content, this.getConfig(5));
 
       String result = response.text();
 
@@ -102,14 +143,23 @@ public class GeminiClient implements LlmClient {
 
   @Override
   public void getLlmGeneratedQuestionStream(
-      String prompt, String pdfFilePath, String model, SseDataCallback callback) {
+      String prompt, String filePath, int questionCount, String model, SseDataCallback callback) {
+    if (prompt == null) {
+      throw new IllegalArgumentException("prompt is null");
+    }
+    if (filePath == null) {
+      throw new IllegalArgumentException("filePath is null");
+    }
+    if (callback == null) {
+      throw new IllegalArgumentException("callback is null");
+    }
     if (model == null) {
-      model = "gemini-2.5-flash";
+      model = "gemini-2.5-flash-lite";
     }
 
     byte[] pdfData;
     try {
-      pdfData = Files.readAllBytes(Paths.get(pdfFilePath));
+      pdfData = Files.readAllBytes(Paths.get(filePath));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -118,7 +168,7 @@ public class GeminiClient implements LlmClient {
         Content.fromParts(Part.fromBytes(pdfData, "application/pdf"), Part.fromText(prompt));
 
     ResponseStream<GenerateContentResponse> responseStream =
-        client.models.generateContentStream(model, content, config);
+        client.models.generateContentStream(model, content, this.getConfig(questionCount));
     JsonStreamParser jsonStreamParser = new JsonStreamParser();
 
     for (GenerateContentResponse res : responseStream) {

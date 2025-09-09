@@ -8,5 +8,5 @@ public interface LlmClient {
       String prompt, String filePath, String model);
 
   void getLlmGeneratedQuestionStream(
-      String prompt, String filePath, String model, SseDataCallback callback);
+      String prompt, String filePath, int questionCount, String model, SseDataCallback callback);
 }
