@@ -21,23 +21,25 @@
 
 ```mermaid
 gitGraph
-  commit id:"init"
+  commit id: "init"
   branch develop
   checkout develop
   commit id: "dev"
-  branch "issue-number/author/feature"
-  commit id:"feature"
+  branch issue-number/author/feature
+  commit id: "feature"
   checkout develop
-  merge "issue-number/author/feature" id:"features merge"
-  branch "refactor"
+  merge issue-number/author/feature id: "feature merge"
+  branch release/yyyy-mm-dd
+  checkout release/yyyy-mm-dd
+  commit id: "snapshot"
+  branch refactor
   commit id: "refactor"
-  checkout develop
-  merge "refactor" id:"refactor merge"
-  branch "release/yyyy-mm-dd"
-  checkout "release/yyyy-mm-dd"
-  commit id:"snapshot"
+  checkout release/yyyy-mm-dd
+  merge refactor id:"refactor merge"
   checkout main
-  merge "release/yyyy-mm-dd" id:"main merge"
+  merge release/yyyy-mm-dd id:"release merge"
+  checkout develop
+  merge main id: "sync"
 ```
 
 #### Branch list
@@ -96,7 +98,7 @@ gitGraph
 
 예시
 
-- `BTSK-1: 소셜 로그인 및 소셜 회원가입` (Good)
+- `btsk-1: 소셜 로그인 및 소셜 회원가입` (Good)
 - ~~`BTSK-1: 기능 추가`~~ (Bad)
 
 ## Code Convention
