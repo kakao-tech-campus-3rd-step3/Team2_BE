@@ -28,47 +28,10 @@ public class GeminiClient implements LlmClient {
 
   final String questionId = LlmGeneratedQuestionDto.Fields.id;
   final String questionTextFieldName = LlmGeneratedQuestionDto.Fields.questionText;
-  final String optionsFieldName = LlmGeneratedQuestionDto.Fields.options;
+  final String wrongsFieldName = LlmGeneratedQuestionDto.Fields.wrongs;
   final String answerFieldName = LlmGeneratedQuestionDto.Fields.answer;
   final String explanationFieldName = LlmGeneratedQuestionDto.Fields.explanation;
 
-  ImmutableMap<String, Object> schema =
-      ImmutableMap.of(
-          "type",
-          "array",
-          "minItems",
-          1,
-          "items",
-          ImmutableMap.of(
-              "type",
-              "object",
-              "properties",
-              ImmutableMap.of(
-                  questionId,
-                  ImmutableMap.of("type", "integer"),
-                  questionTextFieldName,
-                  ImmutableMap.of("type", "string"),
-                  optionsFieldName,
-                  ImmutableMap.of(
-                      "type",
-                      "array",
-                      "items",
-                      ImmutableMap.of("type", "string"),
-                      "minItems",
-                      MIN_QUESTION_COUNT,
-                      "maxItems",
-                      MAX_QUESTION_COUNT),
-                  answerFieldName,
-                  ImmutableMap.of("type", "string"),
-                  explanationFieldName,
-                  ImmutableMap.of("type", "string")),
-              "required",
-              ImmutableList.of(
-                  questionId,
-                  questionTextFieldName,
-                  optionsFieldName,
-                  answerFieldName,
-                  explanationFieldName)));
   private GenerateContentConfig getConfig(int questionCount) {
     ImmutableMap<String, Object> schema =
         ImmutableMap.of(
@@ -88,6 +51,7 @@ public class GeminiClient implements LlmClient {
                     ImmutableMap.of("type", "integer"),
                     questionTextFieldName,
                     ImmutableMap.of("type", "string"),
+                    wrongsFieldName,
                     ImmutableMap.of(
                         "type",
                         "array",
