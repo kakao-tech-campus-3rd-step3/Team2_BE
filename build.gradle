@@ -44,6 +44,15 @@ tasks.register("codeCheck") {
     dependsOn("checkstyleMain")
 }
 
+// git hooks 업데이트
+tasks.register("updateGitHooks", Copy) {
+    group = "Git hooks"
+    description = "Update git hooks files"
+    from "./scripts/pre-push"
+    into './.git/hooks/'
+    fileMode 0775
+}
+
 // 의존성 구성 설정
 configurations {
     compileOnly {
