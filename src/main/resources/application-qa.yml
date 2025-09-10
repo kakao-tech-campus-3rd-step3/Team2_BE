@@ -71,7 +71,28 @@ cors:
     - "https://qa.pull.it.kr"
     - "http://local.pull.it.kr:5173"
 
+# =================================================================================================
+# 외부 서비스 연동 설정
+# =================================================================================================
+oauth:
+  kakao:
+    # 카카오 개발자센터에서 발급받은 REST API 키
+    client-id: ${KAKAO_REST_API_KEY}
+    # 카카오 개발자센터에서 발급받은 클라이언트 시크릿
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    # 카카오 로그인 성공 후 리디렉션될 URI
+    redirect-uri: "${BASE_URL}/oauth/callback/kakao"
+    # 카카오 인증 서버 기본 URL
+    kauth-url: "https://kauth.kakao.com"
+    # 인가 코드 요청 경로
+    authorize-path: "/oauth/authorize"
+    # 액세스 토큰 요청 경로
+    token-path: "/oauth/token"
+    # 사용자 정보 조회 경로
+    user-info-path: "/v2/user/me"
+
 app:
+  base-url: ${BASE_URL}
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"

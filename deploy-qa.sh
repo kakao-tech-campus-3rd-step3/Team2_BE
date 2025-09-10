@@ -12,14 +12,14 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # 환경 변수 확인
-if [ -z "$QA_DOCKER_REGISTRY" ]; then
-    echo -e "${RED}Error: QA_DOCKER_REGISTRY 환경 변수가 설정되지 않았습니다.${NC}"
-    echo "사용법: . .env 파일에 QA_DOCKER_REGISTRY=your-registry/pullit-app 형식으로 정의하세요."
+if [ -z "$DOCKER_REGISTRY" ]; then
+    echo -e "${RED}Error: DOCKER_REGISTRY 환경 변수가 설정되지 않았습니다.${NC}"
+    echo "사용법: . .env 파일에 DOCKER_REGISTRY=your-registry/pullit-app 형식으로 정의하세요."
     exit 1
 fi
 
-if [ -z "$QA_DB_PASSWORD" ] || [ -z "$QA_DB_ROOT_PASSWORD" ] || [ -z "$QA_GOOGLE_API_KEY" ] || [ -z "$QA_S3_ACCESS_KEY" ] || [ -z "$QA_S3_SECRET_KEY" ] || [ -z "$QA_KAKAO_REST_API_KEY" ] || [ -z "$QA_DB_USERNAME" ]; then
-    echo -e "${RED}Error: 필수 QA 배포 환경 변수(QA_DB_*, QA_GOOGLE_*, etc.)가 모두 설정되지 않았습니다.${NC}"
+if [ -z "$DB_PASSWORD" ] || [ -z "$DB_ROOT_PASSWORD" ] || [ -z "$GOOGLE_API_KEY" ] || [ -z "$S3_ACCESS_KEY" ] || [ -z "$S3_SECRET_KEY" ] || [ -z "$KAKAO_REST_API_KEY" ] || [ -z "$DB_USERNAME" ] || [ -z "$KAKAO_CLIENT_SECRET" ] || [ -z "$BASE_URL" ]; then
+    echo -e "${RED}Error: 필수 배포 환경 변수(DB_*, GOOGLE_*, etc.)가 모두 설정되지 않았습니다.${NC}"
     exit 1
 fi
 
@@ -31,8 +31,8 @@ if [ -z "$GIT_SHA" ]; then
 fi
 
 # Docker 이미지 태그 생성
-SHA_IMAGE_TAG="${QA_DOCKER_REGISTRY}:${GIT_SHA}"
-LATEST_IMAGE_TAG="${QA_DOCKER_REGISTRY}:latest"
+SHA_IMAGE_TAG="${DOCKER_REGISTRY}:${GIT_SHA}"
+LATEST_IMAGE_TAG="${DOCKER_REGISTRY}:latest"
 
 
 echo -e "${GREEN} Pullit QA 서버 배포 시작${NC}"
@@ -58,13 +58,15 @@ echo "docker login -u <your-docker-username>"
 
 echo "# 환경 변수 설정 (배포할 버전의 이미지 태그 사용)"
 echo "export DOCKER_IMAGE=${SHA_IMAGE_TAG}"
-echo "export QA_DB_USERNAME=${QA_DB_USERNAME}"
-echo "export QA_DB_PASSWORD=${QA_DB_PASSWORD}"
-echo "export QA_DB_ROOT_PASSWORD=${QA_DB_ROOT_PASSWORD}"
-echo "export QA_GOOGLE_API_KEY=${QA_GOOGLE_API_KEY}"
-echo "export QA_S3_ACCESS_KEY=${QA_S3_ACCESS_KEY}"
-echo "export QA_S3_SECRET_KEY=${QA_S3_SECRET_KEY}"
-echo "export QA_KAKAO_REST_API_KEY=${QA_KAKAO_REST_API_KEY}"
+echo "export DB_USERNAME=${DB_USERNAME}"
+echo "export DB_PASSWORD=${DB_PASSWORD}"
+echo "export DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}"
+echo "export GOOGLE_API_KEY=${GOOGLE_API_KEY}"
+echo "export S3_ACCESS_KEY=${S3_ACCESS_KEY}"
+echo "export S3_SECRET_KEY=${S3_SECRET_KEY}"
+echo "export KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}"
+echo "export KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}"
+echo "export BASE_URL=${BASE_URL}"
 echo "export AWS_REGION=ap-northeast-2"
 echo ""
 echo "# 2. Docker Compose 파일 다운로드 (또는 직접 생성)"

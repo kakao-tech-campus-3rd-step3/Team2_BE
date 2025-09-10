@@ -6,6 +6,9 @@ on:
 
 jobs:
   deploy:
+    # GitHub Environments 사용을 위해 environment 설정
+    # GitHub 저장소의 Settings > Environments 에서 'qa' 환경을 생성해야 합니다.
+    environment: qa
     runs-on: ubuntu-24.04 [Beta]
 
     steps:
@@ -24,25 +27,27 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo '${{ secrets.QA_EC2_SSH_KEY }}' > ~/.ssh/ec2_key.pem
+          echo '${{ secrets.EC2_SSH_KEY }}' > ~/.ssh/ec2_key.pem
           chmod 600 ~/.ssh/ec2_key.pem
-          ssh-keyscan -H ${{ secrets.QA_EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Upload docker-compose (QA)
-        run: scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.QA_EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
+        run: scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
 
       - name: Deploy with Docker Compose (QA)
         run: |
-          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.QA_EC2_HOST }} "\
+          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "\
             mkdir -p /home/ubuntu/app && \
             export DOCKER_IMAGE='${{ secrets.DOCKER_REGISTRY }}:${{ github.sha }}' && \
-            export DB_USERNAME='${{ secrets.QA_DB_USERNAME }}' && \
-            export DB_PASSWORD='${{ secrets.QA_DB_PASSWORD }}' && \
-            export DB_ROOT_PASSWORD='${{ secrets.QA_DB_ROOT_PASSWORD }}' && \
-            export KAKAO_REST_API_KEY='${{ secrets.QA_KAKAO_REST_API_KEY }}' && \
-            export GOOGLE_API_KEY='${{ secrets.QA_GOOGLE_API_KEY }}' && \
-            export S3_ACCESS_KEY='${{ secrets.QA_S3_ACCESS_KEY }}' && \
-            export S3_SECRET_KEY='${{ secrets.QA_S3_SECRET_KEY }}' && \
+            export DB_USERNAME='${{ secrets.DB_USERNAME }}' && \
+            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}' && \
+            export DB_ROOT_PASSWORD='${{ secrets.DB_ROOT_PASSWORD }}' && \
+            export KAKAO_REST_API_KEY='${{ secrets.KAKAO_REST_API_KEY }}' && \
+            export KAKAO_CLIENT_SECRET='${{ secrets.KAKAO_CLIENT_SECRET }}' && \
+            export GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' && \
+            export S3_ACCESS_KEY='${{ secrets.S3_ACCESS_KEY }}' && \
+            export S3_SECRET_KEY='${{ secrets.S3_SECRET_KEY }}' && \
+            export BASE_URL='${{ secrets.BASE_URL }}' && \
             export AWS_REGION='ap-northeast-2' && \
             cd /home/ubuntu/app && \
             docker compose -f docker-compose.qa.yml pull && \
