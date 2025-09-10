@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 # 환경 변수 확인
 if [ -z "$DOCKER_REGISTRY" ]; then
     echo -e "${RED}Error: DOCKER_REGISTRY 환경 변수가 설정되지 않았습니다.${NC}"
-    echo "사용법: export DOCKER_REGISTRY=your-registry.com/pullit"
+    echo "사용법: export DOCKER_REGISTRY=your-registry/pullit-app"
     exit 1
 fi
 
@@ -23,14 +23,28 @@ if [ -z "$DB_PASSWORD" ] || [ -z "$DB_ROOT_PASSWORD" ]; then
     exit 1
 fi
 
+# 현재 Git 커밋 해시 가져오기 (전체 SHA)
+GIT_SHA=$(git rev-parse HEAD)
+if [ -z "$GIT_SHA" ]; then
+    echo -e "${RED}Error: Git commit SHA를 가져올 수 없습니다. Git 레포지토리 안에서 실행해주세요.${NC}"
+    exit 1
+fi
+
+# Docker 이미지 태그 생성
+SHA_IMAGE_TAG="${DOCKER_REGISTRY}:${GIT_SHA}"
+LATEST_IMAGE_TAG="${DOCKER_REGISTRY}:latest"
+
+
 echo -e "${GREEN} Pullit QA 서버 배포 시작${NC}"
+echo -e "사용할 이미지 태그: ${YELLOW}${SHA_IMAGE_TAG}${NC}"
 
 # 1. 이미지 빌드 및 푸시
 echo -e "${YELLOW} Docker 이미지 빌드 중...${NC}"
-docker build -t ${DOCKER_REGISTRY}:latest .
+docker build -t ${SHA_IMAGE_TAG} -t ${LATEST_IMAGE_TAG} .
 
 echo -e "${YELLOW}⬆ Docker 레지스트리에 이미지 푸시 중...${NC}"
-docker push ${DOCKER_REGISTRY}:latest
+docker push ${SHA_IMAGE_TAG}
+docker push ${LATEST_IMAGE_TAG}
 
 echo -e "${GREEN} 이미지 빌드 및 푸시 완료${NC}"
 
@@ -39,18 +53,18 @@ echo -e "${GREEN}📋 EC2에서 실행할 명령어:${NC}"
 echo "# 1. EC2에 접속 후 다음 명령어들을 실행하세요:"
 echo ""
 
-echo "# 1. 도커 로그인 : 퍼블릭 레지스트리라 어떤 계정이든 무관"
-echo "docker login -u 계정명"
+echo "# 1. 도커 로그인"
+echo "docker login -u <your-docker-username>"
 
-echo "# 환경 변수 설정"
-echo "export DOCKER_REGISTRY=${DOCKER_REGISTRY}"
+echo "# 환경 변수 설정 (배포할 버전의 이미지 태그 사용)"
+echo "export DOCKER_IMAGE=${SHA_IMAGE_TAG}"
 echo "export DB_PASSWORD=${DB_PASSWORD}"
 echo "export DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}"
 echo ""
 echo "# 2. Docker Compose 파일 다운로드 (또는 직접 생성)"
 echo "curl -O https://raw.githubusercontent.com/kakao-tech-campus-3rd-step3/Team2_BE/develop/docker-compose.qa.yml"
 
-echo "# 3. 컨테이너 실행 (최신 이미지 Pull 포함)"
+echo "# 3. 컨테이너 실행 (지정한 SHA 태그 이미지 Pull 포함)"
 echo "docker compose -f docker-compose.qa.yml pull && docker compose -f docker-compose.qa.yml up -d"
 echo ""
 echo "# 4. 로그 확인"

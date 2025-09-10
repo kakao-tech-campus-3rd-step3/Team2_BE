@@ -1,11 +1,11 @@
 services:
   # QA용 Spring Boot 애플리케이션
   pullit-qa-app:
-    image: ${DOCKER_REGISTRY}:latest
+    image: ${DOCKER_IMAGE}
     container_name: pullit-qa-app
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"  # Nginx 리버스 프록시만 접근 (외부 비공개)
     environment:
       # 데이터베이스 연결 설정
       - DB_URL=jdbc:mariadb://pullit-qa-db:3306/pullit_qa?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
