@@ -79,7 +79,6 @@ dependencies {
     // 데이터베이스 마이그레이션 도구
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
-    implementation 'org.liquibase:liquibase-core'
 
     // 회로 차단기 및 탄력성 패턴
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
