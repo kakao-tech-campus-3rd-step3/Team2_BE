@@ -30,8 +30,12 @@ public interface LlmClient {
   }
 
   List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
-      String prompt, byte[] fileData, int questionCount, String model);
+      String prompt, List<byte[]> fileData, int questionCount, String model);
 
   void getLlmGeneratedQuestionStream(
-      String prompt, byte[] fileData, int questionCount, String model, SseDataCallback callback);
+      String prompt,
+      List<byte[]> fileData,
+      int questionCount,
+      String model,
+      SseDataCallback callback);
 }

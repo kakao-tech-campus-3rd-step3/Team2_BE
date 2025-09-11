@@ -10,6 +10,8 @@ import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.SseDataCallback;
@@ -27,7 +29,7 @@ public class GeminiClient implements LlmClient {
 
   final String questionId = LlmGeneratedQuestionDto.Fields.id;
   final String questionTextFieldName = LlmGeneratedQuestionDto.Fields.questionText;
-  final String wrongsFieldName = LlmGeneratedQuestionDto.Fields.wrongs;
+  final String wrongsFieldName = LlmGeneratedQuestionDto.Fields.options;
   final String answerFieldName = LlmGeneratedQuestionDto.Fields.answer;
   final String explanationFieldName = LlmGeneratedQuestionDto.Fields.explanation;
   private final Client client = new Client();
@@ -81,40 +83,57 @@ public class GeminiClient implements LlmClient {
         .build();
   }
 
+  private List<Part> getByteParts(List<byte[]> fileDataList) {
+    List<Part> parts = new ArrayList<>();
+    // TODO: 여러 파일 지원
+    for (byte[] fileData : fileDataList) {
+      parts.add(Part.fromBytes(fileData, "application/pdf"));
+    }
+
+    return parts;
+  }
+
+  private Content getGeminiContent(List<byte[]> fileDataList, String prompt) {
+    List<Part> byteParts = this.getByteParts(fileDataList);
+    byteParts.add(Part.fromText(prompt));
+    //    return Content.fromParts(byteParts.toArray(new Part[0]));
+    return Content.fromParts(
+        Part.fromBytes(fileDataList.getFirst(), "application/pdf"), Part.fromText(prompt));
+  }
+
   @Override
   public List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
-      String prompt, byte[] pdfFileData, int questionCount, String model) {
+      String prompt, List<byte[]> fileDataList, int questionCount, String model) {
     if (model == null) {
       model = "gemini-2.5-flash-lite";
     }
 
+    System.out.println("aaaaaaaa");
+    Content content = getGeminiContent(fileDataList, prompt);
+
+    System.out.println("bbbbbbbbbbb");
+    GenerateContentResponse response =
+        client.models.generateContent(model, content, this.getConfig(questionCount));
+    String result = response.text();
+
+    System.out.println("cccccccc");
+    System.out.println(result);
     try {
-      Content content =
-          Content.fromParts(Part.fromBytes(pdfFileData, "application/pdf"), Part.fromText(prompt));
-
-      GenerateContentResponse response =
-          client.models.generateContent(model, content, this.getConfig(questionCount));
-
-      String result = response.text();
-
       return mapper.readValue(result, new TypeReference<>() {});
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to parse LLM response", e);
     }
   }
 
   @Override
   public void getLlmGeneratedQuestionStream(
       String prompt,
-      byte[] pdfFileData,
+      List<byte[]> fileDataList,
       int questionCount,
       String model,
       SseDataCallback callback) {
     if (prompt == null) {
       throw new IllegalArgumentException("prompt is null");
-    }
-    if (pdfFileData == null || pdfFileData.length == 0) {
-      throw new IllegalArgumentException("filePath is null");
     }
     if (callback == null) {
       throw new IllegalArgumentException("callback is null");
@@ -123,8 +142,10 @@ public class GeminiClient implements LlmClient {
       model = "gemini-2.5-flash-lite";
     }
 
-    Content content =
-        Content.fromParts(Part.fromBytes(pdfFileData, "application/pdf"), Part.fromText(prompt));
+    Content content = getGeminiContent(fileDataList, prompt);
+
+    GenerateContentResponse response =
+        client.models.generateContent(model, content, this.getConfig(questionCount));
 
     ResponseStream<GenerateContentResponse> responseStream =
         client.models.generateContentStream(model, content, this.getConfig(questionCount));

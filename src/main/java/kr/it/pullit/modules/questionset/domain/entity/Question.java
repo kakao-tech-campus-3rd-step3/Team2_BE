@@ -1,9 +1,6 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import java.util.List;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +16,7 @@ public class Question {
   private Long sourceId;
   private Long questionSetId;
   private String questionText;
-  private List<String> options;
+  @ElementCollection private List<String> options;
   private String answer;
   private String explanation;
 

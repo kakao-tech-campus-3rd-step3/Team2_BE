@@ -15,4 +15,9 @@ public class QuestionRepositoryImpl implements QuestionRepository {
   public Optional<Question> findById(Long id) {
     return questionJpaRepository.findById(id);
   }
+
+  @Override
+  public Question save(Question question) {
+    return questionJpaRepository.save(question);
+  }
 }

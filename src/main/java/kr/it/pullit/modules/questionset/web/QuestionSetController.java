@@ -1,11 +1,10 @@
 package kr.it.pullit.modules.questionset.web;
 
-import kr.it.pullit.modules.questionset.domain.enums.PublishStatus;
+import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.service.QuestionSetService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreateResponseDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,14 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/question-set")
 public class QuestionSetController {
   private final QuestionSetService questionSetService;
-
-  @Autowired
-  public QuestionSetController(QuestionSetService questionSetService) {
-    this.questionSetService = questionSetService;
-  }
+  private final QuestionService questionService;
 
   @GetMapping("/{id}")
   public ResponseEntity<QuestionSetDto> getQuestionSet(@PathVariable Long id) {
@@ -31,18 +27,24 @@ public class QuestionSetController {
   }
 
   @PostMapping
-  public ResponseEntity<QuestionSetCreateResponseDto> createQuestionSet(
+  public ResponseEntity<QuestionSetDto> createQuestionSet(
       @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
-    questionSetService.generateQuestion(
-        questionSetCreateRequestDto.questionCount(),
-        questionSetCreateRequestDto.type(),
-        questionSetCreateRequestDto.difficulty(),
-        questionSetCreateRequestDto.filePath(),
-        questions -> {});
+    // TODO: 인증 적용 후 ownerID 동적으로 변경
+    QuestionSetDto questionSetDto =
+        new QuestionSetDto(
+            1L,
+            questionSetCreateRequestDto.sourceIds(),
+            questionSetCreateRequestDto.title(),
+            questionSetCreateRequestDto.difficulty(),
+            questionSetCreateRequestDto.type(),
+            questionSetCreateRequestDto.questionCount());
 
-    QuestionSetCreateResponseDto responseDto =
-        new QuestionSetCreateResponseDto(PublishStatus.SUCCESS, "문제 생성이 등록됐습니다.");
+    System.out.println("1111");
+    questionSetDto = questionSetService.create(questionSetDto);
 
-    return ResponseEntity.ok(responseDto);
+    System.out.println("2222");
+    questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {});
+
+    return ResponseEntity.ok(questionSetDto);
   }
 }
