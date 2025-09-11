@@ -21,8 +21,7 @@ public class QuestionSet {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ElementCollection
-  private List<Long> sourceIds;
+  @ElementCollection private List<Long> sourceIds;
   private Long ownerId;
   private String title;
   private DifficultyType difficulty;

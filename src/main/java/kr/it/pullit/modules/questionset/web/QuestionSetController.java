@@ -39,10 +39,8 @@ public class QuestionSetController {
             questionSetCreateRequestDto.type(),
             questionSetCreateRequestDto.questionCount());
 
-    ("1111");
     questionSetDto = questionSetService.create(questionSetDto);
 
-    ("2222");
     questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {});
 
     return ResponseEntity.ok(questionSetDto);
