@@ -19,9 +19,6 @@ spring:
   flyway:
     enabled: false
 
-  liquibase:
-    enabled: false
-
   # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
   security:
     user:
@@ -96,3 +93,18 @@ oauth:
 
 app:
   base-url: ${BASE_URL:}
+
+# OpenAPI/Swagger 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    url: /openapi/swagger.yml
+    disable-swagger-default-url: true
+  # 기존 YAML 파일을 로드하여 통합
+  openapi:
+    try-it-out-enabled: true
+    filter: true
