@@ -1,5 +1,10 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
@@ -13,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
+  private final SourceRepository sourceRepository;
 
   @Transactional(readOnly = true)
   public QuestionSetDto questionSetGetById(Long id) {
@@ -25,14 +31,23 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Transactional
   public QuestionSetDto create(QuestionSetDto questionSetDto) {
+    List<Source> sources = sourceRepository.findByIdIn(questionSetDto.getSourceIds());
+
+    if (sources.size() != questionSetDto.getSourceIds().size()) {
+      throw new IllegalArgumentException("일부 소스를 찾을 수 없습니다");
+    }
+
+    Set<Source> sourceSet = new HashSet<>(sources);
+
     QuestionSet questionSet =
         new QuestionSet(
             questionSetDto.getOwnerID(),
-            questionSetDto.getSourceIds(),
+            sourceSet,
             questionSetDto.getTitle(),
             questionSetDto.getDifficulty(),
             questionSetDto.getType(),
             questionSetDto.getQuestionLength());
+
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
     return new QuestionSetDto(savedQuestionSet);
   }

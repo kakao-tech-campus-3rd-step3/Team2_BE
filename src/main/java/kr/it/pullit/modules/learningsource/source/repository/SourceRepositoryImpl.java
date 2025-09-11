@@ -27,4 +27,9 @@ public class SourceRepositoryImpl implements SourceRepository {
   public List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
     return sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
   }
+
+  @Override
+  public List<Source> findByIdIn(List<Long> ids) {
+    return sourceJpaRepository.findByIdIn(ids);
+  }
 }

@@ -1,14 +1,19 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.shared.jpa.BaseEntity;
@@ -21,11 +26,17 @@ import lombok.Setter;
 @NoArgsConstructor
 public class QuestionSet extends BaseEntity {
 
+  @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
+  private final List<Question> questions = new ArrayList<>();
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
-  @ElementCollection private List<Long> sourceIds;
+  @ManyToMany
+  @JoinTable(
+      name = "question_set_source",
+      joinColumns = @JoinColumn(name = "question_set_id"),
+      inverseJoinColumns = @JoinColumn(name = "source_id"))
+  private Set<Source> sources = new HashSet<>();
   private Long ownerId;
   private String title;
   private DifficultyType difficulty;
@@ -33,21 +44,38 @@ public class QuestionSet extends BaseEntity {
   /* 문제 수 */
   @Setter private Integer questionLength;
 
-  @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
-  private final List<Question> questions = new ArrayList<>();
-
   public QuestionSet(
       Long ownerId,
-      List<Long> sourceIds,
+      Set<Source> sources,
       String title,
       DifficultyType difficulty,
       QuestionType type,
       Integer questionLength) {
     this.ownerId = ownerId;
-    this.sourceIds = sourceIds;
+    this.sources = sources != null ? sources : new HashSet<>();
     this.title = title;
     this.difficulty = difficulty;
     this.type = type;
     this.questionLength = questionLength;
+  }
+
+  public void addQuestion(Question question) {
+    questions.add(question);
+    question.setQuestionSet(this);
+  }
+
+  public void removeQuestion(Question question) {
+    questions.remove(question);
+    question.setQuestionSet(null);
+  }
+
+  public void addSource(Source source) {
+    sources.add(source);
+    source.getQuestionSets().add(this);
+  }
+
+  public void removeSource(Source source) {
+    sources.remove(source);
+    source.getQuestionSets().remove(this);
   }
 }

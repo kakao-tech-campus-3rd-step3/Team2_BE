@@ -53,4 +53,8 @@ public class Question extends BaseEntity {
     this.answer = answer;
     this.explanation = explanation;
   }
+
+  void setQuestionSet(QuestionSet questionSet) {
+    this.questionSet = questionSet;
+  }
 }

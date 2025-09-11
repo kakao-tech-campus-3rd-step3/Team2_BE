@@ -2,6 +2,8 @@ package kr.it.pullit.modules.questionset.web.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
@@ -29,7 +31,8 @@ public class QuestionSetDto {
     this.questionLength = questionSet.getQuestionLength();
     this.createTime = questionSet.getCreatedAt();
     this.updateTime = questionSet.getUpdatedAt();
-    this.sourceIds = questionSet.getSourceIds();
+    this.sourceIds =
+        questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
   }
 
   public QuestionSetDto(
