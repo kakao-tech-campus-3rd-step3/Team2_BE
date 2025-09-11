@@ -60,6 +60,7 @@ jobs:
             export ACCESS_CONTROL_ALLOWED_ORIGINS='${{ secrets.ACCESS_CONTROL_ALLOWED_ORIGINS }}' && \
             export AWS_REGION='ap-northeast-2' && \
             cd /home/ubuntu/app && \
+            docker compose -f docker-compose.qa.yml down && \
             docker compose -f docker-compose.qa.yml pull && \
             docker compose -f docker-compose.qa.yml up -d \
           "
