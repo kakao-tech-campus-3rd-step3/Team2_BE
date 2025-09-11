@@ -21,6 +21,7 @@ jobs:
           registry: ${{ secrets.DOCKER_REGISTRY_HOST }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+          ecr: false
 
       # 이미지는 CI에서 sha 태그로 푸시됨. CD는 해당 sha만 배포.
 
