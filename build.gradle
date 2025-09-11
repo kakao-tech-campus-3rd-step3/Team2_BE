@@ -44,6 +44,15 @@ tasks.register("codeCheck") {
     dependsOn("checkstyleMain")
 }
 
+// git hooks 업데이트
+tasks.register("updateGitHooks", Copy) {
+    group = "Git hooks"
+    description = "Update git hooks files"
+    from "./scripts/pre-push"
+    into './.git/hooks/'
+    fileMode 0775
+}
+
 // 의존성 구성 설정
 configurations {
     compileOnly {
@@ -86,6 +95,9 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.18.0'
 
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+
+    // OpenAPI 문서 생성용 추가 의존성
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11'
 
     // AOP 및 개발 도구
     implementation 'org.springframework.boot:spring-boot-starter-aop'

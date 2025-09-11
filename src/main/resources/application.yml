@@ -102,3 +102,18 @@ app:
       secret-key: ${S3_SECRET_KEY:test}
       presigned-url-expiration: PT15M
       base-path: learning-sources
+
+# OpenAPI/Swagger 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    url: /openapi/swagger.yml
+    disable-swagger-default-url: true
+  # 기존 YAML 파일을 로드하여 통합
+  openapi:
+    try-it-out-enabled: true
+    filter: true

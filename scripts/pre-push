@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "Running pre-push checks..."
+
+./gradlew codeCheck
+
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Check your code (lint, formatting)"
+  exit 1
+fi
+
+echo "✅ Pre-push checks passed."
