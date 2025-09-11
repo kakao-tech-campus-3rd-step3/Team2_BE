@@ -25,19 +25,26 @@ public class Source extends BaseEntity {
 
   @ManyToMany(mappedBy = "sources")
   private final Set<QuestionSet> questionSets = new HashSet<>();
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
   @Column(nullable = false)
   private Long memberId;
+
   @Column(nullable = false)
   private String originalName;
+
   @Column(nullable = false)
   private String contentType;
+
   @Column(nullable = false)
   private String filePath;
+
   @Column(nullable = false)
   private Long fileSizeBytes;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private SourceStatus status;
