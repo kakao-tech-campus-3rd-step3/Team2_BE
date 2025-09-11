@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: pullit
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/pullit_qa?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # QA에서는 update 허용
+    show-sql: false
+
+  liquibase:
+    enabled: false
+
+  # QA에서는 DevTools 비활성화
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: true  # QA에서는 예외 정보 확인 가능
+    include-stacktrace: on_param # 요청 시에만 스택트레이스 표시
+    include-message: always
+  forward-headers-strategy: framework
+
+info:
+  app:
+    name: Pullit QA
+    description: Pullit 스터디 플랫폼 QA 테스트 환경
+
+logging:
+  level:
+    root: debug
+    org.springframework.security: info
+    kr.it.pullit: debug
+  # QA 로그 파일 설정
+  # file:
+  #   name: logs/pullit-qa.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,env"  # QA에서는 제한적 노출
+      base-path: "/actuator"  # 기본 경로 명시
+  endpoint:
+    health:
+      show-details: always  # QA에서는 항상 상세 정보 표시
+
+# Rate Limiting 설정 (Resilience4j)
+resilience4j:
+  ratelimiter:
+    instances:
+      default:
+        limitForPeriod: 2500 # 기간 내 허용 요청 수
+        limitRefreshPeriod: 1m # 기간 (1분)
+        timeoutDuration: 0 # 대기 시간 없음 (즉시 실패)
+        registerHealthIndicator: true
+
+cors:
+  allowed-origins:
+    - "https://qa.pull.it.kr"
+    - "http://local.pull.it.kr:5173"
+
+app:
+  storage:
+    s3:
+      bucket-name: "pullit-uploaded-files"
+      region: "ap-northeast-2"
+      access-key: ${S3_ACCESS_KEY}
+      secret-key: ${S3_SECRET_KEY}
+      presigned-url-expiration: PT15M
+      base-path: learning-sources
