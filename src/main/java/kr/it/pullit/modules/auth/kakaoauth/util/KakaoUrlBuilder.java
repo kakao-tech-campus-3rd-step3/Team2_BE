@@ -29,7 +29,7 @@ public class KakaoUrlBuilder {
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(kakaoProps.kauthUrl() + kakaoProps.authorizePath())
             .queryParam("client_id", clientId)
-            .queryParam("redirect_uri", scheme + "://" +baseUri + redirectUri)
+            .queryParam("redirect_uri", scheme + "://" + baseUri + redirectUri)
             .queryParam("response_type", "code");
 
     if (state != null && !state.isBlank()) {
