@@ -5,8 +5,8 @@ import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 
 public interface LlmClient {
   List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
-      String prompt, String filePath, String model);
+      String prompt, byte[] fileData, int questionCount, String model);
 
   void getLlmGeneratedQuestionStream(
-      String prompt, String filePath, int questionCount, String model, SseDataCallback callback);
+      String prompt, byte[] fileData, int questionCount, String model, SseDataCallback callback);
 }

@@ -10,9 +10,6 @@ import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.SseDataCallback;
@@ -21,10 +18,10 @@ import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 public class GeminiClient implements LlmClient {
   // TODO: config로 빼기
   @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
-  final int MIN_OPTION_COUNT = 4;
+  final int MIN_OPTION_COUNT = 3;
 
   @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
-  final int MAX_OPTION_COUNT = 4;
+  final int MAX_OPTION_COUNT = 3;
 
   final String questionId = LlmGeneratedQuestionDto.Fields.id;
   final String questionTextFieldName = LlmGeneratedQuestionDto.Fields.questionText;
@@ -82,26 +79,23 @@ public class GeminiClient implements LlmClient {
         .build();
   }
 
-  // TODO: SuppressWarnings 제거
-  @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
   @Override
   public List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
-      String prompt, String pdfFilePath, String model) {
+      String prompt, byte[] pdfFileData, int questionCount, String model) {
     if (model == null) {
       model = "gemini-2.5-flash-lite";
     }
 
     try {
-      byte[] pdfData = Files.readAllBytes(Paths.get(pdfFilePath));
       Content content =
-          Content.fromParts(Part.fromBytes(pdfData, "application/pdf"), Part.fromText(prompt));
+          Content.fromParts(Part.fromBytes(pdfFileData, "application/pdf"), Part.fromText(prompt));
 
       GenerateContentResponse response =
-          client.models.generateContent(model, content, this.getConfig(5));
+          client.models.generateContent(model, content, this.getConfig(questionCount));
 
       String result = response.text();
 
-      return mapper.readValue(result, new TypeReference<List<LlmGeneratedQuestionDto>>() {});
+      return mapper.readValue(result, new TypeReference<>() {});
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -109,11 +103,15 @@ public class GeminiClient implements LlmClient {
 
   @Override
   public void getLlmGeneratedQuestionStream(
-      String prompt, String filePath, int questionCount, String model, SseDataCallback callback) {
+      String prompt,
+      byte[] pdfFileData,
+      int questionCount,
+      String model,
+      SseDataCallback callback) {
     if (prompt == null) {
       throw new IllegalArgumentException("prompt is null");
     }
-    if (filePath == null) {
+    if (pdfFileData == null || pdfFileData.length == 0) {
       throw new IllegalArgumentException("filePath is null");
     }
     if (callback == null) {
@@ -123,15 +121,8 @@ public class GeminiClient implements LlmClient {
       model = "gemini-2.5-flash-lite";
     }
 
-    byte[] pdfData;
-    try {
-      pdfData = Files.readAllBytes(Paths.get(filePath));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
     Content content =
-        Content.fromParts(Part.fromBytes(pdfData, "application/pdf"), Part.fromText(prompt));
+        Content.fromParts(Part.fromBytes(pdfFileData, "application/pdf"), Part.fromText(prompt));
 
     ResponseStream<GenerateContentResponse> responseStream =
         client.models.generateContentStream(model, content, this.getConfig(questionCount));
