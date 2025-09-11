@@ -83,22 +83,21 @@ cors:
 
 oauth:
   kakao:
-    client-id: ${KAKAO_REST_API_KEY:test}
-    client-secret: ${KAKAO_CLIENT_SECRET:test}
-    redirect-uri: /login/oauth2/code/kakao
+    client-id: ${KAKAO_REST_API_KEY:}
+    client-secret: ${KAKAO_CLIENT_SECRET:}
+    redirect-uri: ${KAKAO_REDIRECT_URI:}
     kauth-url: "https://kauth.kakao.com"
     authorize-path: "/oauth/authorize"
     token-path: "/oauth/token"
     user-info-path: "/v2/user/me"
 
 app:
-  scheme: ${SCHEME:http}
-  base-uri: ${BASE_URI:localhost:8080}
-  google-api-key: ${GOOGLE_API_KEY:test}
+  base-url: ${BASE_URL:http://localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:}
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"
-      region: ${AWS_REGION:ap-northeast-2}
+      region: "ap-northeast-2"
       access-key: ${S3_ACCESS_KEY:test}
       secret-key: ${S3_SECRET_KEY:test}
       presigned-url-expiration: PT15M
