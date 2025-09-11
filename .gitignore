@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 개인적으로 사용할 수 있는 local 프로필 ###
+application-local.yml
+.gitattributes
