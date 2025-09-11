@@ -35,7 +35,7 @@ public class QuestionService {
   @Async("llmGeneratorAsyncExecutor")
   public void generateQuestions(
       QuestionSetDto questionSetDto, QuestionGenerationSuccessCallback callback) {
-    System.out.println("3333");
+    ("3333");
 
     DifficultyPolicy difficultyPolicy =
         difficultyPolicyFactory.getInstance(questionSetDto.getDifficulty());
@@ -54,8 +54,8 @@ public class QuestionService {
             getSourceFileDataBytes(questionSetDto.getSourceIds()),
             questionSetDto.getQuestionLength(),
             "gemini-2.5-flash-lite");
-    System.out.println("-sd-sd-fa-sdf-asd-f");
-    System.out.println(llmGeneratedQuestionDtoList);
+    ("-sd-sd-fa-sdf-asd-f");
+    (llmGeneratedQuestionDtoList);
 
     for (LlmGeneratedQuestionDto llmGeneratedQuestionDto : llmGeneratedQuestionDtoList) {
       // TODO: soureceId 동적으로 변경
@@ -69,7 +69,7 @@ public class QuestionService {
               llmGeneratedQuestionDto.explanation());
       questionRepository.save(question);
 
-      System.out.println(question);
+      (question);
     }
     callback.onSuccess(llmGeneratedQuestionDtoList);
   }

@@ -108,16 +108,16 @@ public class GeminiClient implements LlmClient {
       model = "gemini-2.5-flash-lite";
     }
 
-    System.out.println("aaaaaaaa");
+    ("aaaaaaaa");
     Content content = getGeminiContent(fileDataList, prompt);
 
-    System.out.println("bbbbbbbbbbb");
+    ("bbbbbbbbbbb");
     GenerateContentResponse response =
         client.models.generateContent(model, content, this.getConfig(questionCount));
     String result = response.text();
 
-    System.out.println("cccccccc");
-    System.out.println(result);
+    ("cccccccc");
+    (result);
     try {
       return mapper.readValue(result, new TypeReference<>() {});
     } catch (IOException e) {

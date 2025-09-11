@@ -39,10 +39,10 @@ public class QuestionSetController {
             questionSetCreateRequestDto.type(),
             questionSetCreateRequestDto.questionCount());
 
-    System.out.println("1111");
+    ("1111");
     questionSetDto = questionSetService.create(questionSetDto);
 
-    System.out.println("2222");
+    ("2222");
     questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {});
 
     return ResponseEntity.ok(questionSetDto);
