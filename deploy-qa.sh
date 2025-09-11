@@ -12,13 +12,13 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # 환경 변수 확인
-if [ -z "$DOCKER_IMAGE_NAME" ]; then
-    echo -e "${RED}Error: DOCKER_IMAGE_NAME 환경 변수가 설정되지 않았습니다.${NC}"
-    echo "사용법: . .env 파일에 DOCKER_IMAGE_NAME=your-registry/pullit-qa 형식으로 정의하세요."
+if [ -z "$DOCKER_REGISTRY" ]; then
+    echo -e "${RED}Error: DOCKER_REGISTRY 환경 변수가 설정되지 않았습니다.${NC}"
+    echo "사용법: . .env 파일에 DOCKER_REGISTRY=your-registry/pullit-app 형식으로 정의하세요."
     exit 1
 fi
 
-if [ -z "$DB_PASSWORD" ] || [ -z "$DB_ROOT_PASSWORD" ] || [ -z "$GOOGLE_API_KEY" ] || [ -z "$S3_ACCESS_KEY" ] || [ -z "$S3_SECRET_KEY" ] || [ -z "$KAKAO_REST_API_KEY" ] || [ -z "$DB_USERNAME" ] || [ -z "$KAKAO_CLIENT_SECRET" ] || [ -z "$BASE_URI" ] || [ -z "$SCHEME" ] || [ -z "$ACCESS_CONTROL_ALLOWED_ORIGINS" ]; then
+if [ -z "$DB_PASSWORD" ] || [ -z "$DB_ROOT_PASSWORD" ] || [ -z "$GOOGLE_API_KEY" ] || [ -z "$S3_ACCESS_KEY" ] || [ -z "$S3_SECRET_KEY" ] || [ -z "$KAKAO_REST_API_KEY" ] || [ -z "$DB_USERNAME" ] || [ -z "$KAKAO_CLIENT_SECRET" ] || [ -z "$BASE_URL" ]; then
     echo -e "${RED}Error: 필수 배포 환경 변수(DB_*, GOOGLE_*, etc.)가 모두 설정되지 않았습니다.${NC}"
     exit 1
 fi
@@ -31,8 +31,8 @@ if [ -z "$GIT_SHA" ]; then
 fi
 
 # Docker 이미지 태그 생성
-SHA_IMAGE_TAG="${DOCKER_IMAGE_NAME}:${GIT_SHA}"
-LATEST_IMAGE_TAG="${DOCKER_IMAGE_NAME}:latest"
+SHA_IMAGE_TAG="${DOCKER_REGISTRY}:${GIT_SHA}"
+LATEST_IMAGE_TAG="${DOCKER_REGISTRY}:latest"
 
 
 echo -e "${GREEN} Pullit QA 서버 배포 시작${NC}"
@@ -66,9 +66,7 @@ echo "export S3_ACCESS_KEY=${S3_ACCESS_KEY}"
 echo "export S3_SECRET_KEY=${S3_SECRET_KEY}"
 echo "export KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}"
 echo "export KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}"
-echo "export SCHEME=${SCHEME}"
-echo "export BASE_URI=${BASE_URI}"
-echo "export ACCESS_CONTROL_ALLOWED_ORIGINS=${ACCESS_CONTROL_ALLOWED_ORIGINS}"
+echo "export BASE_URL=${BASE_URL}"
 echo "export AWS_REGION=ap-northeast-2"
 echo ""
 echo "# 2. Docker Compose 파일 다운로드 (또는 직접 생성)"
