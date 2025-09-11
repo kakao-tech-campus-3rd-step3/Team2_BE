@@ -8,6 +8,7 @@ import java.util.List;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.service.callback.QuestionGenerationSuccessCallback;
@@ -36,6 +37,14 @@ public class QuestionService {
   public void generateQuestions(
       QuestionSetDto questionSetDto, QuestionGenerationSuccessCallback callback) {
 
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetDto.getId())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "QuestionSet not found with id: " + questionSetDto.getId()));
+
     DifficultyPolicy difficultyPolicy =
         difficultyPolicyFactory.getInstance(questionSetDto.getDifficulty());
     QuestionTypePolicy questionTypePolicy =
@@ -59,7 +68,7 @@ public class QuestionService {
       Question question =
           new Question(
               questionSetDto.getSourceIds().getFirst(),
-              questionSetDto.getId(),
+              questionSet,
               llmGeneratedQuestionDto.questionText(),
               llmGeneratedQuestionDto.options(),
               llmGeneratedQuestionDto.answer(),
