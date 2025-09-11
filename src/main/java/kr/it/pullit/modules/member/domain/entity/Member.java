@@ -18,26 +18,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(nullable = false, unique = true)
-  private String email;
+    @Column(unique = true)
+    private Long kakaoId;
 
-  @Column private String name;
+    @Column(nullable = false, unique = true)
+    private String email;
 
-  @Column private String profileImageUrl;
+    @Column
+    private String name;
 
-  @Enumerated(EnumType.STRING)
-  @Column
-  private MemberStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column
+    private MemberStatus status;
 
-  @Builder
-  public Member(String email, String name, String profileImageUrl, MemberStatus status) {
-    this.email = email;
-    this.name = name;
-    this.profileImageUrl = profileImageUrl;
-    this.status = status;
-  }
+    @Builder
+    public Member(Long kakaoId, String email, String name, MemberStatus status) {
+        this.kakaoId = kakaoId;
+        this.email = email;
+        this.name = name;
+        this.status = status;
+    }
 }
