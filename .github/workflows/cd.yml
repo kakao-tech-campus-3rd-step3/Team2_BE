@@ -32,13 +32,15 @@ jobs:
           chmod 600 ~/.ssh/ec2_key.pem
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      - name: Create app directory on EC2
+        run: ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app"
+
       - name: Upload docker-compose (QA)
         run: scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
 
       - name: Deploy with Docker Compose (QA)
         run: |
           ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "\
-            mkdir -p /home/ubuntu/app && \
             export DOCKER_IMAGE='${{ secrets.DOCKER_REGISTRY }}:${{ github.sha }}' && \
             export DB_USERNAME='${{ secrets.DB_USERNAME }}' && \
             export DB_PASSWORD='${{ secrets.DB_PASSWORD }}' && \
