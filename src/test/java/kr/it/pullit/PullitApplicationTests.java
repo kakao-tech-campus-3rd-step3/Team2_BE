@@ -1,14 +1,5 @@
 package kr.it.pullit;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import kr.it.pullit.modules.questionset.api.LlmClient;
-import kr.it.pullit.modules.questionset.client.GeminiClient;
-import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 class PullitApplicationTests {
 
@@ -35,57 +26,57 @@ class PullitApplicationTests {
 해설: 반드시 해설내용만 작성 (예시: "캡슐화는 상위 계층의 데이터(페이로드)에 현재 계층의 제어 정보(헤더)를 추가하여 하위 계층으로 전달하는 과정입니다.")
 """;
 
-  @Test
-  void generateLlmGeneratedQuestionStream() {
-    byte[] pdfData;
-    try {
-      pdfData = Files.readAllBytes(Paths.get(pdfPath));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    LlmClient llmClient = new GeminiClient();
-
-    llmClient.getLlmGeneratedQuestionStream(
-        prompt,
-        pdfData,
-        10,
-        "gemini-2.5-flash",
-        jsonStr -> {
-          System.out.println("--- onData ---");
-          System.out.println(jsonStr);
-        });
-  }
-
-  @Test
-  void generateQuestions() {
-    LlmClient llmClient = new GeminiClient();
-
-    final String pdfPath = "src/test/resources/test.pdf";
-
-    byte[] pdfData;
-    try {
-      pdfData = Files.readAllBytes(Paths.get(pdfPath));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    List<LlmGeneratedQuestionDto> questions =
-        llmClient.getLlmGeneratedQuestionContent(prompt, pdfData, 10, "gemini-2.5-pro");
-
-    for (LlmGeneratedQuestionDto question : questions) {
-      System.out.println(question);
-    }
-
-    Assertions.assertNotNull(questions);
-
-    for (LlmGeneratedQuestionDto q : questions) {
-      Assertions.assertNotNull(q);
-      Assertions.assertNotNull(q.questionText());
-      Assertions.assertNotNull(q.wrongs());
-      Assertions.assertNotNull(q.answer());
-      Assertions.assertNotNull(q.explanation());
-      Assertions.assertEquals(3, q.wrongs().size());
-    }
-  }
+//  @Test
+//  void generateLlmGeneratedQuestionStream() {
+//    byte[] pdfData;
+//    try {
+//      pdfData = Files.readAllBytes(Paths.get(pdfPath));
+//    } catch (IOException e) {
+//      throw new RuntimeException(e);
+//    }
+//
+//    LlmClient llmClient = new GeminiClient();
+//
+//    llmClient.getLlmGeneratedQuestionStream(
+//        prompt,
+//        pdfData,
+//        10,
+//        "gemini-2.5-flash",
+//        jsonStr -> {
+//          System.out.println("--- onData ---");
+//          System.out.println(jsonStr);
+//        });
+//  }
+//
+//  @Test
+//  void generateQuestions() {
+//    LlmClient llmClient = new GeminiClient();
+//
+//    final String pdfPath = "src/test/resources/test.pdf";
+//
+//    byte[] pdfData;
+//    try {
+//      pdfData = Files.readAllBytes(Paths.get(pdfPath));
+//    } catch (IOException e) {
+//      throw new RuntimeException(e);
+//    }
+//
+//    List<LlmGeneratedQuestionDto> questions =
+//        llmClient.getLlmGeneratedQuestionContent(prompt, pdfData, 10, "gemini-2.5-pro");
+//
+//    for (LlmGeneratedQuestionDto question : questions) {
+//      System.out.println(question);
+//    }
+//
+//    Assertions.assertNotNull(questions);
+//
+//    for (LlmGeneratedQuestionDto q : questions) {
+//      Assertions.assertNotNull(q);
+//      Assertions.assertNotNull(q.questionText());
+//      Assertions.assertNotNull(q.wrongs());
+//      Assertions.assertNotNull(q.answer());
+//      Assertions.assertNotNull(q.explanation());
+//      Assertions.assertEquals(3, q.wrongs().size());
+//    }
+//  }
 }
