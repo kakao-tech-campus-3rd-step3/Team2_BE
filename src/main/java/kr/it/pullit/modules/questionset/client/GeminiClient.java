@@ -14,7 +14,9 @@ import java.util.List;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.SseDataCallback;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class GeminiClient implements LlmClient {
   // TODO: config로 빼기
   @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})

@@ -1,6 +1,8 @@
 package kr.it.pullit.modules.questionset.repository;
 
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
 
-public interface QuestionRepository extends JpaRepository<QuestionSet, Long> {}
+public interface QuestionRepository {
+  Optional<Question> findById(Long id);
+}
