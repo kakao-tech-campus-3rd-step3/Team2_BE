@@ -77,13 +77,13 @@ management:
 
 cors:
   allowed-origins:
-    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://local.pull.it.kr:5173}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
-  max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
+  max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
 oauth:
   kakao:
-    client-id: ${KAKAO_CLIENT_ID:}
+    client-id: ${KAKAO_REST_API_KEY:}
     client-secret: ${KAKAO_CLIENT_SECRET:}
     redirect-uri: ${KAKAO_REDIRECT_URI:}
     kauth-url: "https://kauth.kakao.com"
@@ -92,7 +92,16 @@ oauth:
     user-info-path: "/v2/user/me"
 
 app:
-  base-url: ${BASE_URL:}
+  base-url: ${BASE_URL:http://localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:}
+  storage:
+    s3:
+      bucket-name: "pullit-uploaded-files"
+      region: "ap-northeast-2"
+      access-key: ${S3_ACCESS_KEY:test}
+      secret-key: ${S3_SECRET_KEY:test}
+      presigned-url-expiration: PT15M
+      base-path: learning-sources
 
 # OpenAPI/Swagger 설정
 springdoc:

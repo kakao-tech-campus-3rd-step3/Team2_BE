@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
-import kr.it.pullit.modules.learningsource.source.web.dto.UploadRequest;
-import kr.it.pullit.modules.learningsource.source.web.dto.UploadResponse;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.support.TestContainerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +23,21 @@ public class SourceControllerTest extends TestContainerTest {
   @Test
   void shouldReturnPresignedUrlForValidRequest() {
     // given
-    UploadRequest request = new UploadRequest("test.pdf", "application/pdf", 1024L);
-    UploadResponse mockResponse =
-        new UploadResponse("https://s3.example.com/upload", "/uploads/test.pdf");
+    SourceUploadRequest request = new SourceUploadRequest("test.pdf", "application/pdf", 1024L);
+    SourceUploadResponse mockResponse =
+        new SourceUploadResponse(
+            "https://s3.example.com/upload",
+            "/uploads/test.pdf",
+            "test.pdf",
+            1234L,
+            "application/pdf");
     given(sourcePublicApi.generateUploadUrl("test.pdf", "application/pdf", 1024L, 1L))
         .willReturn(mockResponse);
 
     // when
-    ResponseEntity<UploadResponse> response =
-        restTemplate.postForEntity("/api/learning/source/upload", request, UploadResponse.class);
+    ResponseEntity<SourceUploadResponse> response =
+        restTemplate.postForEntity(
+            "/api/learning/source/upload", request, SourceUploadResponse.class);
 
     // then
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -43,7 +49,7 @@ public class SourceControllerTest extends TestContainerTest {
   @Test
   void shouldReturnBadRequestWhenFileNameIsMissing() {
     // given
-    UploadRequest request = new UploadRequest("", "application/pdf", 1024L);
+    SourceUploadRequest request = new SourceUploadRequest("", "application/pdf", 1024L);
 
     // when
     ResponseEntity<String> response =
@@ -56,7 +62,7 @@ public class SourceControllerTest extends TestContainerTest {
   @Test
   void shouldReturnBadRequestWhenContentTypeIsMissing() {
     // given
-    UploadRequest request = new UploadRequest("test.pdf", "", 1024L);
+    SourceUploadRequest request = new SourceUploadRequest("test.pdf", "", 1024L);
 
     // when
     ResponseEntity<String> response =
@@ -69,7 +75,7 @@ public class SourceControllerTest extends TestContainerTest {
   @Test
   void shouldReturnBadRequestWhenFileSizeIsZeroOrLess() {
     // given
-    UploadRequest request = new UploadRequest("test.pdf", "application/pdf", 0L);
+    SourceUploadRequest request = new SourceUploadRequest("test.pdf", "application/pdf", 0L);
 
     // when
     ResponseEntity<String> response =

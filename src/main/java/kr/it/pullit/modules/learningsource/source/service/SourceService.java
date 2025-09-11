@@ -30,7 +30,7 @@ public class SourceService implements SourcePublicApi {
         s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId);
 
     return new SourceUploadResponse(
-        response.uploadUrl(), response.filePath(), fileName, contentType, fileSize);
+        response.uploadUrl(), response.filePath(), fileName, fileSize, contentType);
   }
 
   /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */

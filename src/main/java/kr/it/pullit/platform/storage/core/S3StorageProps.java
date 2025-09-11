@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class S3StorageProps {
 
   private String bucketName;
-  private String region;
+  private String region = "ap-northeast-2";
   private String accessKey;
   private String secretKey;
   private Duration presignedUrlExpiration = Duration.ofMinutes(15);
