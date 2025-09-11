@@ -6,12 +6,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.util.List;
+import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.NoArgsConstructor;
 
 /** */
 @Entity
 @NoArgsConstructor
-public class Question {
+public class Question extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +21,9 @@ public class Question {
   private Long sourceId;
   private Long questionSetId;
   private String questionText;
+
   @ElementCollection private List<String> options;
+
   private String answer;
   private String explanation;
 

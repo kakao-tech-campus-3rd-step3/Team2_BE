@@ -2,25 +2,21 @@ package kr.it.pullit.modules.questionset.domain.entity;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.time.LocalDateTime;
 import java.util.List;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
-public class QuestionSet {
+public class QuestionSet extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +29,6 @@ public class QuestionSet {
   private QuestionType type;
   /* 문제 수 */
   @Setter private Integer questionLength;
-  @CreatedDate private LocalDateTime createTime;
 
   public QuestionSet(
       Long ownerId,

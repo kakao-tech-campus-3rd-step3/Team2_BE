@@ -18,6 +18,7 @@ public class QuestionSetDto {
   private final QuestionType type;
   private final Integer questionLength;
   private final LocalDateTime createTime;
+  private final LocalDateTime updateTime;
 
   public QuestionSetDto(QuestionSet questionSet) {
     this.id = questionSet.getId();
@@ -26,7 +27,8 @@ public class QuestionSetDto {
     this.difficulty = questionSet.getDifficulty();
     this.type = questionSet.getType();
     this.questionLength = questionSet.getQuestionLength();
-    this.createTime = questionSet.getCreateTime();
+    this.createTime = questionSet.getCreatedAt();
+    this.updateTime = questionSet.getUpdatedAt();
     this.sourceIds = questionSet.getSourceIds();
   }
 
@@ -44,6 +46,7 @@ public class QuestionSetDto {
     this.questionLength = questionLength;
     this.id = null;
     this.createTime = null;
+    this.updateTime = null;
     this.sourceIds = sourceIds;
   }
 }
