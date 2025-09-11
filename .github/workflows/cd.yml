@@ -9,7 +9,7 @@ jobs:
     # GitHub Environments 사용을 위해 environment 설정
     # GitHub 저장소의 Settings > Environments 에서 'qa' 환경을 생성해야 합니다.
     environment: qa
-    runs-on: ubuntu-24.04 [Beta]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
