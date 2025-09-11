@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
+import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
@@ -19,6 +21,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
   private final SourceRepository sourceRepository;
+  private final MemberRepository memberRepository;
 
   @Transactional(readOnly = true)
   public QuestionSetDto questionSetGetById(Long id) {
@@ -37,11 +40,16 @@ public class QuestionSetService implements QuestionSetPublicApi {
       throw new IllegalArgumentException("일부 소스를 찾을 수 없습니다");
     }
 
+    Member owner =
+        memberRepository
+            .findById(questionSetDto.getOwnerID())
+            .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다"));
+
     Set<Source> sourceSet = new HashSet<>(sources);
 
     QuestionSet questionSet =
         new QuestionSet(
-            questionSetDto.getOwnerID(),
+            owner,
             sourceSet,
             questionSetDto.getTitle(),
             questionSetDto.getDifficulty(),

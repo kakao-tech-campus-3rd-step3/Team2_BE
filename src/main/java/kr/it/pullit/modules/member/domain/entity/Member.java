@@ -7,6 +7,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -32,6 +36,9 @@ public class Member extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column
   private MemberStatus status;
+
+  @OneToMany(mappedBy = "owner")
+  private List<QuestionSet> questionSets = new ArrayList<>();
 
   @Builder
   public Member(String email, String name, String profileImageUrl, MemberStatus status) {

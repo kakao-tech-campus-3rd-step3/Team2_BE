@@ -24,7 +24,7 @@ public class QuestionSetDto {
 
   public QuestionSetDto(QuestionSet questionSet) {
     this.id = questionSet.getId();
-    this.ownerID = questionSet.getOwnerId();
+    this.ownerID = questionSet.getOwner().getId();
     this.title = questionSet.getTitle();
     this.difficulty = questionSet.getDifficulty();
     this.type = questionSet.getType();
