@@ -6,12 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public interface LlmClient {
-  List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
-      String prompt, byte[] fileData, int questionCount, String model);
-
-  void getLlmGeneratedQuestionStream(
-      String prompt, byte[] fileData, int questionCount, String model, SseDataCallback callback);
-
   static String getPrompt(
       String difficultyPrompt, String questionTypePrompt, String examplePrompt) {
     return String.format(
@@ -34,4 +28,10 @@ public interface LlmClient {
             """,
         questionTypePrompt, difficultyPrompt, examplePrompt);
   }
+
+  List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
+      String prompt, byte[] fileData, int questionCount, String model);
+
+  void getLlmGeneratedQuestionStream(
+      String prompt, byte[] fileData, int questionCount, String model, SseDataCallback callback);
 }
