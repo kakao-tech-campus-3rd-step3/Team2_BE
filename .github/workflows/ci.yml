@@ -30,14 +30,6 @@ jobs:
           distribution: "corretto"
           cache: "gradle"
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
-      - name: Check a code with Gradle
-        run: ./gradlew codeCheck
-      - name: Build
-        run: ./gradlew build --no-daemon --continue
-
       - name: Login to Docker registry
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         uses: docker/login-action@v3
@@ -45,6 +37,14 @@ jobs:
           registry: ${{ secrets.DOCKER_REGISTRY_HOST }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Check a code with Gradle
+        run: ./gradlew codeCheck
+      - name: Build
+        run: ./gradlew build --no-daemon --continue
 
       - name: Build and push image with tags (latest and sha)
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
