@@ -46,7 +46,7 @@ jobs:
       - name: Deploy with Docker Compose (QA)
         run: |
           ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "\
-            export DOCKER_IMAGE='${{ secrets.DOCKER_REGISTRY }}:${{ github.event.workflow_run.head_sha }}' && \
+            export DOCKER_IMAGE='${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}' && \
             export DB_USERNAME='${{ secrets.DB_USERNAME }}' && \
             export DB_PASSWORD='${{ secrets.DB_PASSWORD }}' && \
             export DB_ROOT_PASSWORD='${{ secrets.DB_ROOT_PASSWORD }}' && \

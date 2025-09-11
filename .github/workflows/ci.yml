@@ -55,5 +55,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_REGISTRY }}:latest
-            ${{ secrets.DOCKER_REGISTRY }}:${{ github.sha }}
+            ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}

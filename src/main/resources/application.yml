@@ -92,7 +92,8 @@ oauth:
     user-info-path: "/v2/user/me"
 
 app:
-  base-url: ${BASE_URL:http://localhost:8080}
+  scheme: ${SCHEME:http}
+  base-uri: ${BASE_URI:http://localhost:8080}
   google-api-key: ${GOOGLE_API_KEY:}
   storage:
     s3:
