@@ -61,8 +61,8 @@ public class SourceUploadResponse {
       String uploadUrl,
       String filePath,
       String originalName,
-      String contentType,
-      Long fileSizeBytes) {
+      Long fileSizeBytes,
+      String contentType) {
     this.uploadUrl = uploadUrl;
     this.filePath = filePath;
     this.originalName = originalName;

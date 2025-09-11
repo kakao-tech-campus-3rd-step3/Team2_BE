@@ -91,7 +91,9 @@ dependencies {
 
     // 회로 차단기 및 탄력성 패턴
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
 
     // OpenAPI 문서 생성용 추가 의존성

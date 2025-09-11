@@ -1,18 +1,26 @@
 services:
   # QA용 Spring Boot 애플리케이션
   pullit-qa-app:
-    image: ${DOCKER_REGISTRY}:latest
+    image: ${DOCKER_IMAGE}
     container_name: pullit-qa-app
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"  # Nginx 리버스 프록시만 접근 (외부 비공개)
     environment:
       # 데이터베이스 연결 설정
       - DB_URL=jdbc:mariadb://pullit-qa-db:3306/pullit_qa?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-      - DB_USERNAME=pullit_qa
+      - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       # Spring 프로필
       - SPRING_PROFILES_ACTIVE=qa
+      # 외부 서비스 API 키 (CD 파이프라인에서 주입)
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - BASE_URL=${BASE_URL}
       # JVM 옵션 (메모리 최적화)
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
@@ -34,7 +42,7 @@ services:
     restart: unless-stopped
     environment:
       - MARIADB_DATABASE=pullit_qa
-      - MARIADB_USER=pullit_qa
+      - MARIADB_USER=${DB_USERNAME}
       - MARIADB_PASSWORD=${DB_PASSWORD}
       - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - MARIADB_CHARSET=utf8mb4
