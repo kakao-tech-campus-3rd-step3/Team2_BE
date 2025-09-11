@@ -38,8 +38,19 @@ jobs:
 
       - name: Check a code with Gradle
         run: ./gradlew codeCheck
+
       - name: Build
-        run: ./gradlew build --no-daemon --continue
+        run: ./gradlew build --stacktrace --info --no-daemon --continue
+        env:
+          # Build(Test) 단계에서 필요한 secrets를 환경변수로 주입
+          ACCESS_CONTROL_ALLOWED_ORIGINS: ${{ secrets.ACCESS_CONTROL_ALLOWED_ORIGINS }}
+          AWS_REGION: ap-northeast-2
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
       - name: Build and push image with tags (latest and sha)
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
@@ -51,12 +62,3 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_IMAGE_NAME }}:latest
             ${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-          secrets: |
-            ACCESS_CONTROL_ALLOWED_ORIGINS=${{ secrets.ACCESS_CONTROL_ALLOWED_ORIGINS }}
-            AWS_REGION=ap-northeast-2
-            S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}
-            S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
-            KAKAO_REST_API_KEY=${{ secrets.KAKAO_REST_API_KEY }}
-            KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-            KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}
-            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
