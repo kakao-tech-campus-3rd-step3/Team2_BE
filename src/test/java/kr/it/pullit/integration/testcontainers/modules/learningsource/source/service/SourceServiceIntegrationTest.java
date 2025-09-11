@@ -2,23 +2,23 @@ package kr.it.pullit.integration.testcontainers.modules.learningsource.source.se
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.support.TestContainerTest;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Disabled("CI/CD 환경에서 실제 S3와 연동 테스트는 LocalStack 도입 후 재활성화 예정")
 public class SourceServiceIntegrationTest extends TestContainerTest {
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-  @Autowired
-  private SourcePublicApi sourcePublicApi;
+  @Autowired private SourcePublicApi sourcePublicApi;
 
   @Test
   void shouldGenerateUploadUrlSuccessfullyForPdfFile() {
@@ -51,8 +51,9 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-            .isInstanceOf(IllegalArgumentException.class).hasMessage("PDF 파일만 업로드 가능합니다.");
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("PDF 파일만 업로드 가능합니다.");
   }
 
   @Test
@@ -122,8 +123,9 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-            .isInstanceOf(IllegalArgumentException.class).hasMessage("유효하지 않은 파일 크기입니다.");
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("유효하지 않은 파일 크기입니다.");
   }
 
   @Test
@@ -136,9 +138,9 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
   }
 
   @Test
@@ -220,9 +222,12 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
       System.out.println(
           "🌐 URL: " + presignedUrl.substring(0, Math.min(presignedUrl.length(), 100)) + "...");
 
-      HttpRequest request = HttpRequest.newBuilder().uri(java.net.URI.create(presignedUrl))
-          .PUT(HttpRequest.BodyPublishers.ofByteArray(fileContent))
-          .header("Content-Type", contentType).build();
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(java.net.URI.create(presignedUrl))
+              .PUT(HttpRequest.BodyPublishers.ofByteArray(fileContent))
+              .header("Content-Type", contentType)
+              .build();
 
       HttpResponse<String> response =
           HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
