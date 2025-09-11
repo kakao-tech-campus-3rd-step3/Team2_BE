@@ -20,9 +20,7 @@ services:
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - AWS_REGION=${AWS_REGION}
-      - SCHEME=${SCHEME}
-      - BASE_URI=${BASE_URI}
-      - ACCESS_CONTROL_ALLOWED_ORIGINS=${ACCESS_CONTROL_ALLOWED_ORIGINS}
+      - BASE_URL=${BASE_URL}
       # JVM 옵션 (메모리 최적화)
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:

@@ -65,4 +65,9 @@ cors:
     - "https://qa.pull.it.kr"
     - "http://local.pull.it.kr:5173"
 
+# 카카오 리디렉션 URI는 QA 환경의 BASE_URL을 사용해야 하므로 오버라이드합니다.
+oauth:
+  kakao:
+    redirect-uri: "${BASE_URL}/oauth/callback/kakao"
+
 # 나머지 외부 연동 설정(S3, Google, Kakao 키 등)은 application.yml의 정의를 상속
