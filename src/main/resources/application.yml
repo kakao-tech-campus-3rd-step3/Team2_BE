@@ -57,6 +57,16 @@ spring:
       # 라이브 리로드 포트 지정 (기본값: 35729)
       port: 35729
 
+  # llm generator 설정
+  async:
+    executor:
+      llm-generator:
+        core-pool-size: 5
+        max-pool-size: 10
+        queue-capacity: 100
+        prefix: LLM-GEN-
+
+
 server:
   error:
     whitelabel:

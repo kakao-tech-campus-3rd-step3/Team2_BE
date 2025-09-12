@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.learningsource.source.repository;
 
 import java.util.List;
+import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.repository.adapter.jpa.SourceJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,15 @@ public class SourceRepositoryImpl implements SourceRepository {
   @Override
   public List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
     return sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+  }
+
+  @Override
+  public List<Source> findByIdIn(List<Long> ids) {
+    return sourceJpaRepository.findByIdIn(ids);
+  }
+
+  @Override
+  public Optional<Source> findByIdAndMemberId(Long id, Long memberId) {
+    return sourceJpaRepository.findByIdAndMemberId(id, memberId);
   }
 }

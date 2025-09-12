@@ -7,7 +7,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import java.util.HashSet;
+import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,6 +22,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Source extends BaseEntity {
+
+  @ManyToMany(mappedBy = "sources")
+  private final Set<QuestionSet> questionSets = new HashSet<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
