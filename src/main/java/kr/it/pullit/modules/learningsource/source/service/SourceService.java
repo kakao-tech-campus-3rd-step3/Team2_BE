@@ -1,6 +1,8 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -9,6 +11,10 @@ import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
+import kr.it.pullit.modules.learningsource.sourcefolder.api.SourceFolderPublicApi;
+import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
+import kr.it.pullit.modules.member.api.MemberPublicApi;
+import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +26,8 @@ public class SourceService implements SourcePublicApi {
 
   private final S3PublicApi s3PublicApi;
   private final SourceRepository sourceRepository;
+  private final MemberPublicApi memberPublicApi;
+  private final SourceFolderPublicApi sourceFolderPublicApi;
 
   @Override
   public SourceUploadResponse generateUploadUrl(
@@ -46,7 +54,21 @@ public class SourceService implements SourcePublicApi {
             request.getContentType(),
             request.getFileSizeBytes());
 
-    Source source = Source.create(sourceCreationParam);
+    Member member =
+        memberPublicApi
+            .findById(memberId)
+            .orElseThrow(
+                () -> new NoSuchElementException("there is no member with id: " + memberId));
+
+    SourceFolder sourceFolder =
+        sourceFolderPublicApi
+            .findDefaultFolderByMemberId(memberId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "there is no default folder for member: " + memberId));
+
+    Source source = Source.create(sourceCreationParam, member, sourceFolder);
 
     sourceRepository.save(source);
   }
@@ -66,5 +88,15 @@ public class SourceService implements SourcePublicApi {
             .orElseThrow(() -> new IllegalArgumentException("소스를 찾을 수 없습니다. ID: " + sourceId));
 
     return s3PublicApi.downloadFileAsBytes(source.getFilePath());
+  }
+
+  @Override
+  public Optional<Source> findById(Long id) {
+    return sourceRepository.findById(id);
+  }
+
+  @Override
+  public Optional<Source> findByIdAndMemberId(Long id) {
+    return sourceRepository.findByIdAndMemberId(id, id);
   }
 }

@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.questionset.web;
 
+import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.service.QuestionService;
-import kr.it.pullit.modules.questionset.service.QuestionSetService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/question-set")
 public class QuestionSetController {
-  private final QuestionSetService questionSetService;
+  private final QuestionSetPublicApi questionSetPublicApi;
   private final QuestionService questionService;
 
   @GetMapping("/{id}")
-  public ResponseEntity<QuestionSetDto> getQuestionSet(@PathVariable Long id) {
-    QuestionSetDto questionSetDto = questionSetService.questionSetGetById(id);
+  public ResponseEntity<QuestionSetDto> getQuestionSetById(@PathVariable Long id) {
+    QuestionSetDto questionSetDto = questionSetPublicApi.getQuestionSetById(id);
     return ResponseEntity.ok(questionSetDto);
   }
 
@@ -39,7 +39,7 @@ public class QuestionSetController {
             questionSetCreateRequestDto.type(),
             questionSetCreateRequestDto.questionCount());
 
-    questionSetDto = questionSetService.create(questionSetDto);
+    questionSetDto = questionSetPublicApi.create(questionSetDto);
 
     questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {});
 

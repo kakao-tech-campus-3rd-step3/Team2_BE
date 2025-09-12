@@ -24,9 +24,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
   @Override
   @Transactional
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-    OAuth2User oAuth2User = super.loadUser(userRequest);
+    OAuth2User oauth2User = super.loadUser(userRequest);
 
-    Map<String, Object> attributes = oAuth2User.getAttributes();
+    Map<String, Object> attributes = oauth2User.getAttributes();
     Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
     Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
