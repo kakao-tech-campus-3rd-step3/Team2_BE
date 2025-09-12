@@ -19,6 +19,7 @@ public class S3PresignedUrlService implements S3PublicApi {
   private final FilePathPolicy filePathPolicy;
   private final S3StorageProps s3StorageProps;
 
+  @Override
   public PresignedUrlResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId) {
     // 파일 검증
@@ -33,5 +34,15 @@ public class S3PresignedUrlService implements S3PublicApi {
             filePath, contentType, s3StorageProps.getPresignedUrlExpiration());
 
     return new PresignedUrlResponse(presignedUrl.toString(), filePath);
+  }
+
+  @Override
+  public byte[] downloadFileAsBytes(String filePath) {
+    return fileStorageClient.downloadFileAsBytes(filePath);
+  }
+
+  @Override
+  public boolean fileExists(String filePath) {
+    return fileStorageClient.fileExists(filePath);
   }
 }
