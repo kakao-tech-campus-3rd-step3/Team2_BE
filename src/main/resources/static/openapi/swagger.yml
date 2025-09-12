@@ -207,7 +207,7 @@ components:
           example: "document.pdf"
         status:
           type: string
-          enum: [UPLOADED, EXTRACTING, READY, FAILED]
+          enum: [ UPLOADED, EXTRACTING, READY, FAILED ]
           example: READY
         fileSizeBytes:
           type: integer
@@ -220,4 +220,4 @@ components:
 
     SourceStatus:
       type: string
-      enum: [UPLOADED, EXTRACTING, READY, FAILED]
+      enum: [ UPLOADED, EXTRACTING, READY, FAILED ]
