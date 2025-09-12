@@ -10,7 +10,6 @@ import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
-import kr.it.pullit.platform.storage.s3.client.FileStorageClient;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 public class SourceService implements SourcePublicApi {
 
   private final S3PublicApi s3PublicApi;
-  private final FileStorageClient fileStorageClient;
   private final SourceRepository sourceRepository;
 
   @Override
@@ -36,12 +34,8 @@ public class SourceService implements SourcePublicApi {
   /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */
   @Override
   public void processUploadComplete(SourceUploadCompleteRequest request, Long memberId) {
-    if (!fileStorageClient.fileExists(request.getFilePath())) {
+    if (!s3PublicApi.fileExists(request.getFilePath())) {
       throw new IllegalArgumentException("S3에 해당 파일이 존재하지 않습니다.");
-    }
-
-    if (request.getUploadId() == null || request.getUploadId().isBlank()) {
-      throw new IllegalArgumentException("유효하지 않은 업로드 세션입니다.");
     }
 
     SourceCreationParam sourceCreationParam =
@@ -62,5 +56,15 @@ public class SourceService implements SourcePublicApi {
     return sourceRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
         .map(SourceResponse::from)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public byte[] getContentBytes(Long sourceId, Long memberId) {
+    Source source =
+        sourceRepository
+            .findByIdAndMemberId(sourceId, memberId)
+            .orElseThrow(() -> new IllegalArgumentException("소스를 찾을 수 없습니다. ID: " + sourceId));
+
+    return s3PublicApi.downloadFileAsBytes(source.getFilePath());
   }
 }
