@@ -3,10 +3,12 @@ package kr.it.pullit.modules.notification.web;
 import kr.it.pullit.modules.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-@RestController("/notification")
+@RestController()
+@RequestMapping("/notification")
 @RequiredArgsConstructor
 public class NotificationController {
   private final NotificationService notificationService;
