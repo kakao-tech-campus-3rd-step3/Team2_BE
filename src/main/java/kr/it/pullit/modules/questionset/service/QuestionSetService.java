@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
+import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
@@ -21,10 +21,10 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
   private final SourceRepository sourceRepository;
-  private final MemberRepository memberRepository;
+  private final MemberPublicApi memberPublicApi;
 
   @Transactional(readOnly = true)
-  public QuestionSetDto questionSetGetById(Long id) {
+  public QuestionSetDto getQuestionSetById(Long id) {
     QuestionSet questionSet =
         questionSetRepository
             .findById(id)
@@ -41,7 +41,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
     }
 
     Member owner =
-        memberRepository
+        memberPublicApi
             .findById(questionSetDto.getOwnerID())
             .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다"));
 

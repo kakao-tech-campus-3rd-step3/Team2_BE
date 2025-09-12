@@ -13,4 +13,6 @@ public interface SourceRepository {
   List<Source> findByIdIn(List<Long> ids);
 
   Optional<Source> findByIdAndMemberId(Long id, Long memberId);
+
+  Optional<Source> findById(Long id);
 }

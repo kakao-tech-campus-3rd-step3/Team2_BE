@@ -2,10 +2,9 @@ package kr.it.pullit.modules.auth.kakaoauth.service;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
+import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.domain.entity.MemberStatus;
-import kr.it.pullit.modules.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-  private final MemberRepository memberRepository;
+  private final MemberPublicApi memberPublicApi;
 
   @Override
   @Transactional
@@ -35,18 +34,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     String email = (String) kakaoAccount.get("email");
     String name = (String) profile.get("nickname");
 
-    Optional<Member> memberOptional = memberRepository.findByKakaoId(kakaoId);
-
-    if (memberOptional.isEmpty()) {
-      Member newMember =
-          Member.builder()
-              .kakaoId(kakaoId)
-              .email(email)
-              .name(name)
-              .status(MemberStatus.ACTIVE)
-              .build();
-      memberRepository.save(newMember);
-    }
+    memberPublicApi
+        .findByKakaoId(kakaoId)
+        .orElseGet(
+            () -> {
+              Member newMember =
+                  Member.builder()
+                      .kakaoId(kakaoId)
+                      .email(email)
+                      .name(name)
+                      .status(MemberStatus.ACTIVE)
+                      .build();
+              return memberPublicApi.create(newMember);
+            });
 
     return new DefaultOAuth2User(
         Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), attributes, "id");

@@ -1,14 +1,17 @@
 package kr.it.pullit.platform.web;
 
+import java.time.Duration;
+import java.util.List;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableConfigurationProperties(WebCorsProps.class)
-public class WebConfig implements WebMvcConfigurer {
+public class WebConfig {
 
   private final WebCorsProps props;
 
@@ -16,31 +19,18 @@ public class WebConfig implements WebMvcConfigurer {
     this.props = props;
   }
 
-  @Override
-  public void addCorsMappings(@NonNull CorsRegistry registry) {
-    String[] origins =
-        props.getAllowedOrigins().stream()
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .toArray(String[]::new);
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
 
-    // API 엔드포인트 - 엄격한 CORS
-    registry
-        .addMapping("/api/**")
-        .allowedOrigins(origins)
-        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-        .allowedHeaders(
-            "Content-Type", "Authorization", "X-Requested-With", "Cache-Control", "Pragma")
-        .allowCredentials(true)
-        .maxAge(props.getMaxAgeSeconds());
+    configuration.setAllowedOrigins(props.getAllowedOrigins());
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowCredentials(true);
+    configuration.setMaxAge(Duration.ofSeconds(props.getMaxAgeSeconds()));
 
-    // 루트 경로 - 엄격한 CORS
-    registry
-        .addMapping("/")
-        .allowedOrigins(origins)
-        .allowedMethods("GET", "HEAD", "OPTIONS")
-        .allowedHeaders("Content-Type", "Authorization", "Cache-Control", "Pragma")
-        .allowCredentials(true)
-        .maxAge(props.getMaxAgeSeconds());
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
   }
 }
