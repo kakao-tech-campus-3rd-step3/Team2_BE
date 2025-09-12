@@ -21,12 +21,12 @@ public class NotificationService {
     emitter.onTimeout(() -> emitterRepository.deleteById(userId));
     emitter.onError((e) -> emitterRepository.deleteById(userId));
 
-    sendToClient(userId, "EventStream Created. userId: " + userId);
+    sendToMember(userId, "EventStream Created. userId: " + userId);
 
     return emitter;
   }
 
-  public void sendToClient(Long userId, Object data) {
+  public void sendToMember(Long userId, Object data) {
     emitterRepository
         .findById(userId)
         .ifPresent(
