@@ -22,22 +22,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(unique = true)
-    private Long kakaoId;
+  @Column(unique = true)
+  private Long kakaoId;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+  @Column(nullable = false, unique = true)
+  private String email;
 
-    @Column
-    private String name;
+  @Column private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column
-    private MemberStatus status;
+  @Enumerated(EnumType.STRING)
+  @Column
+  private MemberStatus status;
 
   @OneToMany(mappedBy = "owner")
   private List<QuestionSet> questionSets = new ArrayList<>();
