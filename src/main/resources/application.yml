@@ -9,12 +9,17 @@ spring:
     password: secret
 
   jpa:
+    defer-datasource-initialization: true # This is crucial for data.sql to run after DDL creation
     hibernate:
       ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
         show_sql: true
+
+  sql:
+    init:
+      mode: always
 
   flyway:
     enabled: false
@@ -37,8 +42,8 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-  
-  
+
+
   # Spring Boot DevTools 설정
   devtools:
     restart:
@@ -106,8 +111,9 @@ cors:
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
 app:
-  base-url: ${BASE_URL:http://localhost:8080}
-  google-api-key: ${GOOGLE_API_KEY:}
+  scheme: ${SCHEME:http}
+  base-uri: ${BASE_URI:localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:test}
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"

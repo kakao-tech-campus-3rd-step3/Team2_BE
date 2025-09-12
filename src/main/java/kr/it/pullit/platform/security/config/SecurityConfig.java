@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -16,11 +17,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
+  private final CorsConfigurationSource corsConfigurationSource;
 
   @Bean
   @Profile("!no-auth & !qa")
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> {})
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             authorize ->
@@ -47,7 +49,7 @@ public class SecurityConfig {
   @Bean
   @Profile({"no-auth", "qa"})
   public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> {})
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             authorize ->

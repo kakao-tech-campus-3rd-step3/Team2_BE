@@ -2,6 +2,8 @@ package kr.it.pullit.modules.questionset.domain.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,8 +50,13 @@ public class QuestionSet extends BaseEntity {
   private Set<Source> sources = new HashSet<>();
 
   private String title;
+
+  @Enumerated(EnumType.STRING)
   private DifficultyType difficulty;
+
+  @Enumerated(EnumType.STRING)
   private QuestionType type;
+
   /* 문제 수 */
   @Setter private Integer questionLength;
 

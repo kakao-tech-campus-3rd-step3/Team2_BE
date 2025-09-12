@@ -39,7 +39,7 @@ public class Question extends BaseEntity {
   /**
    * Question 생성자
    *
-   * @param sourceId 문제 출처 ID
+   * @param sourceId 문제 출처 ID (nullable)
    * @param questionSet 문제집
    * @param questionText 문제 제목
    * @param options 선지 목록 (오답만)

@@ -17,6 +17,6 @@ public class MemberControllerTest extends TestContainerTest {
   void getMemberById() {
     ResponseEntity<String> response =
         restTemplate.getForEntity("/api/members/{id}", String.class, 1L);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 }

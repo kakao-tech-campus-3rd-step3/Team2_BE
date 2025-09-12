@@ -6,4 +6,8 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 public interface MemberPublicApi {
 
   Optional<Member> findById(Long id);
+
+  Optional<Member> findByKakaoId(Long kakaoId);
+
+  Member create(Member member);
 }
