@@ -13,4 +13,6 @@ public interface SourcePublicApi {
   void processUploadComplete(SourceUploadCompleteRequest request, Long memberId);
 
   List<SourceResponse> getMySources(Long memberId);
+
+  byte[] getContentBytes(Long sourceId, Long memberId);
 }
