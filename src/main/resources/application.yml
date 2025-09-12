@@ -111,8 +111,9 @@ cors:
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
 app:
-  base-url: ${BASE_URL:http://localhost:8080}
-  google-api-key: ${GOOGLE_API_KEY:}
+  scheme: ${SCHEME:http}
+  base-uri: ${BASE_URI:localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:test}
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"
