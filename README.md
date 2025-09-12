@@ -20,42 +20,42 @@
 #### Flow
 
 ```mermaid
-gitGraph
+  gitGraph
   commit id: "init"
   branch develop
   checkout develop
-  commit id: "dev"
+  commit id: "dev init"
   branch issue-number/author/feature
   commit id: "feature"
   checkout develop
   merge issue-number/author/feature id: "feature merge"
   branch release/yyyy-mm-dd
-  checkout release/yyyy-mm-dd
   commit id: "snapshot"
+  checkout develop
+  commit id: "dev"
   branch refactor
   commit id: "refactor"
-  checkout release/yyyy-mm-dd
+  checkout develop
   merge refactor id:"refactor merge"
   checkout main
   merge release/yyyy-mm-dd id:"release merge"
   checkout develop
-  merge main id: "sync"
 ```
 
 #### Branch list
 
 - `main`
-  - snapshot branch에서 merge
+    - snapshot branch에서 merge
 - `develop`
-  - 주차별 업데이트 코드
+    - 주차별 업데이트 코드
 - `release/yyy-mm-dd`
-  - release snapshot
+    - release snapshot
 - `refactor/*`
-  - 코드 리팩토링 브랜치
+    - 코드 리팩토링 브랜치
 - `author/issue-number/type-subject`
-  - 기능 개발 브랜치
-  - 예시
-    - `flareseek/BTSK-1/feat-social-login`
+    - 기능 개발 브랜치
+    - 예시
+        - `flareseek/BTSK-1/feat-social-login`
 
 #### Branch Rules
 
@@ -73,22 +73,22 @@ gitGraph
 - 50자 이내로 subject 작성
 
 - 예시
-  - `feat: 카카오 로그인 구현` (Good)
-  - ~~`fix: bug fix`~~(Bad)
-  - ~~`api 추가`~~ (Bad)
+    - `feat: 카카오 로그인 구현` (Good)
+    - ~~`fix: bug fix`~~(Bad)
+    - ~~`api 추가`~~ (Bad)
 
 #### Type Convention
 
-| Type         | Description                                              |
-| ------------ | -------------------------------------------------------- |
-| **feat**     | 새로운 기능 추가                                         |
-| **fix**      | 버그 수정                                                |
-| **docs**     | 문서 수정                                                |
+| Type         | Description                        |
+|--------------|------------------------------------|
+| **feat**     | 새로운 기능 추가                          |
+| **fix**      | 버그 수정                              |
+| **docs**     | 문서 수정                              |
 | **style**    | 코드 스타일 변경 (들여쓰기, 세미콜론 등; 기능 변경 없음) |
-| **refactor** | 기능 변경 없는 코드 리팩토링                             |
-| **test**     | 테스트 코드 추가 또는 수정                               |
-| **chore**    | 빌드, 패키지 매니저 설정 등 (기타 잡일)                  |
-| **hotfix**   | 급하게 배포해야 하는 치명적인 버그 수정                  |
+| **refactor** | 기능 변경 없는 코드 리팩토링                   |
+| **test**     | 테스트 코드 추가 또는 수정                    |
+| **chore**    | 빌드, 패키지 매니저 설정 등 (기타 잡일)           |
+| **hotfix**   | 급하게 배포해야 하는 치명적인 버그 수정             |
 
 #### PR
 
