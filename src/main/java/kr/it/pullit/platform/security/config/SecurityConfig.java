@@ -1,5 +1,7 @@
 package kr.it.pullit.platform.security.config;
 
+import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -10,7 +12,10 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+  private final CustomOAuth2UserService customOAuth2UserService;
 
   @Bean
   @Profile("!no-auth & !qa")
@@ -31,8 +36,10 @@ public class SecurityConfig {
                     .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
                     .authenticated()
                     .anyRequest()
-                    .authenticated());
-    // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
+                    .authenticated())
+        .oauth2Login(
+            oauth2 ->
+                oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)));
 
     return http.build();
   }
@@ -48,9 +55,10 @@ public class SecurityConfig {
                     .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
                     .authenticated()
                     .anyRequest()
-                    .permitAll());
-    // .oauth2Login(withDefaults()); TODO : 소셜 로그인 기능 완료되면 이 부분 주석 해제
-
+                    .permitAll())
+        .oauth2Login(
+            oauth2 ->
+                oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)));
     return http.build();
   }
 }

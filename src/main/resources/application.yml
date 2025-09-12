@@ -19,12 +19,26 @@ spring:
   flyway:
     enabled: false
 
-  # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
   security:
-    user:
-      name: pullit
-      password: pullit
-
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_REST_API_KEY:}
+            client-secret: ${KAKAO_CLIENT_SECRET:}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile_nickname, account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+  
+  
   # Spring Boot DevTools 설정
   devtools:
     restart:
@@ -91,24 +105,13 @@ cors:
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
-oauth:
-  kakao:
-    client-id: ${KAKAO_REST_API_KEY:test}
-    client-secret: ${KAKAO_CLIENT_SECRET:test}
-    redirect-uri: /login/oauth2/code/kakao
-    kauth-url: "https://kauth.kakao.com"
-    authorize-path: "/oauth/authorize"
-    token-path: "/oauth/token"
-    user-info-path: "/v2/user/me"
-
 app:
-  scheme: ${SCHEME:http}
-  base-uri: ${BASE_URI:localhost:8080}
-  google-api-key: ${GOOGLE_API_KEY:test}
+  base-url: ${BASE_URL:http://localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:}
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"
-      region: ${AWS_REGION:ap-northeast-2}
+      region: "ap-northeast-2"
       access-key: ${S3_ACCESS_KEY:test}
       secret-key: ${S3_SECRET_KEY:test}
       presigned-url-expiration: PT15M
