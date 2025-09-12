@@ -7,10 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,28 +18,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(unique = true)
-    private Long kakaoId;
+  @Column(unique = true)
+  private Long kakaoId;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+  @Column(nullable = false, unique = true)
+  private String email;
 
-    @Column
-    private String name;
+  @Column private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column
-    private MemberStatus status;
+  @Enumerated(EnumType.STRING)
+  @Column
+  private MemberStatus status;
 
-    @Builder
-    public Member(Long kakaoId, String email, String name, MemberStatus status) {
-        this.kakaoId = kakaoId;
-        this.email = email;
-        this.name = name;
-        this.status = status;
-    }
+  @Builder
+  public Member(Long kakaoId, String email, String name, MemberStatus status) {
+    this.kakaoId = kakaoId;
+    this.email = email;
+    this.name = name;
+    this.status = status;
+  }
 }

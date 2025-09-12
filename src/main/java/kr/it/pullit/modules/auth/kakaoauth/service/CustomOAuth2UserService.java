@@ -20,37 +20,35 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final MemberRepository memberRepository;
+  private final MemberRepository memberRepository;
 
-    @Override
-    @Transactional
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+  @Override
+  @Transactional
+  public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    OAuth2User oauth2User = super.loadUser(userRequest);
 
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+    Map<String, Object> attributes = oauth2User.getAttributes();
+    Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+    Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-        Long kakaoId = (Long) attributes.get("id");
-        String email = (String) kakaoAccount.get("email");
-        String name = (String) profile.get("nickname");
+    Long kakaoId = (Long) attributes.get("id");
+    String email = (String) kakaoAccount.get("email");
+    String name = (String) profile.get("nickname");
 
-        Optional<Member> memberOptional = memberRepository.findByKakaoId(kakaoId);
+    Optional<Member> memberOptional = memberRepository.findByKakaoId(kakaoId);
 
-        if (memberOptional.isEmpty()) {
-            Member newMember = Member.builder()
-                    .kakaoId(kakaoId)
-                    .email(email)
-                    .name(name)
-                    .status(MemberStatus.ACTIVE)
-                    .build();
-            memberRepository.save(newMember);
-        }
-
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
-                attributes,
-                "id"
-        );
+    if (memberOptional.isEmpty()) {
+      Member newMember =
+          Member.builder()
+              .kakaoId(kakaoId)
+              .email(email)
+              .name(name)
+              .status(MemberStatus.ACTIVE)
+              .build();
+      memberRepository.save(newMember);
     }
+
+    return new DefaultOAuth2User(
+        Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), attributes, "id");
+  }
 }
