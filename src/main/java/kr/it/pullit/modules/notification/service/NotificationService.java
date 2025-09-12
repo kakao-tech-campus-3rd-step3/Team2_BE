@@ -9,9 +9,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-  private final EmitterRepository emitterRepository;
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 30; // 30분
   private static final String EVENT_NAME = "notification";
+  private final EmitterRepository emitterRepository;
 
   public SseEmitter subscribe(Long userId) {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
