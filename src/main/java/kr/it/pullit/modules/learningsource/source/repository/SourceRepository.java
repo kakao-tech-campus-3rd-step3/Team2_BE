@@ -11,6 +11,6 @@ public interface SourceRepository {
   List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 
   List<Source> findByIdIn(List<Long> ids);
-  
+
   Optional<Source> findByIdAndMemberId(Long id, Long memberId);
 }

@@ -33,7 +33,7 @@ public class SourceRepositoryImpl implements SourceRepository {
   public List<Source> findByIdIn(List<Long> ids) {
     return sourceJpaRepository.findByIdIn(ids);
   }
-  
+
   @Override
   public Optional<Source> findByIdAndMemberId(Long id, Long memberId) {
     return sourceJpaRepository.findByIdAndMemberId(id, memberId);
