@@ -17,9 +17,9 @@ public class NotificationService {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
     emitterRepository.save(userId, emitter);
 
-    emitter.onCompletion(() -> emitterRepository.delete(userId));
-    emitter.onTimeout(() -> emitterRepository.delete(userId));
-    emitter.onError((e) -> emitterRepository.delete(userId));
+    emitter.onCompletion(() -> emitterRepository.deleteById(userId));
+    emitter.onTimeout(() -> emitterRepository.deleteById(userId));
+    emitter.onError((e) -> emitterRepository.deleteById(userId));
 
     sendToClient(userId, "EventStream Created. userId: " + userId);
 
@@ -34,7 +34,7 @@ public class NotificationService {
               try {
                 emitter.send(SseEmitter.event().name(EVENT_NAME).data(data));
               } catch (IOException e) {
-                emitterRepository.delete(userId);
+                emitterRepository.deleteById(userId);
                 throw new RuntimeException(e);
               }
             });

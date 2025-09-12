@@ -6,7 +6,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public interface EmitterRepository {
   void save(Long userId, SseEmitter emitter);
 
-  void delete(Long userId);
+  void deleteById(Long userId);
 
   Optional<SseEmitter> findById(Long userId);
 }

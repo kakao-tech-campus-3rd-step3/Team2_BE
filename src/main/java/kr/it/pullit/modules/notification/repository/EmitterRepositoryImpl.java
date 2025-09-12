@@ -14,7 +14,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
     emitters.put(userId, emitter);
   }
 
-  public void delete(Long userId) {
+  public void deleteById(Long userId) {
     emitters.remove(userId);
   }
 
