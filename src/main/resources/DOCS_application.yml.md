@@ -13,7 +13,7 @@ spring:
   application:
     name: pullit # 애플리케이션의 고유한 이름
 
-# 데이터베이스 연결 설정
+  # 데이터베이스 연결 설정
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     # DB_URL 환경 변수가 있으면 그 값을 사용하고, 없으면 로컬 MariaDB 주소를 기본값으로 사용합니다.
@@ -23,7 +23,7 @@ spring:
     # DB_PASSWORD 환경 변수가 있으면 그 값을 사용하고, 없으면 'root'를 기본값으로 사용합니다.
     password: ${DB_PASSWORD:root}
 
-# JPA (Java Persistence API) 및 Hibernate 관련 설정
+  # JPA (Java Persistence API) 및 Hibernate 관련 설정
   jpa:
     hibernate:
       # ddl-auto: 애플리케이션 실행 시 JPA 엔티티와 데이터베이스 스키마를 어떻게 처리할지 결정합니다.
@@ -80,7 +80,7 @@ server:
     # ON_TRACE_PARAM: `trace=true` 파라미터가 있을 때만 포함 (운영에서 고려)
     # ALWAYS: 항상 포함 (개발 시 유용)
     # NEVER: 절대 포함하지 않음
-    
+
     include-stacktrace: ALWAYS
 
 # Actuator의 /info 엔드포인트에 노출될 추가 정보

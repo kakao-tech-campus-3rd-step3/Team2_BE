@@ -10,4 +10,6 @@ public interface SourceJpaRepository extends JpaRepository<Source, Long> {
   List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 
   Optional<Source> findByIdAndMemberId(Long id, Long memberId);
+
+  List<Source> findByIdIn(List<Long> ids);
 }
