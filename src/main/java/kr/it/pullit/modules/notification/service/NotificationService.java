@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.notification.service;
 
 import java.io.IOException;
+import kr.it.pullit.modules.notification.domain.enums.SseEventType;
 import kr.it.pullit.modules.notification.repository.EmitterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class NotificationService {
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 30; // 30분
-  private static final String EVENT_NAME = "notification";
   private final EmitterRepository emitterRepository;
 
   public SseEmitter subscribe(Long userId) {
@@ -21,18 +21,32 @@ public class NotificationService {
     emitter.onTimeout(() -> emitterRepository.deleteById(userId));
     emitter.onError((e) -> emitterRepository.deleteById(userId));
 
-    sendToMember(userId, "EventStream Created. userId: " + userId);
+    publishHandShakeComplete(userId, "EventStream Created. userId: " + userId);
 
     return emitter;
   }
 
-  public void sendToMember(Long userId, Object data) {
+  public void publishQuestionCreationComplete(Long userId, Object data) {
+    if (data == null) {
+      return;
+    }
+    sendToMember(userId, SseEventType.QUESTION_CREATION_COMPLETE.code(), data);
+  }
+
+  public void publishHandShakeComplete(Long userId, Object data) {
+    if (data == null) {
+      data = "Handshake Complete";
+    }
+    sendToMember(userId, SseEventType.HAND_SHAKE_COMPLETE.code(), data);
+  }
+
+  private void sendToMember(Long userId, String eventName, Object data) {
     emitterRepository
         .findById(userId)
         .ifPresent(
             emitter -> {
               try {
-                emitter.send(SseEmitter.event().name(EVENT_NAME).data(data));
+                emitter.send(SseEmitter.event().name(eventName).data(data));
               } catch (IOException e) {
                 emitterRepository.deleteById(userId);
                 throw new RuntimeException(e);
