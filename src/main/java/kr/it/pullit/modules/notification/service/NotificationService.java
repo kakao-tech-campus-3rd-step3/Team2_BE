@@ -3,6 +3,7 @@ package kr.it.pullit.modules.notification.service;
 import java.io.IOException;
 import kr.it.pullit.modules.notification.domain.enums.SseEventType;
 import kr.it.pullit.modules.notification.repository.EmitterRepository;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionCreationCompleteResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -26,7 +27,8 @@ public class NotificationService {
     return emitter;
   }
 
-  public void publishQuestionCreationComplete(Long userId, Object data) {
+  public void publishQuestionCreationComplete(
+      Long userId, QuestionCreationCompleteResponseDto data) {
     if (data == null) {
       return;
     }
