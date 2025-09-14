@@ -4,7 +4,7 @@ import kr.it.pullit.modules.notification.service.NotificationService;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionCreationCompleteResponseDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponseDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -45,13 +45,13 @@ public class QuestionSetController {
 
     questionSetDto = questionSetPublicApi.create(questionSetDto);
 
-    QuestionCreationCompleteResponseDto responseDto =
-        new QuestionCreationCompleteResponseDto(
+    QuestionSetCreationCompleteResponseDto responseDto =
+        new QuestionSetCreationCompleteResponseDto(
             true, questionSetDto.getId(), "QuestionSet created");
     questionService.generateQuestions(
         questionSetDto,
         llmGeneratedQuestionDtoList -> {
-          notificationService.publishQuestionCreationComplete(userId, responseDto);
+          notificationService.publishQuestionSetCreationComplete(userId, responseDto);
         });
 
     return ResponseEntity.ok(questionSetDto);

@@ -3,7 +3,7 @@ package kr.it.pullit.modules.notification.service;
 import java.io.IOException;
 import kr.it.pullit.modules.notification.domain.enums.SseEventType;
 import kr.it.pullit.modules.notification.repository.EmitterRepository;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionCreationCompleteResponseDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -27,12 +27,12 @@ public class NotificationService {
     return emitter;
   }
 
-  public void publishQuestionCreationComplete(
-      Long userId, QuestionCreationCompleteResponseDto data) {
+  public void publishQuestionSetCreationComplete(
+      Long userId, QuestionSetCreationCompleteResponseDto data) {
     if (data == null) {
       return;
     }
-    sendToMember(userId, SseEventType.QUESTION_CREATION_COMPLETE.code(), data);
+    sendToMember(userId, SseEventType.QUESTION_SET_CREATION_COMPLETE.code(), data);
   }
 
   public void publishHandShakeComplete(Long userId, Object data) {

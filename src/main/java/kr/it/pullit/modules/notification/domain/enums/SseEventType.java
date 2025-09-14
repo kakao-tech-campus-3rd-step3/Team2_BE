@@ -2,7 +2,7 @@ package kr.it.pullit.modules.notification.domain.enums;
 
 public enum SseEventType {
   HAND_SHAKE_COMPLETE("handShakeComplete"),
-  QUESTION_CREATION_COMPLETE("questionCreationComplete");
+  QUESTION_SET_CREATION_COMPLETE("questionSetCreationComplete");
 
   private final String code;
 
