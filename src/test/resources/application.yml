@@ -1,0 +1,53 @@
+spring:
+  flyway:
+    enabled: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_REST_API_KEY:test-client-id}
+            client-secret: ${KAKAO_CLIENT_SECRET:test-client-secret}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile_nickname, account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+  async:
+    executor:
+      llm-generator:
+        core-pool-size: 5
+        max-pool-size: 10
+        queue-capacity: 100
+        prefix: LLM-GEN-
+
+jwt:
+  secret: ${JWT_SECRET_KEY:Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=}
+  issuer: ${JWT_ISSUER:pullit-backend}
+  audience: ${JWT_AUDIENCE:pullit-client}
+  access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:30}
+  refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:7}
+  redirect-url: ${JWT_REDIRECT_URL:http://local.pull.it.kr:5173/}
+
+
+app:
+  scheme: ${SCHEME:http}
+  base-uri: ${BASE_URI:localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:test}
+  gemini:
+    api-key: ${GEMINI_API_KEY:test}
+  storage:
+    s3:
+      bucket-name: "pullit-uploaded-files"
+      region: "ap-northeast-2"
+      access-key: test
+      secret-key: test
+      presigned-url-expiration: PT15M
+      base-path: "learning-sources"

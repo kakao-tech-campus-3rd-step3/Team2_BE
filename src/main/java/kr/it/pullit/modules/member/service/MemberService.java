@@ -5,6 +5,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.domain.entity.MemberStatus;
 import kr.it.pullit.modules.member.repository.MemberRepository;
+import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.SignUpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,5 +42,21 @@ public class MemberService implements MemberPublicApi {
             .status(MemberStatus.ACTIVE)
             .build();
     return memberRepository.save(newMember);
+  }
+
+  @Override
+  @Transactional
+  public Member findOrCreateMember(SocialLoginCommand command) {
+    return memberRepository
+        .findByKakaoId(command.kakaoId())
+        .orElseGet(
+            () ->
+                memberRepository.save(
+                    Member.builder()
+                        .kakaoId(command.kakaoId())
+                        .email(command.email())
+                        .name(command.name())
+                        .status(MemberStatus.ACTIVE)
+                        .build()));
   }
 }

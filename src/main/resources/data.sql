@@ -8,26 +8,28 @@
 -- =========================================================================================
 
 -- -----------------------------------------------------
--- Table `member` (5 members)
+-- Table `members` (5 members)
 -- -----------------------------------------------------
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
-VALUES (1, 1000000001, 'test.user@example.com', '테스트유저', 'ACTIVE', NOW(), NOW())
+INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
+VALUES (1, 1000000001, 'test.user@example.com', '테스트유저', 'ACTIVE',
+        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyZWZyZXNoLXRva2VuIiwiaWF0IjoxNzE5MzA2NzUzLCJleHAiOjE3MjA1MTYzNTN9.t-28-t1i-X22a3_Q1sZ6_x_x_x_x_x_x',
+        NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
-VALUES (2, 1000000002, 'alice@example.com', '앨리스', 'ACTIVE', NOW(), NOW())
+INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
+VALUES (2, 1000000002, 'alice@example.com', '앨리스', 'ACTIVE', NULL, NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
-VALUES (3, 1000000003, 'bob@example.com', '밥', 'ACTIVE', NOW(), NOW())
+INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
+VALUES (3, 1000000003, 'bob@example.com', '밥', 'ACTIVE', NULL, NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
-VALUES (4, 1000000004, 'charlie@example.com', '찰리', 'INACTIVE', NOW(), NOW())
+INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
+VALUES (4, 1000000004, 'charlie@example.com', '찰리', 'INACTIVE', NULL, NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
-VALUES (5, 1000000005, 'david@example.com', '데이빗', 'ACTIVE', NOW(), NOW())
+INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
+VALUES (5, 1000000005, 'david@example.com', '데이빗', 'ACTIVE', NULL, NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 
 

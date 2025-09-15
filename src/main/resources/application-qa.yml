@@ -9,14 +9,6 @@ spring:
       ddl-auto: update  # QA 환경에서는 데이터를 보존하기 위함.
     show-sql: false
 
-security:
-  oauth2:
-    client:
-      registration:
-        kakao:
-          client-id: ${KAKAO_REST_API_KEY}
-          client-secret: ${KAKAO_CLIENT_SECRET}
-
   # QA 환경에서는 DevTools 비활성화
   devtools:
     restart:
@@ -40,9 +32,9 @@ info:
 
 logging:
   level:
-    root: debug
+    root: info
     org.springframework.security: info
-    kr.it.pullit: debug
+    kr.it.pullit: info
   # QA 로그 파일 설정
   # file:
   #   name: logs/pullit-qa.log
