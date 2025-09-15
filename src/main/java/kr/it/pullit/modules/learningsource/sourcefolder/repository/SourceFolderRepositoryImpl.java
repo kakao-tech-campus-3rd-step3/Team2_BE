@@ -1,10 +1,8 @@
 package kr.it.pullit.modules.learningsource.sourcefolder.repository;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.learningsource.sourcefolder.repository.adapter.jpa.SourceFolderJpaRepository;
-import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Repository;
 public class SourceFolderRepositoryImpl implements SourceFolderRepository {
 
   private final SourceFolderJpaRepository sourceFolderJpaRepository;
-  private final MemberPublicApi memberPublicApi;
   private static final String DEFAULT_FOLDER_NAME = "전체 폴더";
 
   @Override
@@ -29,18 +26,11 @@ public class SourceFolderRepositoryImpl implements SourceFolderRepository {
 
   @Override
   public Optional<SourceFolder> findDefaultFolderByMemberId(Long memberId) {
-    return Optional.ofNullable(
-        sourceFolderJpaRepository
-            .findByMemberIdAndName(memberId, DEFAULT_FOLDER_NAME)
-            .orElseGet(() -> createDefaultFolder(memberId)));
+    return sourceFolderJpaRepository.findByMemberIdAndName(memberId, DEFAULT_FOLDER_NAME);
   }
 
-  private SourceFolder createDefaultFolder(Long memberId) {
-    Member member =
-        memberPublicApi
-            .findById(memberId)
-            .orElseThrow(() -> new NoSuchElementException("Member not found with id: " + memberId));
-
+  @Override
+  public SourceFolder createDefaultFolder(Member member) {
     SourceFolder defaultFolder =
         SourceFolder.builder()
             .member(member)

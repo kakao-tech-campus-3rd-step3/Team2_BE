@@ -8,11 +8,13 @@ public interface SourceRepository {
 
   Source save(Source source);
 
+  Optional<Source> findById(Long id);
+
   List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId);
+
+  List<Source> findSourcesByMemberIdWithDetails(Long memberId);
 
   List<Source> findByIdIn(List<Long> ids);
 
   Optional<Source> findByIdAndMemberId(Long id, Long memberId);
-
-  Optional<Source> findById(Long id);
 }
