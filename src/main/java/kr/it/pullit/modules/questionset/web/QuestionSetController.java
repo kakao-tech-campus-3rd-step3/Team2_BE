@@ -26,6 +26,7 @@ public class QuestionSetController {
     private final MemberPublicApi memberPublicApi;
 
     @GetMapping("/{id}")
+    public ResponseEntity<QuestionSetDto> getQuestionSetById(@PathVariable Long id) {
         QuestionSetDto questionSetDto = questionSetPublicApi.getQuestionSetById(id);
         return ResponseEntity.ok(questionSetDto);
     }
