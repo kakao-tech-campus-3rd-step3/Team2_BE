@@ -1,11 +1,14 @@
 package kr.it.pullit.modules.questionset.web;
 
+import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,32 +20,41 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/question-set")
 public class QuestionSetController {
-  private final QuestionSetPublicApi questionSetPublicApi;
-  private final QuestionService questionService;
 
-  @GetMapping("/{id}")
-  public ResponseEntity<QuestionSetDto> getQuestionSetById(@PathVariable Long id) {
-    QuestionSetDto questionSetDto = questionSetPublicApi.getQuestionSetById(id);
-    return ResponseEntity.ok(questionSetDto);
-  }
+    private final QuestionSetPublicApi questionSetPublicApi;
+    private final QuestionService questionService;
+    private final MemberPublicApi memberPublicApi;
 
-  @PostMapping
-  public ResponseEntity<QuestionSetDto> createQuestionSet(
-      @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
-    // TODO: 인증 적용 후 ownerID 동적으로 변경
-    QuestionSetDto questionSetDto =
-        new QuestionSetDto(
-            1L,
-            questionSetCreateRequestDto.sourceIds(),
-            questionSetCreateRequestDto.title(),
-            questionSetCreateRequestDto.difficulty(),
-            questionSetCreateRequestDto.type(),
-            questionSetCreateRequestDto.questionCount());
+    @GetMapping("/{id}")
+        QuestionSetDto questionSetDto = questionSetPublicApi.getQuestionSetById(id);
+        return ResponseEntity.ok(questionSetDto);
+    }
 
-    questionSetDto = questionSetPublicApi.create(questionSetDto);
+    @PostMapping
+    public ResponseEntity<QuestionSetDto> createQuestionSet(
+            @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto,
+            @AuthenticationPrincipal OAuth2User oAuth2User) {
 
-    questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {});
+        Long kakaoId = oAuth2User.getAttribute("id");
+        Long memberId = memberPublicApi.findByKakaoId(kakaoId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당하는 사용자를 찾을 수 없습니다. kakaoId : " + kakaoId))
+                .getId();
 
-    return ResponseEntity.ok(questionSetDto);
-  }
+        QuestionSetDto questionSetDto =
+                new QuestionSetDto(
+                        memberId,
+                        questionSetCreateRequestDto.sourceIds(),
+                        questionSetCreateRequestDto.title(),
+                        questionSetCreateRequestDto.difficulty(),
+                        questionSetCreateRequestDto.type(),
+                        questionSetCreateRequestDto.questionCount());
+
+        questionSetDto = questionSetPublicApi.create(questionSetDto);
+
+        questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {
+        });
+
+        return ResponseEntity.ok(questionSetDto);
+    }
 }
