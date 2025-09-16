@@ -23,7 +23,7 @@ public class S3PresignedUrlService implements S3PublicApi {
   public PresignedUrlResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId) {
     // 파일 검증
-    fileValidation.validatePdfFile(fileName, contentType, fileSize);
+    fileValidation.validatePdfFile(contentType, fileSize);
 
     // 파일 경로 생성
     String filePath = filePathPolicy.generateFilePath(fileName, memberId);

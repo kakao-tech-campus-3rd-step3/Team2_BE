@@ -7,12 +7,10 @@ public class FileValidation {
 
   private static final long MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
   private static final String[] ALLOWED_CONTENT_TYPES = {"application/pdf"};
-  private static final String[] ALLOWED_EXTENSIONS = {".pdf"};
 
-  public void validatePdfFile(String fileName, String contentType, long fileSize) {
+  public void validatePdfFile(String contentType, long fileSize) {
     validateFileSize(fileSize);
     validateContentType(contentType);
-    validateFileExtension(fileName);
   }
 
   private void validateFileSize(long fileSize) {
@@ -35,18 +33,5 @@ public class FileValidation {
       }
     }
     throw new IllegalArgumentException("PDF 파일만 업로드 가능합니다.");
-  }
-
-  private void validateFileExtension(String fileName) {
-    if (fileName == null) {
-      throw new IllegalArgumentException("파일명이 지정되지 않았습니다.");
-    }
-
-    for (String allowedExt : ALLOWED_EXTENSIONS) {
-      if (fileName.toLowerCase().endsWith(allowedExt)) {
-        return;
-      }
-    }
-    throw new IllegalArgumentException("PDF 확장자 파일만 업로드 가능합니다.");
   }
 }
