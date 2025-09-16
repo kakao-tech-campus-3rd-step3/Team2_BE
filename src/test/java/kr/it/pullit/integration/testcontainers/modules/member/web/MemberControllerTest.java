@@ -14,7 +14,7 @@ public class MemberControllerTest extends TestContainerTest {
 
   @Autowired private TestRestTemplate restTemplate;
 
-  //TODO: later fix.
+  // TODO: later fix.
   @Disabled("later fix")
   @Test
   void getMemberById() {
