@@ -55,6 +55,8 @@ public class Source extends BaseEntity {
   @Column(nullable = false)
   private Long fileSizeBytes;
 
+  private Integer pageCount;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private SourceStatus status;

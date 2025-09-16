@@ -3,7 +3,6 @@ package kr.it.pullit.modules.learningsource.source.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
@@ -19,9 +18,11 @@ import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SourceService implements SourcePublicApi {
 
   private final S3PublicApi s3PublicApi;
@@ -60,13 +61,7 @@ public class SourceService implements SourcePublicApi {
             .orElseThrow(
                 () -> new NoSuchElementException("there is no member with id: " + memberId));
 
-    SourceFolder sourceFolder =
-        sourceFolderPublicApi
-            .findDefaultFolderByMemberId(memberId)
-            .orElseThrow(
-                () ->
-                    new NoSuchElementException(
-                        "there is no default folder for member: " + memberId));
+    SourceFolder sourceFolder = sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
 
     Source source = Source.create(sourceCreationParam, member, sourceFolder);
 
@@ -74,10 +69,11 @@ public class SourceService implements SourcePublicApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<SourceResponse> getMySources(Long memberId) {
-    return sourceRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
+    return sourceRepository.findSourcesByMemberIdWithDetails(memberId).stream()
         .map(SourceResponse::from)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
