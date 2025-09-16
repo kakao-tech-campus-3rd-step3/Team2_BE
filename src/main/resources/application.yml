@@ -87,7 +87,7 @@ info:
 
 logging:
   level:
-    ROOT: DEBUG
+    ROOT: INFO
     java.lang.ProcessBuilder: INFO
     sun.rmi.loader: WARN
     sun.rmi.transport.tcp: WARN

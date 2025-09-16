@@ -1,11 +1,10 @@
 package kr.it.pullit.modules.questionset.service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
+import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -16,58 +15,88 @@ import kr.it.pullit.modules.questionset.service.factory.DifficultyPolicyFactory;
 import kr.it.pullit.modules.questionset.service.factory.QuestionTypePolicyFactory;
 import kr.it.pullit.modules.questionset.service.policy.difficulty.DifficultyPolicy;
 import kr.it.pullit.modules.questionset.service.policy.type.QuestionTypePolicy;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
-public class QuestionService {
+public class QuestionService implements QuestionPublicApi {
 
   private final QuestionRepository questionRepository;
   private final QuestionSetRepository questionSetRepository;
   private final DifficultyPolicyFactory difficultyPolicyFactory;
   private final QuestionTypePolicyFactory questionTypePolicyFactory;
   private final LlmClient llmClient;
+  private final SourcePublicApi sourcePublicApi;
 
-  @Transactional
+  @Override
   @Async("llmGeneratorAsyncExecutor")
   public void generateQuestions(
-      QuestionSetDto questionSetDto, QuestionGenerationSuccessCallback callback) {
+      QuestionSetResponse questionSetResponse, QuestionGenerationSuccessCallback callback) {
 
     QuestionSet questionSet =
         questionSetRepository
-            .findById(questionSetDto.getId())
+            .findById(questionSetResponse.getId())
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
-                        "QuestionSet not found with id: " + questionSetDto.getId()));
+                        "QuestionSet not found with id: " + questionSetResponse.getId()));
 
     DifficultyPolicy difficultyPolicy =
-        difficultyPolicyFactory.getInstance(questionSetDto.getDifficulty());
+        difficultyPolicyFactory.getInstance(questionSetResponse.getDifficulty());
     QuestionTypePolicy questionTypePolicy =
-        questionTypePolicyFactory.getInstance(questionSetDto.getType());
+        questionTypePolicyFactory.getInstance(questionSetResponse.getType());
 
     String difficultyPrompt = difficultyPolicy.getDifficultyPrompt();
     String questionTypePrompt = questionTypePolicy.getQuestionTypePrompt();
     String examplePrompt = questionTypePolicy.getExamplePrompt();
 
     String prompt = LlmClient.getPrompt(difficultyPrompt, questionTypePrompt, examplePrompt);
+
+    List<byte[]> sourceFileDataBytes = new ArrayList<>();
+    for (Long sourceId : questionSetResponse.getSourceIds()) {
+      byte[] contentBytes =
+          sourcePublicApi.getContentBytes(sourceId, questionSetResponse.getOwnerID());
+      sourceFileDataBytes.add(contentBytes);
+    }
+
+    log.info(
+        "AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}",
+        questionSetResponse.getId(),
+        "gemini-2.5-flash-lite");
+
     // TODO: 정책에 따라 모델 변경
     List<LlmGeneratedQuestionDto> llmGeneratedQuestionDtoList =
         llmClient.getLlmGeneratedQuestionContent(
             prompt,
-            getSourceFileDataBytes(questionSetDto.getSourceIds()),
-            questionSetDto.getQuestionLength(),
-            "gemini-2.5-flash-lite");
+            sourceFileDataBytes,
+            questionSetResponse.getQuestionLength(),
+            "gemini-1.5-flash-latest");
 
-    for (LlmGeneratedQuestionDto llmGeneratedQuestionDto : llmGeneratedQuestionDtoList) {
-      // TODO: soureceId 동적으로 변경
+    saveQuestions(questionSet.getId(), llmGeneratedQuestionDtoList);
+
+    callback.onSuccess(llmGeneratedQuestionDtoList);
+  }
+
+  @Override
+  @Transactional
+  public void saveQuestions(Long questionSetId, List<LlmGeneratedQuestionDto> questions) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "QuestionSet not found with id: " + questionSetId));
+
+    for (LlmGeneratedQuestionDto llmGeneratedQuestionDto : questions) {
       Question question =
           new Question(
-              questionSetDto.getSourceIds().getFirst(),
               questionSet,
               llmGeneratedQuestionDto.questionText(),
               llmGeneratedQuestionDto.options(),
@@ -75,25 +104,5 @@ public class QuestionService {
               llmGeneratedQuestionDto.explanation());
       questionRepository.save(question);
     }
-    callback.onSuccess(llmGeneratedQuestionDtoList);
-  }
-
-  private List<byte[]> getSourceFileDataBytes(List<Long> sourceIds) {
-    List<byte[]> fileDataList = new ArrayList<>();
-
-    // TODO: 파일 S3에서 읽어오기
-    // TODO: sourceIds로 파일 불러오기
-    /* ------------------------- */
-    final String pdfPath = "src/test/resources/test.pdf";
-    byte[] pdfData;
-    try {
-      pdfData = Files.readAllBytes(Paths.get(pdfPath));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    fileDataList.add(pdfData);
-    /* ------------------------- */
-
-    return fileDataList;
   }
 }

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -24,6 +25,8 @@ public class SecurityConfig {
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             authorize ->
                 authorize
@@ -31,12 +34,11 @@ public class SecurityConfig {
                         "/",
                         "/api",
                         "/api/health",
-                        "/oauth/callback/**",
                         "/login/oauth2/code/**",
-                        "/oauth/authorize/**")
+                        "/oauth/authorize/**",
+                        "/oauth2/authorization/**",
+                        "/api/auth/refresh")
                     .permitAll()
-                    .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
-                    .authenticated()
                     .anyRequest()
                     .authenticated())
         .oauth2Login(
@@ -47,20 +49,39 @@ public class SecurityConfig {
   }
 
   @Bean
-  @Profile({"no-auth", "qa"})
-  public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
+  @Profile("qa")
+  public SecurityFilterChain qaSecurityFilterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/auth/me", "/auth/access-token/refresh", "/auth/logout")
-                    .authenticated()
+                    .requestMatchers(
+                        "/",
+                        "/api",
+                        "/api/health",
+                        "/login/oauth2/code/**",
+                        "/oauth/authorize/**",
+                        "/oauth2/authorization/**",
+                        "/api/auth/refresh")
+                    .permitAll()
                     .anyRequest()
-                    .permitAll())
+                    .authenticated())
         .oauth2Login(
             oauth2 ->
                 oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)));
+
+    return http.build();
+  }
+
+  @Bean
+  @Profile("no-auth")
+  public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
     return http.build();
   }
 }

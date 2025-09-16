@@ -40,9 +40,9 @@ info:
 
 logging:
   level:
-    root: debug
+    root: info
     org.springframework.security: info
-    kr.it.pullit: debug
+    kr.it.pullit: info
   # QA 로그 파일 설정
   # file:
   #   name: logs/pullit-qa.log

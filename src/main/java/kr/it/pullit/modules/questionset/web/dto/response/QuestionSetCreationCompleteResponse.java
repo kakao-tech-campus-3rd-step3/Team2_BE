@@ -1,4 +1,4 @@
 package kr.it.pullit.modules.questionset.web.dto.response;
 
-public record QuestionSetCreationCompleteResponseDto(
+public record QuestionSetCreationCompleteResponse(
     boolean success, Long questionSetId, String message) {}

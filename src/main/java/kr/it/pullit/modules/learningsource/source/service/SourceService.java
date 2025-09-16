@@ -95,4 +95,9 @@ public class SourceService implements SourcePublicApi {
   public Optional<Source> findByIdAndMemberId(Long id) {
     return sourceRepository.findByIdAndMemberId(id, id);
   }
+
+  @Override
+  public List<Source> findByIdIn(List<Long> ids) {
+    return sourceRepository.findByIdIn(ids);
+  }
 }
