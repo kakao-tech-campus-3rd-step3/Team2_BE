@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
@@ -16,6 +17,7 @@ public class QuestionSetDto {
   private final List<Long> sourceIds;
   private final Long ownerID;
   private final String title;
+  private final List<Question> questions;
   private final DifficultyType difficulty;
   private final QuestionType type;
   private final Integer questionLength;
@@ -31,6 +33,7 @@ public class QuestionSetDto {
     this.questionLength = questionSet.getQuestionLength();
     this.createTime = questionSet.getCreatedAt();
     this.updateTime = questionSet.getUpdatedAt();
+    this.questions = questionSet.getQuestions();
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
   }
@@ -51,5 +54,6 @@ public class QuestionSetDto {
     this.createTime = null;
     this.updateTime = null;
     this.sourceIds = sourceIds;
+    this.questions = null;
   }
 }
