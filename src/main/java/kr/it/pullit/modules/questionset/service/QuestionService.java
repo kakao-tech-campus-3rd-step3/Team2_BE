@@ -31,8 +31,8 @@ public class QuestionService implements QuestionPublicApi {
   private final QuestionSetRepository questionSetRepository;
   private final DifficultyPolicyFactory difficultyPolicyFactory;
   private final QuestionTypePolicyFactory questionTypePolicyFactory;
-  private final LlmClient llmClient;
   private final SourcePublicApi sourcePublicApi;
+  private final LlmClient llmClient;
 
   @Override
   @Async("llmGeneratorAsyncExecutor")
@@ -71,6 +71,7 @@ public class QuestionService implements QuestionPublicApi {
         "gemini-2.5-flash-lite");
 
     // TODO: 정책에 따라 모델 변경
+    // TODO: soureceId 여러개 등록 가능하도록
     List<LlmGeneratedQuestionDto> llmGeneratedQuestionDtoList =
         llmClient.getLlmGeneratedQuestionContent(
             prompt,
