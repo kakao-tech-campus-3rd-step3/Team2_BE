@@ -10,4 +10,6 @@ public interface SourceFolderPublicApi {
   SourceFolder create(SourceFolder sourceFolder);
 
   Optional<SourceFolder> findDefaultFolderByMemberId(Long memberId);
+
+  SourceFolder findOrCreateDefaultFolder(Long memberId);
 }

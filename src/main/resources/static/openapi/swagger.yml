@@ -113,6 +113,10 @@ paths:
   /api/learning/source:
     get:
       summary: 내 학습 소스 조회
+      description: |
+        현재 로그인한 사용자가 업로드한 모든 학습 소스의 상세 목록을 조회합니다.
+        각 소스에 연결된 폴더 정보, 해당 소스로 생성된 문제집의 개수, 문서의 페이지 수 등
+        학습 소스 관리에 필요한 모든 메타데이터를 포함하여 반환합니다.
       operationId: getMySources
       tags:
         - learning-source
@@ -204,19 +208,40 @@ components:
           example: 1
         originalName:
           type: string
-          example: "document.pdf"
-        status:
+          description: "소스 명 (원본 파일명)"
+          example: "토익 RC 실전 문제집.pdf"
+        sourceFolderName:
           type: string
-          enum: [ UPLOADED, EXTRACTING, READY, FAILED ]
-          example: READY
+          nullable: true
+          description: "소스가 포함된 폴더의 이름"
+          example: "영어"
+        status:
+          $ref: '#/components/schemas/SourceStatus'
+        questionSetCount:
+          type: integer
+          description: "이 소스로 만들어진 문제집의 총 개수"
+          example: 2
+        pageCount:
+          type: integer
+          nullable: true
+          description: "PDF 파일의 전체 페이지 수"
+          example: 120
         fileSizeBytes:
           type: integer
           format: int64
-          example: 1048576
+          description: "파일 크기 (byte 단위)"
+          example: 3355443
         createdAt:
           type: string
-          format: date-time
-          example: "2023-10-27T10:00:00Z"
+          format: date
+          description: "소스 업로드 날짜"
+          example: "2024-01-20"
+        recentQuestionGeneratedAt:
+          type: string
+          format: date
+          nullable: true
+          description: "가장 최근에 문제집을 생성한 날짜"
+          example: "2024-03-15"
 
     SourceStatus:
       type: string
