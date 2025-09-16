@@ -1,10 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
@@ -30,6 +27,7 @@ public class QuestionService {
   private final QuestionSetRepository questionSetRepository;
   private final DifficultyPolicyFactory difficultyPolicyFactory;
   private final QuestionTypePolicyFactory questionTypePolicyFactory;
+  private final SourcePublicApi sourcePublicApi;
   private final LlmClient llmClient;
 
   @Transactional
@@ -56,15 +54,17 @@ public class QuestionService {
 
     String prompt = LlmClient.getPrompt(difficultyPrompt, questionTypePrompt, examplePrompt);
     // TODO: 정책에 따라 모델 변경
+    // TODO: soureceId 여러개 등록 가능하도록
     List<LlmGeneratedQuestionDto> llmGeneratedQuestionDtoList =
         llmClient.getLlmGeneratedQuestionContent(
             prompt,
-            getSourceFileDataBytes(questionSetDto.getSourceIds()),
+            List.of(
+                sourcePublicApi.getContentBytes(
+                    questionSetDto.getId(), questionSetDto.getOwnerID())),
             questionSetDto.getQuestionLength(),
             "gemini-2.5-flash-lite");
 
     for (LlmGeneratedQuestionDto llmGeneratedQuestionDto : llmGeneratedQuestionDtoList) {
-      // TODO: soureceId 동적으로 변경
       Question question =
           new Question(
               questionSetDto.getSourceIds().getFirst(),
@@ -76,24 +76,5 @@ public class QuestionService {
       questionRepository.save(question);
     }
     callback.onSuccess(llmGeneratedQuestionDtoList);
-  }
-
-  private List<byte[]> getSourceFileDataBytes(List<Long> sourceIds) {
-    List<byte[]> fileDataList = new ArrayList<>();
-
-    // TODO: 파일 S3에서 읽어오기
-    // TODO: sourceIds로 파일 불러오기
-    /* ------------------------- */
-    final String pdfPath = "src/test/resources/test.pdf";
-    byte[] pdfData;
-    try {
-      pdfData = Files.readAllBytes(Paths.get(pdfPath));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    fileDataList.add(pdfData);
-    /* ------------------------- */
-
-    return fileDataList;
   }
 }
