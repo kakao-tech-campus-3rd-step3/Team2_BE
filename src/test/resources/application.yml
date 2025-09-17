@@ -1,0 +1,23 @@
+app:
+  scheme: ${SCHEME:http}
+  base-uri: ${BASE_URI:localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:test}
+  gemini:
+    api-key: ${GEMINI_API_KEY:test}
+  storage:
+    s3:
+      bucket-name: "pullit-uploaded-files"
+      region: "ap-northeast-2"
+      access-key: test
+      secret-key: test
+      presigned-url-expiration: PT15M
+      base-path: "learning-sources"
+
+spring:
+  async:
+    executor:
+      llm-generator:
+        core-pool-size: 5
+        max-pool-size: 10
+        queue-capacity: 100
+        prefix: LLM-GEN-

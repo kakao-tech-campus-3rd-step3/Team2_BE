@@ -1,25 +1,14 @@
 spring:
   flyway:
     enabled: false
-#  jpa:
-#    hibernate:
-#      ddl-auto: none
-#    properties:
-#      hibernate:
-#        format_sql: true
-#        show_sql: true
-#    database-platform: org.hibernate.dialect.MariaDBDialect
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
 
-# 테스트용 S3 설정
-#app:
-#  storage:
-#    s3:
-#      bucket-name: test-bucket
-#      region: ap-northeast-2
-#      access-key: test-access-key
-#      secret-key: test-secret-key
-#      presigned-url-expiration: PT15M
-#      base-path: test-sources
 app:
   google-api-key: "test-google-api-key"
   storage:

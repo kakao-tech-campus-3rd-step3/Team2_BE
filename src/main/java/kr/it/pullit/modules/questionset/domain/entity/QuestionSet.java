@@ -20,6 +20,7 @@ import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
@@ -60,6 +61,9 @@ public class QuestionSet extends BaseEntity {
   /* 문제 수 */
   @Setter private Integer questionLength;
 
+  @Enumerated(EnumType.STRING)
+  private QuestionSetStatus status;
+
   public QuestionSet(
       Member owner,
       Set<Source> sources,
@@ -73,6 +77,7 @@ public class QuestionSet extends BaseEntity {
     this.difficulty = difficulty;
     this.type = type;
     this.questionLength = questionLength;
+    this.status = QuestionSetStatus.PENDING;
   }
 
   public void addQuestion(Question question) {
@@ -93,5 +98,9 @@ public class QuestionSet extends BaseEntity {
   public void removeSource(Source source) {
     sources.remove(source);
     source.getQuestionSets().remove(this);
+  }
+
+  public void updateStatus(QuestionSetStatus status) {
+    this.status = status;
   }
 }
