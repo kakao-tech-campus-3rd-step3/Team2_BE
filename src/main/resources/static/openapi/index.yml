@@ -8,16 +8,17 @@ info:
     url: https://pullit.kr
     email: support@pullit.kr
 servers:
-  - url: http://localhost:8080
-    description: 로컬 서버 (HTTP)
   - url: https://api-qa.pull.it.kr
     description: QA 서버 (HTTPS)
   - url: https://api.pullit.kr
     description: 운영 서버 (HTTPS)
-
 tags:
   - name: learning-source
     description: 학습 소스에 관한 API
+  - name: question-set
+    description: 문제집 관리에 관한 API
+  - name: notification
+    description: SSE 알림에 관한 API
 
 paths:
   /api/learning/source/upload:
@@ -25,23 +26,17 @@ paths:
       summary: 파일 업로드를 위한 프리사인드 url 발급
       description: |
         S3 Pre-signed URL을 이용한 업로드 전체 절차입니다.
-
         Process Flow:
         - (Step 0) 파일로부터 메타데이터 변수 저장: 파일명, 크기, MIME 타입을 추출합니다.
         - (Step 1) 프리사인드 URL 요청(현재 API): 메타데이터를 보내 임시 `uploadUrl`을 받습니다.
         - (Step 2) S3에 직접 업로드: 받은 `uploadUrl`로 `PUT` 요청을 보내고, `Content-Type`은 Step 1과 동일하게 설정합니다.
         - (Step 3) 업로드 완료 알림: 성공 시 `/api/learning/source/upload-complete`를 호출합니다.
-
         ### **(Step 0) 파일에서 메타데이터 변수 저장**
         HTML5 File API를 사용하여 브라우저에서 파일 정보를 추출합니다
-
         ### **(Step 1) 프리사인드 URL 요청**
         현재 api를 사용하여 프리사인드 url을 받습니다.
-
-
         ### **(Step 2) S3 직접 업로드 요청**
         - 프론트엔드에서는 Step 0에서 받은 `file` 객체(브라우저 `File`/`Blob`)를 그대로 요청 본문에 담아 전송해야 합니다.
-
         ```json
 
         {
@@ -56,7 +51,6 @@ paths:
          }
         }
         ```
-
       operationId: generateUploadUrl
       tags:
         - learning-source
@@ -75,16 +69,13 @@ paths:
                 $ref: '#/components/schemas/UploadResponse'
         '400':
           description: 잘못된 요청
-
   /api/learning/source/upload-complete:
     post:
       summary: 업로드 완료 처리
       description: |
         S3에 파일 업로드가 완료되었음을 알리고 데이터베이스에 파일 정보를 저장합니다.
-
         **중요**: 이 API를 호출할 때는 반드시 1단계(`upload`)에서 받은 `uploadId`, `filePath`, `originalName` 등을 모두 포함해야 합니다.
         프론트엔드는 `upload` API 응답에서 받은 모든 정보를 보존하여 이 API에 전달해야 합니다.
-
         ### **요청 예시 (Insomnia 테스트용)**
         ~~~json
         {
@@ -109,7 +100,6 @@ paths:
           description: 업로드 완료 처리 성공
         '400':
           description: 잘못된 요청
-
   /api/learning/source:
     get:
       summary: 내 학습 소스 조회
@@ -129,6 +119,80 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SourceResponse'
+  /api/question-set:
+    post:
+      summary: 새 문제집 생성
+      description: 학습 소스를 기반으로 새로운 문제집을 생성합니다.
+      operationId: createQuestionSet
+      tags:
+        - question-set
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionSetCreateRequest'
+      responses:
+        '201':
+          description: 문제집 생성 성공. Location 헤더에 생성된 리소스의 URI가 포함됩니다.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The URI of the created question set.
+        '400':
+          description: 잘못된 요청
+  /api/question-set/{id}:
+    get:
+      summary: 문제집 상세 조회
+      description: ID를 이용하여 특정 문제집의 상세 정보를 조회합니다.
+      operationId: getQuestionSetById
+      tags:
+        - question-set
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 조회할 문제집의 ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 문제집 상세 정보
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionSetResponseDto'
+        '404':
+          description: 문제집을 찾을 수 없음
+  /api/notifications/subscribe:
+    get:
+      summary: SSE 구독 요청
+      description: |
+        실시간 알림을 받기 위해 SSE(Server-Sent Events) 연결을 구독합니다.
+        이 연결을 통해 문제 생성 완료 등의 비동기 작업 상태를 실시간으로 클라이언트에게 전송합니다.
+        **응답 형식 (Content-Type: text/event-stream)**
+        ```
+        event: generation-complete
+        data: {"sourceId":1,"questionSetId":123,"status":"SUCCESS"}
+        event: generation-failed
+        data: {"sourceId":1,"errorMessage":"문제 생성 중 오류가 발생했습니다."}
+        ```
+      operationId: subscribeToNotifications
+      tags:
+        - notification
+      responses:
+        '200':
+          description: SSE 연결 성공. 스트림이 열립니다.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: message
+                  data: Connection established.
 
 components:
   schemas:
@@ -149,7 +213,6 @@ components:
         - fileName
         - contentType
         - fileSize
-
     UploadResponse:
       type: object
       properties:
@@ -171,8 +234,7 @@ components:
           example: 1048576
         uploadId:
           type: string
-          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-
+          example: "a1b2c3d4-e5f6-7800-abcd-ef1234567890"
     UploadCompleteRequest:
       type: object
       properties:
@@ -198,7 +260,6 @@ components:
         - originalName
         - contentType
         - fileSizeBytes
-
     SourceResponse:
       type: object
       properties:
@@ -242,7 +303,93 @@ components:
           nullable: true
           description: "가장 최근에 문제집을 생성한 날짜"
           example: "2024-03-15"
-
     SourceStatus:
       type: string
       enum: [ UPLOADED, EXTRACTING, READY, FAILED ]
+    QuestionSetCreateRequest:
+      type: object
+      properties:
+        difficulty:
+          $ref: '#/components/schemas/DifficultyType'
+        questionCount:
+          type: integer
+          example: 10
+        type:
+          $ref: '#/components/schemas/QuestionType'
+        sourceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          example: [1, 2]
+      required:
+        - difficulty
+        - questionCount
+        - type
+        - sourceIds
+    QuestionSetResponseDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        sourceIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          example: [101, 102]
+        ownerID:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          example: "토익 RC 실전 문제집 Chapter 1"
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionResponse'
+        difficulty:
+          $ref: '#/components/schemas/DifficultyType'
+        type:
+          $ref: '#/components/schemas/QuestionType'
+        questionLength:
+          type: integer
+          example: 10
+        createTime:
+          type: string
+          format: date-time
+          example: "2024-05-20T10:00:00Z"
+        updateTime:
+          type: string
+          format: date-time
+          example: "2024-05-20T11:30:00Z"
+    QuestionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        questionText:
+          type: string
+          example: "다음 중 빈칸에 들어갈 가장 알맞은 단어는?"
+        options:
+          type: array
+          items:
+            type: string
+          example: ["apple", "banana", "cherry", "durian"]
+        answer:
+          type: string
+          example: "banana"
+        explanation:
+          type: string
+          example: "문맥상 'banana'가 가장 자연스럽습니다."
+    DifficultyType:
+      type: string
+      enum: [ EASY, HARD ]
+    QuestionType:
+      type: string
+      enum: [ SUBJECTIVE, MULTIPLE_CHOICE, TRUE_FALSE, SHORT_ANSWER ]
