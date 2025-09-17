@@ -1,11 +1,11 @@
 package kr.it.pullit.modules.questionset.web;
 
+import java.net.URI;
 import kr.it.pullit.modules.notification.service.NotificationService;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponseDto;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,36 +26,26 @@ public class QuestionSetController {
   private final NotificationService notificationService;
 
   @GetMapping("/{id}")
-  public ResponseEntity<QuestionSetDto> getQuestionSetById(@PathVariable Long id) {
-    QuestionSetDto questionSetDto = questionSetPublicApi.getQuestionSetById(id);
-    return ResponseEntity.ok(questionSetDto);
+  public ResponseEntity<QuestionSetResponse> getQuestionSetById(@PathVariable Long id) {
+    QuestionSetResponse questionSetResponse = questionSetPublicApi.getQuestionSetById(id);
+    return ResponseEntity.ok(questionSetResponse);
   }
 
   @PostMapping
-  public ResponseEntity<QuestionSetDto> createQuestionSet(
+  public ResponseEntity<Void> createQuestionSet(
       @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
     // TODO: 인증 적용 후 ownerID 동적으로 변경
     Long userId = 1L;
-    QuestionSetDto questionSetDto =
-        new QuestionSetDto(
-            userId,
-            questionSetCreateRequestDto.sourceIds(),
-            questionSetCreateRequestDto.title(),
-            questionSetCreateRequestDto.difficulty(),
-            questionSetCreateRequestDto.type(),
-            questionSetCreateRequestDto.questionCount());
 
-    questionSetDto = questionSetPublicApi.create(questionSetDto);
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.create(questionSetCreateRequestDto, userId);
 
-    QuestionSetCreationCompleteResponseDto responseDto =
-        new QuestionSetCreationCompleteResponseDto(
-            true, questionSetDto.getId(), "QuestionSet created");
-    questionService.generateQuestions(
-        questionSetDto,
-        llmGeneratedQuestionDtoList -> {
-          notificationService.publishQuestionSetCreationComplete(userId, responseDto);
-        });
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(questionSetResponse.getId())
+            .toUri();
 
-    return ResponseEntity.ok(questionSetDto);
+    return ResponseEntity.created(location).build();
   }
 }

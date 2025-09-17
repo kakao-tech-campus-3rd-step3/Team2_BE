@@ -33,8 +33,12 @@ public class GeminiClient implements LlmClient {
   final String wrongsFieldName = LlmGeneratedQuestionDto.Fields.options;
   final String answerFieldName = LlmGeneratedQuestionDto.Fields.answer;
   final String explanationFieldName = LlmGeneratedQuestionDto.Fields.explanation;
-  private final Client client = new Client();
+  private final Client client;
   private final ObjectMapper mapper = new ObjectMapper();
+
+  public GeminiClient(GeminiProperties geminiProperties) {
+    this.client = new Client.Builder().apiKey(geminiProperties.getApiKey()).build();
+  }
 
   private GenerateContentConfig getConfig(int questionCount) {
     ImmutableMap<String, Object> schema =
@@ -97,7 +101,7 @@ public class GeminiClient implements LlmClient {
   private Content getGeminiContent(List<byte[]> fileDataList, String prompt) {
     List<Part> byteParts = this.getByteParts(fileDataList);
     byteParts.add(Part.fromText(prompt));
-    //    return Content.fromParts(byteParts.toArray(new Part[0]));
+    // return Content.fromParts(byteParts.toArray(new Part[0]));
     return Content.fromParts(
         Part.fromBytes(fileDataList.getFirst(), "application/pdf"), Part.fromText(prompt));
   }

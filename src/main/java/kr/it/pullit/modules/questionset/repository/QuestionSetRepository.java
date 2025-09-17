@@ -7,5 +7,7 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSet> findById(Long id);
 
+  Optional<QuestionSet> findByIdWithoutQuestions(Long id);
+
   QuestionSet save(QuestionSet questionSet);
 }

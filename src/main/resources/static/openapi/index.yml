@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+  title: Pullit Source API
+  description: 학습 소스 관리를 위한 API
+  version: 1.0.0
+  contact:
+    name: Pullit API Support
+    url: https://pullit.kr
+    email: support@pullit.kr
+servers:
+  - url: https://api-qa.pull.it.kr
+    description: QA 서버 (HTTPS)
+  - url: https://api.pullit.kr
+    description: 운영 서버 (HTTPS)
+tags:
+  - name: learning-source
+    description: 학습 소스에 관한 API
+  - name: question-set
+    description: 문제집 관리에 관한 API
+  - name: notification
+    description: SSE 알림에 관한 API
+paths:
+  '/api/learning/source/upload':
+    $ref: './paths/learning_source.yml#/~1api~1learning~1source~1upload'
+  '/api/learning/source/upload-complete':
+    $ref: './paths/learning_source.yml#/~1api~1learning~1source~1upload-complete'
+  '/api/learning/source':
+    $ref: './paths/learning_source.yml#/~1api~1learning~1source'
+  '/api/question-set':
+    $ref: './paths/question_set.yml#/~1api~1question-set'
+  '/api/question-set/{id}':
+    $ref: './paths/question_set.yml#/~1api~1question-set~1{id}'
+  '/api/notifications/subscribe':
+    $ref: './paths/notification.yml#/~1api~1notifications~1subscribe'
+components:
+  schemas:
+    UploadRequest:
+      $ref: './components/schemas/learning_source.yml#/UploadRequest'
+    UploadResponse:
+      $ref: './components/schemas/learning_source.yml#/UploadResponse'
+    UploadCompleteRequest:
+      $ref: './components/schemas/learning_source.yml#/UploadCompleteRequest'
+    SourceResponse:
+      $ref: './components/schemas/learning_source.yml#/SourceResponse'
+    SourceStatus:
+      $ref: './components/schemas/learning_source.yml#/SourceStatus'
+    QuestionSetCreateRequest:
+      $ref: './components/schemas/question_set.yml#/QuestionSetCreateRequest'
+    QuestionSetResponseDto:
+      $ref: './components/schemas/question_set.yml#/QuestionSetResponseDto'
+    QuestionResponse:
+      $ref: './components/schemas/question_set.yml#/QuestionResponse'
+    DifficultyType:
+      $ref: './components/schemas/question_set.yml#/DifficultyType'
+    QuestionType:
+      $ref: './components/schemas/question_set.yml#/QuestionType'

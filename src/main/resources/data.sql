@@ -10,11 +10,11 @@
 -- -----------------------------------------------------
 -- Table `member` (5 members)
 -- -----------------------------------------------------
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
+INSERT INTO members (id, kakao_id, email, name, status, created_at, updated_at)
 VALUES (1, 1000000001, 'test.user@example.com', '테스트유저', 'ACTIVE', NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 
-INSERT INTO member (id, kakao_id, email, name, status, created_at, updated_at)
+INSERT INTO members (id, kakao_id, email, name, status, created_at, updated_at)
 VALUES (2, 1000000002, 'alice@example.com', '앨리스', 'ACTIVE', NOW(), NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
 

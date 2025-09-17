@@ -55,6 +55,7 @@ jobs:
             export GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' && \
             export S3_ACCESS_KEY='${{ secrets.S3_ACCESS_KEY }}' && \
             export S3_SECRET_KEY='${{ secrets.S3_SECRET_KEY }}' && \
+            export APP_GEMINI_APIKEY='${{ secrets.APP_GEMINI_APIKEY }}' && \
             export SCHEME='${{ secrets.SCHEME }}' && \
             export BASE_URI='${{ secrets.BASE_URI }}' && \
             export ACCESS_CONTROL_ALLOWED_ORIGINS='${{ secrets.ACCESS_CONTROL_ALLOWED_ORIGINS }}' && \

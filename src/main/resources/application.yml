@@ -9,7 +9,7 @@ spring:
     password: secret
 
   jpa:
-    defer-datasource-initialization: true # This is crucial for data.sql to run after DDL creation
+    generate-ddl: true # Explicitly enable DDL generation by Hibernate
     hibernate:
       ddl-auto: create-drop
     properties:
@@ -96,7 +96,7 @@ info:
 
 logging:
   level:
-    ROOT: DEBUG
+    ROOT: INFO
     java.lang.ProcessBuilder: INFO
     sun.rmi.loader: WARN
     sun.rmi.transport.tcp: WARN
@@ -140,7 +140,7 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
-    url: /openapi/swagger.yml
+    url: /openapi/index.yml
     disable-swagger-default-url: true
   # 기존 YAML 파일을 로드하여 통합
   openapi:

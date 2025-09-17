@@ -1,20 +1,23 @@
 package kr.it.pullit.modules.notification.service;
 
 import java.io.IOException;
+import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.notification.domain.enums.SseEventType;
 import kr.it.pullit.modules.notification.repository.EmitterRepository;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponseDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
-
+public class NotificationService implements NotificationPublicApi {
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 30; // 30분
   private final EmitterRepository emitterRepository;
 
+  @Override
   public SseEmitter subscribe(Long userId) {
     SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
     emitterRepository.save(userId, emitter);
@@ -28,8 +31,9 @@ public class NotificationService {
     return emitter;
   }
 
+  @Override
   public void publishQuestionSetCreationComplete(
-      Long userId, QuestionSetCreationCompleteResponseDto data) {
+      Long userId, QuestionSetCreationCompleteResponse data) {
     if (data == null) {
       return;
     }
@@ -51,8 +55,8 @@ public class NotificationService {
               try {
                 emitter.send(SseEmitter.event().name(eventName).data(data));
               } catch (IOException e) {
+                log.warn("Failed to send SSE event to user {}: {}", userId, e.getMessage());
                 emitterRepository.deleteById(userId);
-                throw new RuntimeException(e);
               }
             });
   }

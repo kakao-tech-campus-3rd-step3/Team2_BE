@@ -1,0 +1,87 @@
+QuestionSetCreateRequest:
+  type: object
+  properties:
+    difficulty:
+      $ref: '#/DifficultyType'
+    questionCount:
+      type: integer
+      example: 10
+    type:
+      $ref: '#/QuestionType'
+    sourceIds:
+      type: array
+      items:
+        type: integer
+        format: int64
+      example: [1, 2]
+  required:
+    - difficulty
+    - questionCount
+    - type
+    - sourceIds
+QuestionSetResponseDto:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+      example: 1
+    sourceIds:
+      type: array
+      items:
+        type: integer
+        format: int64
+      example: [101, 102]
+    ownerID:
+      type: integer
+      format: int64
+      example: 1
+    title:
+      type: string
+      example: "토익 RC 실전 문제집 Chapter 1"
+    questions:
+      type: array
+      items:
+        $ref: '#/QuestionResponse'
+    difficulty:
+      $ref: '#/DifficultyType'
+    type:
+      $ref: '#/QuestionType'
+    questionLength:
+      type: integer
+      example: 10
+    createTime:
+      type: string
+      format: date-time
+      example: "2024-05-20T10:00:00Z"
+    updateTime:
+      type: string
+      format: date-time
+      example: "2024-05-20T11:30:00Z"
+QuestionResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+      example: 1
+    questionText:
+      type: string
+      example: "다음 중 빈칸에 들어갈 가장 알맞은 단어는?"
+    options:
+      type: array
+      items:
+        type: string
+      example: ["apple", "banana", "cherry", "durian"]
+    answer:
+      type: string
+      example: "banana"
+    explanation:
+      type: string
+      example: "문맥상 'banana'가 가장 자연스럽습니다."
+DifficultyType:
+  type: string
+  enum: [ EASY, HARD ]
+QuestionType:
+  type: string
+  enum: [ SUBJECTIVE, MULTIPLE_CHOICE, TRUE_FALSE, SHORT_ANSWER ]

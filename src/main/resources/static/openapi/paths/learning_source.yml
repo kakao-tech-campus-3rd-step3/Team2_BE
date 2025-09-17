@@ -1,0 +1,98 @@
+/api/learning/source/upload:
+  post:
+    summary: 파일 업로드를 위한 프리사인드 url 발급
+    description: |
+      S3 Pre-signed URL을 이용한 업로드 전체 절차입니다.
+      Process Flow:
+      - (Step 0) 파일로부터 메타데이터 변수 저장: 파일명, 크기, MIME 타입을 추출합니다.
+      - (Step 1) 프리사인드 URL 요청(현재 API): 메타데이터를 보내 임시 `uploadUrl`을 받습니다.
+      - (Step 2) S3에 직접 업로드: 받은 `uploadUrl`로 `PUT` 요청을 보내고, `Content-Type`은 Step 1과 동일하게 설정합니다.
+      - (Step 3) 업로드 완료 알림: 성공 시 `/api/learning/source/upload-complete`를 호출합니다.
+      ### **(Step 0) 파일에서 메타데이터 변수 저장**
+      HTML5 File API를 사용하여 브라우저에서 파일 정보를 추출합니다
+      ### **(Step 1) 프리사인드 URL 요청**
+      현재 api를 사용하여 프리사인드 url을 받습니다.
+      ### **(Step 2) S3 직접 업로드 요청**
+      - 프론트엔드에서는 Step 0에서 받은 `file` 객체(브라우저 `File`/`Blob`)를 그대로 요청 본문에 담아 전송해야 합니다.
+      ```json
+
+      {
+      "request": {
+      "method": "PUT",
+      "url": "{uploadUrl}",
+      "headers": { "Content-Type": "{contentType}" },
+      "body": {
+        "type": "binary",
+        "source": "Step 0에서 선택한 file 객체(File/Blob)를 그대로 전송"
+        }
+       }
+      }
+      ```
+    operationId: generateUploadUrl
+    tags:
+      - learning-source
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/learning_source.yml#/UploadRequest'
+    responses:
+      '200':
+        description: 프리사인드 URL 발급 성공
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/learning_source.yml#/UploadResponse'
+      '400':
+        description: 잘못된 요청
+/api/learning/source/upload-complete:
+  post:
+    summary: 업로드 완료 처리
+    description: |
+      S3에 파일 업로드가 완료되었음을 알리고 데이터베이스에 파일 정보를 저장합니다.
+      **중요**: 이 API를 호출할 때는 반드시 1단계(`upload`)에서 받은 `uploadId`, `filePath`, `originalName` 등을 모두 포함해야 합니다.
+      프론트엔드는 `upload` API 응답에서 받은 모든 정보를 보존하여 이 API에 전달해야 합니다.
+      ### **요청 예시 (Insomnia 테스트용)**
+      ~~~json
+      {
+        "uploadId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "filePath": "sources/1/document.pdf",
+        "originalName": "PS-0-1. Orientation 및 코딩 테스트 준비하기.pdf",
+        "contentType": "application/pdf",
+        "fileSizeBytes": 1048576
+      }
+      ~~~
+    operationId: processUploadComplete
+    tags:
+      - learning-source
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/learning_source.yml#/UploadCompleteRequest'
+    responses:
+      '200':
+        description: 업로드 완료 처리 성공
+      '400':
+        description: 잘못된 요청
+/api/learning/source:
+  get:
+    summary: 내 학습 소스 조회
+    description: |
+      현재 로그인한 사용자가 업로드한 모든 학습 소스의 상세 목록을 조회합니다.
+      각 소스에 연결된 폴더 정보, 해당 소스로 생성된 문제집의 개수, 문서의 페이지 수 등
+      학습 소스 관리에 필요한 모든 메타데이터를 포함하여 반환합니다.
+    operationId: getMySources
+    tags:
+      - learning-source
+    responses:
+      '200':
+        description: 내 학습 소스 목록
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../components/schemas/learning_source.yml#/SourceResponse'
