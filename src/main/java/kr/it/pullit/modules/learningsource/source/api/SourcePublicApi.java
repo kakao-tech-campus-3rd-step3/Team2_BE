@@ -22,4 +22,6 @@ public interface SourcePublicApi {
 
   @SuppressWarnings("unused")
   Optional<Source> findByIdAndMemberId(Long id);
+
+  List<Source> findByIdIn(List<Long> ids);
 }

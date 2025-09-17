@@ -2,16 +2,21 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
-import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
+import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,43 +25,59 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
-  private final SourceRepository sourceRepository;
+  private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
-  public QuestionSetDto getQuestionSetById(Long id) {
+  public QuestionSetResponse getQuestionSetById(Long id) {
     QuestionSet questionSet =
         questionSetRepository
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("문제집을 찾을 수 없습니다"));
-    return new QuestionSetDto(questionSet);
+    return new QuestionSetResponse(questionSet);
   }
 
   @Transactional
-  public QuestionSetDto create(QuestionSetDto questionSetDto) {
-    List<Source> sources = sourceRepository.findByIdIn(questionSetDto.getSourceIds());
+  public QuestionSetResponse create(QuestionSetCreateRequestDto request, Long ownerId) {
+    List<Source> sources = sourcePublicApi.findByIdIn(request.sourceIds());
 
-    if (sources.size() != questionSetDto.getSourceIds().size()) {
-      throw new IllegalArgumentException("일부 소스를 찾을 수 없습니다");
+    if (sources.isEmpty()) {
+      throw new IllegalArgumentException("소스가 존재하지 않습니다.");
     }
 
     Member owner =
         memberPublicApi
-            .findById(questionSetDto.getOwnerID())
+            .findById(ownerId)
             .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다"));
 
     Set<Source> sourceSet = new HashSet<>(sources);
+    String title = sources.getFirst().getOriginalName();
 
     QuestionSet questionSet =
         new QuestionSet(
-            owner,
-            sourceSet,
-            questionSetDto.getTitle(),
-            questionSetDto.getDifficulty(),
-            questionSetDto.getType(),
-            questionSetDto.getQuestionLength());
+            owner, sourceSet, title, request.difficulty(), request.type(), request.questionCount());
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
-    return new QuestionSetDto(savedQuestionSet);
+
+    eventPublisher.publishEvent(new QuestionSetCreatedEvent(savedQuestionSet.getId(), ownerId));
+
+    return new QuestionSetResponse(savedQuestionSet);
+  }
+
+  @Override
+  @Transactional
+  public void updateStatus(Long questionSetId, QuestionSetStatus status) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("문제집을 찾을 수 없습니다. ID: " + questionSetId));
+    questionSet.updateStatus(status);
+  }
+
+  @Override
+  public Optional<QuestionSet> findEntityById(Long id) {
+    return questionSetRepository.findByIdWithoutQuestions(id);
   }
 }

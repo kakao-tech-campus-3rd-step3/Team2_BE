@@ -10,19 +10,20 @@ import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import lombok.Getter;
 
 @Getter
-public class QuestionSetDto {
+public class QuestionSetResponse {
 
   private final Long id;
   private final List<Long> sourceIds;
   private final Long ownerID;
   private final String title;
+  private final List<QuestionResponse> questions;
   private final DifficultyType difficulty;
   private final QuestionType type;
   private final Integer questionLength;
   private final LocalDateTime createTime;
   private final LocalDateTime updateTime;
 
-  public QuestionSetDto(QuestionSet questionSet) {
+  public QuestionSetResponse(QuestionSet questionSet) {
     this.id = questionSet.getId();
     this.ownerID = questionSet.getOwner().getId();
     this.title = questionSet.getTitle();
@@ -31,25 +32,11 @@ public class QuestionSetDto {
     this.questionLength = questionSet.getQuestionLength();
     this.createTime = questionSet.getCreatedAt();
     this.updateTime = questionSet.getUpdatedAt();
+    this.questions =
+        questionSet.getQuestions().stream()
+            .map(QuestionResponse::from)
+            .collect(Collectors.toList());
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
-  }
-
-  public QuestionSetDto(
-      Long ownerID,
-      List<Long> sourceIds,
-      String title,
-      DifficultyType difficulty,
-      QuestionType type,
-      Integer questionLength) {
-    this.ownerID = ownerID;
-    this.title = title;
-    this.difficulty = difficulty;
-    this.type = type;
-    this.questionLength = questionLength;
-    this.id = null;
-    this.createTime = null;
-    this.updateTime = null;
-    this.sourceIds = sourceIds;
   }
 }

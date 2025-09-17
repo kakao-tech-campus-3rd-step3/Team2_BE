@@ -53,6 +53,7 @@ jobs:
             export KAKAO_REST_API_KEY='${{ secrets.KAKAO_REST_API_KEY }}' && \
             export KAKAO_CLIENT_SECRET='${{ secrets.KAKAO_CLIENT_SECRET }}' && \
             export GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' && \
+            export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}' && \
             export S3_ACCESS_KEY='${{ secrets.S3_ACCESS_KEY }}' && \
             export S3_SECRET_KEY='${{ secrets.S3_SECRET_KEY }}' && \
             export SCHEME='${{ secrets.SCHEME }}' && \
