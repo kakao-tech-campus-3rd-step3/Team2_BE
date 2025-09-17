@@ -25,23 +25,32 @@ spring:
     enabled: false
 
   security:
-    oauth2:
-      client:
-        registration:
-          kakao:
-            client-id: ${KAKAO_REST_API_KEY:}
-            client-secret: ${KAKAO_CLIENT_SECRET:}
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            authorization-grant-type: authorization_code
-            client-authentication-method: client_secret_post
-            scope: profile_nickname, account_email
-            client-name: Kakao
-        provider:
-          kakao:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
+  oauth2:
+    client:
+      registration:
+        kakao:
+          client-id: ${KAKAO_REST_API_KEY:}
+          client-secret: ${KAKAO_CLIENT_SECRET:}
+          redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          authorization-grant-type: authorization_code
+          client-authentication-method: client_secret_post
+          scope: profile_nickname, account_email
+          client-name: Kakao
+      provider:
+        kakao:
+          authorization-uri: https://kauth.kakao.com/oauth/authorize
+          token-uri: https://kauth.kakao.com/oauth/token
+          user-info-uri: https://kapi.kakao.com/v2/user/me
+          user-name-attribute: id
+
+  jwt:
+    secret: ${JWT_SECRET_KEY:U2qw6u4YO6b6Fp8t6FgwCkZ6gzUYO7jBebX2ghDAN4M}
+    issuer: ${JWT_ISSUER:pullit-backend}
+    audience: ${JWT_AUDIENCE:pullit-client}
+    access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION:15m}
+    refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION:14d}
+    redirect-url: ${JWT_REDIRECT_URL:http://local.pull.it.kr:5173/}
+    refresh-token-cookie-name: refresh-jwt-cookie
 
 
   # Spring Boot DevTools 설정

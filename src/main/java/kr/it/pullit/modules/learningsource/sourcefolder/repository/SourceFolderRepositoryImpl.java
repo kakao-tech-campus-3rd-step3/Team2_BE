@@ -13,9 +13,9 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class SourceFolderRepositoryImpl implements SourceFolderRepository {
 
+  private static final String DEFAULT_FOLDER_NAME = "전체 폴더";
   private final SourceFolderJpaRepository sourceFolderJpaRepository;
   private final MemberPublicApi memberPublicApi;
-  private static final String DEFAULT_FOLDER_NAME = "전체 폴더";
 
   @Override
   public SourceFolder save(SourceFolder sourceFolder) {

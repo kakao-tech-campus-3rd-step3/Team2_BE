@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DifficultyPolicyFactory {
+
   private final EasyPolicy easyPolicy;
   private final HardPolicy hardPolicy;
 

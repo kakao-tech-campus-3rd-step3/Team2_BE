@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/notification")
 @RequiredArgsConstructor
 public class NotificationController {
+
   private final NotificationService notificationService;
 
   @GetMapping(value = "/sub", produces = "text/event-stream")

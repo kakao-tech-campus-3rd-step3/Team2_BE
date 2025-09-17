@@ -81,7 +81,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    
+
     // AI SDK
     implementation 'com.google.genai:google-genai:1.15.0'
 
@@ -117,6 +117,10 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // JWT 라이브라리
+    implementation 'com.auth0:java-jwt:4.4.0'
+
 
     // 테스트 의존성
     testCompileOnly 'org.projectlombok:lombok'

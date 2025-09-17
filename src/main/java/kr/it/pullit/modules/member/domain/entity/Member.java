@@ -24,6 +24,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
+  @OneToMany(mappedBy = "owner")
+  private final List<QuestionSet> questionSets = new ArrayList<>();
+
+  @OneToMany(mappedBy = "member")
+  private final List<SourceFolder> sourceFolders = new ArrayList<>();
+
+  @OneToMany(mappedBy = "member")
+  private final List<Source> sources = new ArrayList<>();
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -39,15 +48,6 @@ public class Member extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column
   private MemberStatus status;
-
-  @OneToMany(mappedBy = "owner")
-  private final List<QuestionSet> questionSets = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<SourceFolder> sourceFolders = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<Source> sources = new ArrayList<>();
 
   @Builder
   public Member(Long kakaoId, String email, String name, MemberStatus status) {
