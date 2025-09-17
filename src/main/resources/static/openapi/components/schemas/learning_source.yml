@@ -1,0 +1,110 @@
+UploadRequest:
+  type: object
+  properties:
+    fileName:
+      type: string
+      example: document.pdf
+    contentType:
+      type: string
+      example: application/pdf
+    fileSize:
+      type: integer
+      format: int64
+      example: 1048576
+  required:
+    - fileName
+    - contentType
+    - fileSize
+UploadResponse:
+  type: object
+  properties:
+    uploadUrl:
+      type: string
+      example: "https://presigned-url.s3.amazonaws.com/..."
+    filePath:
+      type: string
+      example: "sources/1/document.pdf"
+    originalName:
+      type: string
+      example: "PS-0-1. Orientation 및 코딩 테스트 준비하기.pdf"
+    contentType:
+      type: string
+      example: "application/pdf"
+    fileSizeBytes:
+      type: integer
+      format: int64
+      example: 1048576
+    uploadId:
+      type: string
+      example: "a1b2c3d4-e5f6-7800-abcd-ef1234567890"
+UploadCompleteRequest:
+  type: object
+  properties:
+    uploadId:
+      type: string
+      example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    filePath:
+      type: string
+      example: "sources/1/document.pdf"
+    originalName:
+      type: string
+      example: "PS-0-1. Orientation 및 코딩 테스트 준비하기.pdf"
+    contentType:
+      type: string
+      example: "application/pdf"
+    fileSizeBytes:
+      type: integer
+      format: int64
+      example: 1048576
+  required:
+    - uploadId
+    - filePath
+    - originalName
+    - contentType
+    - fileSizeBytes
+SourceResponse:
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+      example: 1
+    originalName:
+      type: string
+      description: "소스 명 (원본 파일명)"
+      example: "토익 RC 실전 문제집.pdf"
+    sourceFolderName:
+      type: string
+      nullable: true
+      description: "소스가 포함된 폴더의 이름"
+      example: "영어"
+    status:
+      $ref: '#/SourceStatus'
+    questionSetCount:
+      type: integer
+      description: "이 소스로 만들어진 문제집의 총 개수"
+      example: 2
+    pageCount:
+      type: integer
+      nullable: true
+      description: "PDF 파일의 전체 페이지 수"
+      example: 120
+    fileSizeBytes:
+      type: integer
+      format: int64
+      description: "파일 크기 (byte 단위)"
+      example: 3355443
+    createdAt:
+      type: string
+      format: date
+      description: "소스 업로드 날짜"
+      example: "2024-01-20"
+    recentQuestionGeneratedAt:
+      type: string
+      format: date
+      nullable: true
+      description: "가장 최근에 문제집을 생성한 날짜"
+      example: "2024-03-15"
+SourceStatus:
+  type: string
+  enum: [ UPLOADED, EXTRACTING, READY, FAILED ]
