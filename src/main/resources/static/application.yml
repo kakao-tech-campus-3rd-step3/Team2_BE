@@ -1,0 +1,6 @@
+swagger-ui:
+  path: /swagger-ui.html
+  operations-sorter: method
+  tags-sorter: alpha
+  url: /openapi/index.yml
+  disable-swagger-default-url: true
