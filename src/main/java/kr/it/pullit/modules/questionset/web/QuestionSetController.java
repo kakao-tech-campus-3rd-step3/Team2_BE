@@ -1,8 +1,10 @@
 package kr.it.pullit.modules.questionset.web;
 
+import kr.it.pullit.modules.notification.service.NotificationService;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponseDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ public class QuestionSetController {
 
   private final QuestionSetPublicApi questionSetPublicApi;
   private final QuestionService questionService;
+  private final NotificationService notificationService;
 
   @GetMapping("/{id}")
   public ResponseEntity<QuestionSetDto> getQuestionSetById(@PathVariable Long id) {
@@ -31,9 +34,10 @@ public class QuestionSetController {
   public ResponseEntity<QuestionSetDto> createQuestionSet(
       @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
     // TODO: 인증 적용 후 ownerID 동적으로 변경
+    Long userId = 1L;
     QuestionSetDto questionSetDto =
         new QuestionSetDto(
-            1L,
+            userId,
             questionSetCreateRequestDto.sourceIds(),
             questionSetCreateRequestDto.title(),
             questionSetCreateRequestDto.difficulty(),
@@ -42,7 +46,14 @@ public class QuestionSetController {
 
     questionSetDto = questionSetPublicApi.create(questionSetDto);
 
-    questionService.generateQuestions(questionSetDto, llmGeneratedQuestionDtoList -> {});
+    QuestionSetCreationCompleteResponseDto responseDto =
+        new QuestionSetCreationCompleteResponseDto(
+            true, questionSetDto.getId(), "QuestionSet created");
+    questionService.generateQuestions(
+        questionSetDto,
+        llmGeneratedQuestionDtoList -> {
+          notificationService.publishQuestionSetCreationComplete(userId, responseDto);
+        });
 
     return ResponseEntity.ok(questionSetDto);
   }
