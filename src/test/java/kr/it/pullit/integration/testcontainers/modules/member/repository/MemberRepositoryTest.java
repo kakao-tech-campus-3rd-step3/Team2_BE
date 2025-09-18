@@ -9,7 +9,7 @@ import kr.it.pullit.support.TestContainerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class MemberIntegrationTest extends TestContainerTest {
+class MemberRepositoryTest extends TestContainerTest {
 
   @Autowired private MemberRepository memberRepository;
 

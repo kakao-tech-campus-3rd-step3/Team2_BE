@@ -8,18 +8,12 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
-import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 public class JwtTokenProvider implements JwtTokenPort {
 
@@ -40,18 +34,22 @@ public class JwtTokenProvider implements JwtTokenPort {
   }
 
   @Override
-  public AuthTokens createAuthTokens(Member member) {
-    return new AuthTokens(createAccessToken(member), createRefreshToken(member));
+  public AuthTokens createAuthTokens(Long memberId, String email, Role role) {
+    return new AuthTokens(
+        createAccessToken(memberId, email, role), createRefreshToken(memberId, email, role));
   }
 
   @Override
-  public String createAccessToken(Member member) {
+  public String createAccessToken(Long memberId, String email, Role role) {
     Instant now = Instant.now();
     Instant expiration = now.plus(jwtProps.accessTokenExpirationMinutes());
 
     return JWT.create()
-        .withSubject(String.valueOf(member.getId()))
-        .withClaim("email", member.getEmail())
+        .withSubject(email)
+        .withClaim("memberId", memberId)
+        .withClaim("email", email)
+        .withClaim("role", role.name())
+        .withClaim("tokenType", "access")
         .withIssuer(jwtProps.issuer())
         .withAudience(jwtProps.audience())
         .withIssuedAt(Date.from(now))
@@ -60,12 +58,16 @@ public class JwtTokenProvider implements JwtTokenPort {
   }
 
   @Override
-  public String createRefreshToken(Member member) {
+  public String createRefreshToken(Long memberId, String email, Role role) {
     Instant now = Instant.now();
     Instant expiration = now.plus(jwtProps.refreshTokenExpirationDays());
 
     return JWT.create()
-        .withSubject(String.valueOf(member.getId()))
+        .withSubject(email)
+        .withClaim("memberId", memberId)
+        .withClaim("email", email)
+        .withClaim("role", role.name())
+        .withClaim("tokenType", "refresh")
         .withIssuer(jwtProps.issuer())
         .withAudience(jwtProps.audience())
         .withIssuedAt(Date.from(now))
@@ -79,24 +81,11 @@ public class JwtTokenProvider implements JwtTokenPort {
       DecodedJWT decodedJwt = verifier.verify(token);
       return new TokenValidationResult.Valid(decodedJwt);
     } catch (TokenExpiredException e) {
-      log.info("Expired JWT token: {}", e.getMessage());
       return new TokenValidationResult.Expired();
     } catch (JWTVerificationException e) {
-      log.warn("Invalid JWT token: {}", e.getMessage());
-      return new TokenValidationResult.Invalid(e.getMessage());
-    }
-  }
-
-  @Override
-  public Authentication getAuthentication(String token) {
-    try {
-      DecodedJWT decodedJWT = verifier.verify(token);
-      Long memberId = Long.valueOf(decodedJWT.getSubject());
-      return new UsernamePasswordAuthenticationToken(
-          memberId, "", Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
-    } catch (JWTVerificationException e) {
-      log.warn("Cannot get Authentication from token: {}", e.getMessage());
-      return null;
+      return new TokenValidationResult.Invalid("토큰 검증 실패: " + e.getMessage());
+    } catch (Exception e) {
+      return new TokenValidationResult.Invalid("예상치 못한 오류: " + e.getMessage());
     }
   }
 

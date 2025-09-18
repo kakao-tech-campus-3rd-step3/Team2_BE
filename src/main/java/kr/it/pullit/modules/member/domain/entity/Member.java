@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -20,6 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
@@ -45,6 +47,9 @@ public class Member extends BaseEntity {
 
   @Column private String name;
 
+  @Column(length = 512)
+  private String refreshToken;
+
   @Enumerated(EnumType.STRING)
   @Column
   private MemberStatus status;
@@ -54,15 +59,14 @@ public class Member extends BaseEntity {
     this.kakaoId = kakaoId;
     this.email = email;
     this.name = name;
-    this.status = status;
+    this.status = (status != null) ? status : MemberStatus.ACTIVE;
   }
 
   public static Member create(Long kakaoId, String email, String name) {
-    return Member.builder()
-        .kakaoId(kakaoId)
-        .email(email)
-        .name(name)
-        .status(MemberStatus.ACTIVE)
-        .build();
+    return Member.builder().kakaoId(kakaoId).email(email).name(name).build();
+  }
+
+  public void updateRefreshToken(String refreshToken) {
+    this.refreshToken = refreshToken;
   }
 }

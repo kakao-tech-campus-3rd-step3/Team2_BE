@@ -9,6 +9,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,32 +19,46 @@ public class SourceFolderService implements SourceFolderPublicApi {
   private final MemberPublicApi memberPublicApi;
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<SourceFolder> findById(Long id) {
     return sourceFolderRepository.findById(id);
   }
 
   @Override
+  @Transactional
   public SourceFolder create(SourceFolder sourceFolder) {
     return sourceFolderRepository.save(sourceFolder);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<SourceFolder> findDefaultFolderByMemberId(Long memberId) {
     return sourceFolderRepository.findDefaultFolderByMemberId(memberId);
   }
 
   @Override
+  @Transactional
   public SourceFolder findOrCreateDefaultFolder(Long memberId) {
-    return findDefaultFolderByMemberId(memberId)
-        .orElseGet(
-            () -> {
-              Member member =
-                  memberPublicApi
-                      .findById(memberId)
-                      .orElseThrow(
-                          () ->
-                              new NoSuchElementException("Member not found with id: " + memberId));
-              return sourceFolderRepository.createDefaultFolder(member);
-            });
+    Optional<SourceFolder> maybeDefaultFolder =
+        sourceFolderRepository.findDefaultFolderByMemberId(memberId);
+
+    return maybeDefaultFolder.orElseGet(() -> createDefaultFolderForMember(memberId));
+  }
+
+  private SourceFolder createDefaultFolderForMember(Long memberId) {
+    Optional<Member> maybeMember = memberPublicApi.findById(memberId);
+    Member member =
+        maybeMember.orElseThrow(
+            () -> new NoSuchElementException("Member not found with id: " + memberId));
+
+    SourceFolder folder =
+        SourceFolder.builder()
+            .member(member)
+            .name(SourceFolder.DEFAULT_FOLDER_NAME)
+            .description(null)
+            .color(null)
+            .build();
+
+    return sourceFolderRepository.save(folder);
   }
 }

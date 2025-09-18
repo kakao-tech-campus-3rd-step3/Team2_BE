@@ -1,14 +1,16 @@
 package kr.it.pullit.platform.security.handler;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import kr.it.pullit.boot.properties.AppProps;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Map;
+import kr.it.pullit.modules.auth.service.AuthService;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.platform.security.jwt.JwtProps;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -23,50 +25,69 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  private final JwtTokenPort jwtTokenPort;
-  private final MemberPublicApi memberPublicApi;
+  private final AuthService authService;
   private final JwtProps jwtProps;
-  private final AppProps appProps;
+  private final MemberPublicApi memberPublicApi;
 
   @Override
   public void onAuthenticationSuccess(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-      throws IOException, ServletException {
+      throws IOException {
+    OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
 
-    OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-    Long kakaoId = oAuth2User.getAttribute("id");
+    Map<String, Object> attributes = oauth2User.getAttributes();
+    Long kakaoId = (Long) attributes.get("id");
 
     Member member =
         memberPublicApi
             .findByKakaoId(kakaoId)
             .orElseThrow(
-                () -> new IllegalStateException("OAuth2 사용자를 찾을 수 없습니다. KakaoId: " + kakaoId));
+                () ->
+                    new IllegalStateException(
+                        "OAuth2 user not found in DB by kakaoId: " + kakaoId));
 
-    String refreshToken = jwtTokenPort.createRefreshToken(member);
-    addRefreshTokenToCookie(response, refreshToken);
+    AuthTokens authTokens = authService.issueAndSaveTokens(member);
+
+    addRefreshTokenToCookie(request, response, authTokens.refreshToken());
 
     String targetUrl =
         UriComponentsBuilder.fromUriString(jwtProps.redirectUrl()).build().toUriString();
 
-    clearAuthenticationAttributes(request);
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
   }
 
-  private void addRefreshTokenToCookie(HttpServletResponse response, String refreshToken) {
-    long maxAge = jwtProps.refreshTokenExpirationDays().toSeconds();
-
-    boolean isSecure = "https".equalsIgnoreCase(appProps.scheme());
+  private void addRefreshTokenToCookie(
+      HttpServletRequest request, HttpServletResponse response, String refreshToken) {
+    long maxAge = jwtProps.refreshTokenExpirationDays().getSeconds();
+    boolean isSecure = request.isSecure();
+    String domain = getDomainFromRedirectUrl();
 
     ResponseCookie cookie =
-        ResponseCookie.from(jwtProps.refreshTokenCookieName(), refreshToken)
+        ResponseCookie.from("refresh_token", refreshToken)
             .httpOnly(true)
             .secure(isSecure)
             .path("/")
             .maxAge(maxAge)
-            .sameSite("None")
+            .domain(domain)
+            .sameSite(isSecure ? "None" : "Lax")
             .build();
 
     response.addHeader("Set-Cookie", cookie.toString());
-    log.info("Refresh token cookie가 응답에 추가되었습니다. (Secure={})", isSecure);
+    log.info("Refresh token cookie added to response: {}", cookie);
+  }
+
+  private String getDomainFromRedirectUrl() {
+    String redirectUrl = jwtProps.redirectUrl();
+    log.info("Attempting to extract domain from redirect URL: '{}'", redirectUrl);
+
+    try {
+      URI redirectUri = new URI(redirectUrl);
+      String host = redirectUri.getHost();
+      log.info("Successfully extracted domain for cookie: '{}'", host);
+      return host;
+    } catch (URISyntaxException e) {
+      log.error("Invalid redirect URL syntax: {}", redirectUrl, e);
+      return null;
+    }
   }
 }
