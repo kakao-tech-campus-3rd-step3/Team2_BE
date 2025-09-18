@@ -21,4 +21,9 @@ public class EmitterRepositoryImpl implements EmitterRepository {
   public Optional<SseEmitter> findById(Long userId) {
     return Optional.ofNullable(emitters.get(userId));
   }
+
+  @Override
+  public Map<Long, SseEmitter> findAll() {
+    return Map.copyOf(emitters);
+  }
 }
