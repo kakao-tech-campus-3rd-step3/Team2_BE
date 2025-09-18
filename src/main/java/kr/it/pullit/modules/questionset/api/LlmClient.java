@@ -6,9 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public interface LlmClient {
-  static String getPrompt(String difficultyPrompt, String questionTypePrompt, String examplePrompt,
-      int questionCount) {
-    return String.format("""
+  static String getPrompt(
+      String difficultyPrompt, String questionTypePrompt, String examplePrompt, int questionCount) {
+    return String.format(
+        """
         당신은 해당 pdf를 기반으로하는 시험 문제 출제 위원입니다.
         따라서 당신은 수험자들의 학습을 잘 했는지 확인 할 수 있게 중요한 개념과 학생들이 어려워 하는 부분들을 문제로 출제하세요.
 
@@ -25,12 +26,17 @@ public interface LlmClient {
         - 아래 예시를 참조하여 만드세요.
 
         %s
-        """, questionTypePrompt, difficultyPrompt, questionCount, examplePrompt);
+        """,
+        questionTypePrompt, difficultyPrompt, questionCount, examplePrompt);
   }
 
-  List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(String prompt, List<byte[]> fileData,
-      int questionCount, String model);
+  List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
+      String prompt, List<byte[]> fileData, int questionCount, String model);
 
-  void getLlmGeneratedQuestionStream(String prompt, List<byte[]> fileData, int questionCount,
-      String model, SseDataCallback callback);
+  void getLlmGeneratedQuestionStream(
+      String prompt,
+      List<byte[]> fileData,
+      int questionCount,
+      String model,
+      SseDataCallback callback);
 }
