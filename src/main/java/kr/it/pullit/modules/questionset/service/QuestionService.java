@@ -55,8 +55,9 @@ public class QuestionService implements QuestionPublicApi {
   @Override
   @Transactional
   public void saveQuestion(Question question) {
+    Long questionSetId = question.getQuestionSet().getId();
     questionSetRepository
-        .findById(question.getQuestionSet().getId())
+        .findById(questionSetId)
         .orElseThrow(
             () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
 
