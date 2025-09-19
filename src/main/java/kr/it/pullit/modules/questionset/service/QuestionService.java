@@ -1,7 +1,12 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -18,9 +23,6 @@ import kr.it.pullit.modules.questionset.service.policy.type.QuestionTypePolicy;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -36,8 +38,8 @@ public class QuestionService implements QuestionPublicApi {
 
   @Override
   @Async("llmGeneratorAsyncExecutor")
-  public void generateQuestions(
-      QuestionSetResponse questionSetResponse, QuestionGenerationSuccessCallback callback) {
+  public void generateQuestions(QuestionSetResponse questionSetResponse,
+      QuestionGenerationSuccessCallback callback) {
 
     List<byte[]> sourceFileDataBytes = new ArrayList<>();
     for (Long sourceId : questionSetResponse.getSourceIds()) {
@@ -47,9 +49,7 @@ public class QuestionService implements QuestionPublicApi {
             sourcePublicApi.getContentBytes(sourceId, questionSetResponse.getOwnerID());
 
         if (contentBytes == null || contentBytes.length == 0) {
-          log.warn(
-              "학습 소스 파일 내용이 비어있습니다. Source ID: {}, Size: {}",
-              sourceId,
+          log.warn("학습 소스 파일 내용이 비어있습니다. Source ID: {}, Size: {}", sourceId,
               contentBytes == null ? "null" : "0 bytes");
         } else {
           log.info("학습 소스 파일 조회 성공. Source ID: {}, Size: {} bytes", sourceId, contentBytes.length);
@@ -68,17 +68,12 @@ public class QuestionService implements QuestionPublicApi {
     } else {
       for (int i = 0; i < sourceFileDataBytes.size(); i++) {
         byte[] data = sourceFileDataBytes.get(i);
-        log.info(
-            "Gemini API 요청 파일 데이터 크기 확인. QuestionSet ID: {}, Source Index: {}, Size: {} bytes",
-            questionSetResponse.getId(),
-            i,
-            (data != null ? data.length : "null"));
+        log.info("Gemini API 요청 파일 데이터 크기 확인. QuestionSet ID: {}, Source Index: {}, Size: {} bytes",
+            questionSetResponse.getId(), i, (data != null ? data.length : "null"));
       }
     }
 
-    log.info(
-        "AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}",
-        questionSetResponse.getId(),
+    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}", questionSetResponse.getId(),
         "gemini-2.5-flash-lite");
 
     // TODO: 정책에 따라 모델 변경
@@ -91,18 +86,11 @@ public class QuestionService implements QuestionPublicApi {
     String difficultyPrompt = difficultyPolicy.getDifficultyPrompt();
     String questionTypePrompt = questionTypePolicy.getQuestionTypePrompt();
     String examplePrompt = questionTypePolicy.getExamplePrompt();
-    String prompt =
-        LlmClient.getPrompt(
-            difficultyPrompt,
-            questionTypePrompt,
-            examplePrompt,
-            questionSetResponse.getQuestionLength());
+    String prompt = LlmClient.getPrompt(difficultyPrompt, questionTypePrompt, examplePrompt,
+        questionSetResponse.getQuestionLength());
     List<LlmGeneratedQuestionDto> llmGeneratedQuestionDtoList =
-        llmClient.getLlmGeneratedQuestionContent(
-            prompt,
-            sourceFileDataBytes,
-            questionSetResponse.getQuestionLength(),
-            "gemini-1.5-flash-latest");
+        llmClient.getLlmGeneratedQuestionContent(prompt, sourceFileDataBytes,
+            questionSetResponse.getQuestionLength(), "gemini-1.5-flash-latest");
 
     saveQuestions(questionSetResponse.getId(), llmGeneratedQuestionDtoList);
 
@@ -112,22 +100,13 @@ public class QuestionService implements QuestionPublicApi {
   @Override
   @Transactional
   public void saveQuestions(Long questionSetId, List<LlmGeneratedQuestionDto> questions) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetId)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "QuestionSet not found with id: " + questionSetId));
+    QuestionSet questionSet = questionSetRepository.findById(questionSetId).orElseThrow(
+        () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
 
     for (LlmGeneratedQuestionDto llmGeneratedQuestionDto : questions) {
-      Question question =
-          new Question(
-              questionSet,
-              llmGeneratedQuestionDto.questionText(),
-              llmGeneratedQuestionDto.options(),
-              llmGeneratedQuestionDto.answer(),
-              llmGeneratedQuestionDto.explanation());
+      Question question = new Question(questionSet, llmGeneratedQuestionDto.questionText(),
+          llmGeneratedQuestionDto.options(), llmGeneratedQuestionDto.answer(),
+          llmGeneratedQuestionDto.explanation());
       questionRepository.save(question);
     }
   }
