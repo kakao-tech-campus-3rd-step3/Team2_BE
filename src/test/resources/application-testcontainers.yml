@@ -9,23 +9,40 @@ spring:
         format_sql: true
         show_sql: true
 
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: "test-kakao-client-id"
+            client-secret: "test-kakao-client-secret"
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile_nickname, account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+jwt:
+  secret: Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=
+  issuer: pullit-backend-test
+  audience: pullit-client-test
+  access-token-expiration-minutes: 1
+  refresh-token-expiration-days: 1
+  redirect-url: http://test-redirect.com/auth/callback
+
 app:
   google-api-key: "test-google-api-key"
   storage:
     s3:
-      bucket-name: "pullit-uploaded-files"
+      bucket-name: "pullit-test-bucket"
       region: "ap-northeast-2"
       access-key: test
       secret-key: test
-      presigned-url-expiration: PT15M
-      base-path: "learning-sources"
-
-oauth:
-  kakao:
-    client-id: "test-kakao-client-id"
-    client-secret: "test-kakao-client-secret"
-    redirect-uri: "/login/oauth2/code/kakao"
-    kauth-url: "https://kauth.kakao.com"
-    authorize-path: "/oauth/authorize"
-    token-path: "/oauth/token"
-    user-info-path: "/v2/user/me"
+      presigned-url-expiration: PT1M
+      base-path: "learning-sources-test"

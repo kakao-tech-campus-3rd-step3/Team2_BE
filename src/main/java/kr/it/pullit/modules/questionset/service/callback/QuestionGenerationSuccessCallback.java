@@ -5,5 +5,6 @@ import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
 
 @FunctionalInterface
 public interface QuestionGenerationSuccessCallback {
+
   void onSuccess(List<LlmGeneratedQuestionDto> questions);
 }

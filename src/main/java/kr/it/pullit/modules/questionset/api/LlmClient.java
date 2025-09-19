@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public interface LlmClient {
+
   static String getPrompt(
       String difficultyPrompt, String questionTypePrompt, String examplePrompt, int questionCount) {
     return String.format(

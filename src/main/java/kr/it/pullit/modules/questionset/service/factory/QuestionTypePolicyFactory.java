@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class QuestionTypePolicyFactory {
+
   private final MultipleChoicePolicy multipleChoicePolicy;
 
   public QuestionTypePolicy getInstance(QuestionType questionType) {

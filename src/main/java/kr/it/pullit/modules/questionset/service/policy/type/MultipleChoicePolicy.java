@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MultipleChoicePolicy implements QuestionTypePolicy {
+
   @Override
   public String getQuestionTypePrompt() {
     return "객관식 (정답은 하나만, 오답은 여러개인 객관식 옵션을 제공합니다.)";
