@@ -82,9 +82,6 @@ server:
     include-exception: true
     # TODO : 운영에서 전체 트레이스 포함할지
     include-stacktrace: ALWAYS
-  tomcat:
-    connection-timeout: 30m
-    keep-alive-timeout: 30m
 
 info:
   app:
