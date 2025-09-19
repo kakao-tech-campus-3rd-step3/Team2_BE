@@ -1,17 +1,17 @@
 package kr.it.pullit.platform.web.logging;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Enumeration;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Enumeration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 @Component
 @Order(1)
@@ -19,8 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
 
     ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
     filterChain.doFilter(wrappedRequest, response);
@@ -53,8 +54,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       logMessage.append(String.format("Body Size   : %d bytes\n", content.length));
       logMessage.append("Body Content:\n");
       try {
-        String bodyString = new String(content,
-            request.getCharacterEncoding() != null ? request.getCharacterEncoding() : "UTF-8");
+        String bodyString =
+            new String(
+                content,
+                request.getCharacterEncoding() != null ? request.getCharacterEncoding() : "UTF-8");
         logMessage.append(bodyString).append("\n");
       } catch (UnsupportedEncodingException e) {
         logMessage.append("Body Content: [Could not read body as text]\n");
