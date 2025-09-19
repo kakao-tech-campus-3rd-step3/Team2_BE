@@ -64,6 +64,10 @@ management:
   endpoint:
     health:
       show-details: always
+#    env:
+#      show-values: ALWAYS
+#    configprops:
+#      show-values: ALWAYS
 
 # Rate Limiting 설정 (Resilience4j) - QA 환경에만 적용
 resilience4j:
