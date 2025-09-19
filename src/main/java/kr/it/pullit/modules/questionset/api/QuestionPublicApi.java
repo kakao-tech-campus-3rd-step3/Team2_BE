@@ -2,13 +2,12 @@ package kr.it.pullit.modules.questionset.api;
 
 import java.util.List;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
-import kr.it.pullit.modules.questionset.service.callback.QuestionGenerationSuccessCallback;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 
 public interface QuestionPublicApi {
 
-  void generateQuestions(
-      QuestionSetResponse questionSetResponse, QuestionGenerationSuccessCallback callback);
+  List<LlmGeneratedQuestionDto> generateQuestions(QuestionGenerationRequest request);
 
-  void saveQuestions(Long questionSetId, List<LlmGeneratedQuestionDto> questions);
+  void saveQuestion(Question question);
 }
