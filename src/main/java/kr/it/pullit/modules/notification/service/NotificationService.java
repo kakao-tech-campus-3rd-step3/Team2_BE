@@ -70,7 +70,7 @@ public class NotificationService implements NotificationPublicApi {
             });
   }
 
-  // 20초마다 모든 클라이언트에게 heartbeat 메시지 전송
+  // 3초마다 모든 클라이언트에게 heartbeat 메시지 전송
   @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS)
   public void sendHeartbeat() {
     Map<Long, SseEmitter> emitters = emitterRepository.findAll();
