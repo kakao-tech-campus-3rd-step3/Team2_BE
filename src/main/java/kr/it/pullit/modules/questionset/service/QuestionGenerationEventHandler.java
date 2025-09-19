@@ -2,7 +2,6 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
-import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
@@ -29,7 +28,6 @@ public class QuestionGenerationEventHandler {
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
-  private final LlmClient llmClient;
 
   @Async("llmGeneratorAsyncExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
