@@ -56,7 +56,12 @@ public class QuestionService implements QuestionPublicApi {
     String questionTypePrompt = questionTypePolicy.getQuestionTypePrompt();
     String examplePrompt = questionTypePolicy.getExamplePrompt();
 
-    String prompt = LlmClient.getPrompt(difficultyPrompt, questionTypePrompt, examplePrompt);
+    String prompt =
+        LlmClient.getPrompt(
+            difficultyPrompt,
+            questionTypePrompt,
+            examplePrompt,
+            questionSetResponse.getQuestionLength());
 
     List<byte[]> sourceFileDataBytes = new ArrayList<>();
     for (Long sourceId : questionSetResponse.getSourceIds()) {

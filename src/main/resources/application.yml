@@ -1,7 +1,14 @@
 spring:
   application:
     name: pullit
-
+  mvc:
+    async:
+      request-timeout: 1800000 # 30 minutes
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/mydatabase?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: myuser
+    password: secret
 
   jpa:
     generate-ddl: true # Explicitly enable DDL generation by Hibernate
