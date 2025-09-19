@@ -24,6 +24,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "members")
 public class Member extends BaseEntity {
 
   @OneToMany(mappedBy = "owner")
