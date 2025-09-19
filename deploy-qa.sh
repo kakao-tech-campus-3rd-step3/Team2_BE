@@ -18,7 +18,7 @@ if [ -z "$DOCKER_IMAGE_NAME" ]; then
     exit 1
 fi
 
-if [ -z "$DB_PASSWORD" ] || [ -z "$DB_ROOT_PASSWORD" ] || [ -z "$GOOGLE_API_KEY" ] || [ -z "$S3_ACCESS_KEY" ] || [ -z "$S3_SECRET_KEY" ] || [ -z "$KAKAO_REST_API_KEY" ] || [ -z "$DB_USERNAME" ] || [ -z "$KAKAO_CLIENT_SECRET" ] || [ -z "$BASE_URI" ] || [ -z "$SCHEME" ] || [ -z "$ACCESS_CONTROL_ALLOWED_ORIGINS" ]; then
+if [ -z "$DB_PASSWORD" ] || [ -z "$DB_ROOT_PASSWORD" ] || [ -z "$GEMINI_API_KEY" ] || [ -z "$S3_ACCESS_KEY" ] || [ -z "$S3_SECRET_KEY" ] || [ -z "$KAKAO_REST_API_KEY" ] || [ -z "$DB_USERNAME" ] || [ -z "$KAKAO_CLIENT_SECRET" ] || [ -z "$BASE_URI" ] || [ -z "$SCHEME" ] || [ -z "$ACCESS_CONTROL_ALLOWED_ORIGINS" ]; then
     echo -e "${RED}Error: 필수 배포 환경 변수(DB_*, GOOGLE_*, etc.)가 모두 설정되지 않았습니다.${NC}"
     exit 1
 fi
@@ -61,7 +61,7 @@ echo "export DOCKER_IMAGE=${SHA_IMAGE_TAG}"
 echo "export DB_USERNAME=${DB_USERNAME}"
 echo "export DB_PASSWORD=${DB_PASSWORD}"
 echo "export DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}"
-echo "export GOOGLE_API_KEY=${GOOGLE_API_KEY}"
+echo "export GEMINI_API_KEY=${GEMINI_API_KEY}"
 echo "export S3_ACCESS_KEY=${S3_ACCESS_KEY}"
 echo "export S3_SECRET_KEY=${S3_SECRET_KEY}"
 echo "export KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}"

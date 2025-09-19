@@ -26,8 +26,8 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Bean
-  @Profile("!no-auth & !qa")
-  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+  @Profile("auth")
+  public SecurityFilterChain authSecurityFilterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(
@@ -92,11 +92,15 @@ public class SecurityConfig {
   }
 
   @Bean
-  @Profile("no-auth")
-  public SecurityFilterChain noAuthSecurityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+    http.oauth2Login(
+        oauth2 ->
+            oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(oauth2AuthenticationSuccessHandler));
     return http.build();
   }
 }

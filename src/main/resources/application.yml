@@ -104,8 +104,8 @@ logging:
     sun.rmi.loader: WARN
     sun.rmi.transport.tcp: WARN
     javax.management.remote.rmi: WARN
-
-# 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 management:
   endpoint:
@@ -129,7 +129,6 @@ cors:
 app:
   scheme: ${SCHEME:http}
   base-uri: ${BASE_URI:localhost:8080}
-  google-api-key: ${GOOGLE_API_KEY:test}
   gemini:
     api-key: ${GEMINI_API_KEY:test}
   storage:
