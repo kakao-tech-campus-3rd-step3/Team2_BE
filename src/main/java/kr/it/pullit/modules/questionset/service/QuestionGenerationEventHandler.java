@@ -4,7 +4,7 @@ import java.util.List;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
@@ -50,7 +50,7 @@ public class QuestionGenerationEventHandler {
                   questionSetResponse.getType(),
                   questionSetResponse.getQuestionLength()));
 
-      List<LlmGeneratedQuestionDto> questionDtos =
+      List<LlmGeneratedQuestionResponse> questionDtos =
           questionPublicApi.generateQuestions(questionGenerationRequest);
 
       QuestionSet questionSet =
@@ -62,7 +62,7 @@ public class QuestionGenerationEventHandler {
                         "QuestionSet not found with id: " + event.questionSetId());
                   });
 
-      for (LlmGeneratedQuestionDto questionDto : questionDtos) {
+      for (LlmGeneratedQuestionResponse questionDto : questionDtos) {
         log.info("Generated Question: {}", questionDto.questionText());
         Question question =
             new Question(
