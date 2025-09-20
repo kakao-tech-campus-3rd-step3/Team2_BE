@@ -42,8 +42,8 @@ public class QuestionGenerationEventHandler {
 
       QuestionGenerationRequest questionGenerationRequest =
           new QuestionGenerationRequest(
-              event.questionSetId(),
               event.ownerId(),
+              event.questionSetId(),
               questionSetResponse.getSourceIds(),
               new QuestionGenerationSpecification(
                   questionSetResponse.getDifficulty(),
