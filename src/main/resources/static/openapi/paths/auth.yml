@@ -1,0 +1,49 @@
+/api/auth/refresh:
+  post:
+    tags:
+      - auth
+    summary: 액세스 토큰 갱신
+    description: |
+      최초 로그인 시 발급받은 `HttpOnly` 쿠키의 리프레시 토큰을 이용해 만료된 액세스 토큰을 새로 발급받습니다.
+      프론트엔드는 API 요청이 401 Unauthorized 에러를 반환했을 때 이 API를 호출하여 새로운 액세스 토큰을 얻고, 실패했던 원래 요청을 다시 시도해야 합니다.
+
+      ### 요청 헤더
+      - `Cookie`: `refresh_token=...` (브라우저가 자동으로 전송)
+
+      ### 응답 형식 (Content-Type: application/json)
+      ```json
+      {
+        "accessToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOi..."
+      }
+      ```
+    operationId: refreshAccessToken
+    responses:
+      '200':
+        description: 액세스 토큰 갱신 성공
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/auth.yml#/AccessTokenResponse'
+      '401':
+        description: 유효하지 않거나 만료된 리프레시 토큰
+
+
+/api/auth/logout:
+  post:
+    tags:
+      - auth
+    summary: 로그아웃
+    description: |
+      서버에 저장된 리프레시 토큰을 무효화하고 클라이언트의 쿠키를 삭제하여 로그아웃을 처리합니다.
+      **중요**: 이 API는 반드시 유효한 액세스 토큰을 `Authorization` 헤더에 담아 요청해야 합니다.
+
+      ### 요청 헤더
+      - `Authorization`: `Bearer {accessToken}`
+    operationId: logoutUser
+    security:
+      - bearerAuth: [ ]
+    responses:
+      '204':
+        description: 로그아웃 성공. 응답 본문에 내용이 없습니다 (No Content).
+      '401':
+        description: 유효하지 않은 액세스 토큰으로 요청

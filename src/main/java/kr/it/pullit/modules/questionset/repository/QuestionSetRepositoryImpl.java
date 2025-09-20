@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class QuestionSetRepositoryImpl implements QuestionSetRepository {
+
   private final QuestionSetJpaRepository questionSetJpaRepository;
 
   @Override

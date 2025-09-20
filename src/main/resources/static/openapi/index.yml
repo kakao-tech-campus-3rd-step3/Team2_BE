@@ -19,6 +19,8 @@ tags:
     description: 문제집 관리에 관한 API
   - name: notification
     description: SSE 알림에 관한 API
+  - name: auth
+    description: 카카오 로그인 및 인증에 관한 API
 paths:
   '/api/learning/source/upload':
     $ref: './paths/learning_source.yml#/~1api~1learning~1source~1upload'
@@ -32,6 +34,10 @@ paths:
     $ref: './paths/question_set.yml#/~1api~1question-set~1{id}'
   '/api/notifications/subscribe':
     $ref: './paths/notification.yml#/~1api~1notifications~1subscribe'
+  '/api/auth/refresh':
+    $ref: './paths/auth.yml#/~1api~1auth~1refresh'
+  '/api/auth/logout':
+    $ref: './paths/auth.yml#/~1api~1auth~1logout'
 components:
   schemas:
     UploadRequest:
@@ -54,3 +60,5 @@ components:
       $ref: './components/schemas/question_set.yml#/DifficultyType'
     QuestionType:
       $ref: './components/schemas/question_set.yml#/QuestionType'
+    AccessTokenResponse:
+      $ref: './components/schemas/auth.yml#/AccessTokenResponse'

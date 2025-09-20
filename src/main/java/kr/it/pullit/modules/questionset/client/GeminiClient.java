@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class GeminiClient implements LlmClient {
+
   // TODO: config로 빼기
   @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
   final int MIN_OPTION_COUNT = 3;
