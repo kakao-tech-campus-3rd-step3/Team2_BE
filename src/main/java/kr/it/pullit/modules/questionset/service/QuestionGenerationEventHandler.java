@@ -33,53 +33,75 @@ public class QuestionGenerationEventHandler {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleQuestionSetCreatedEvent(QuestionSetCreatedEvent event) {
     log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}", event.questionSetId());
+
     try {
-      QuestionSetResponse questionSetResponse =
-          questionSetPublicApi.getQuestionSetById(event.questionSetId());
-
-      QuestionSetCreationCompleteResponse responseDto =
-          new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
-
-      QuestionGenerationRequest questionGenerationRequest =
-          new QuestionGenerationRequest(
-              event.ownerId(),
-              event.questionSetId(),
-              questionSetResponse.getSourceIds(),
-              new QuestionGenerationSpecification(
-                  questionSetResponse.getDifficulty(),
-                  questionSetResponse.getType(),
-                  questionSetResponse.getQuestionLength()));
-
-      List<LlmGeneratedQuestionResponse> questionDtos =
-          questionPublicApi.generateQuestions(questionGenerationRequest);
-
-      QuestionSet questionSet =
-          questionSetPublicApi
-              .findEntityById(event.questionSetId())
-              .orElseThrow(
-                  () -> {
-                    return new IllegalArgumentException(
-                        "QuestionSet not found with id: " + event.questionSetId());
-                  });
-
-      for (LlmGeneratedQuestionResponse questionDto : questionDtos) {
-        log.info("Generated Question: {}", questionDto.questionText());
-        Question question =
-            new Question(
-                questionSet,
-                questionDto.questionText(),
-                questionDto.options(),
-                questionDto.answer(),
-                questionDto.explanation());
-        questionPublicApi.saveQuestion(question);
-      }
-
-      questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.COMPLETE);
-      notificationPublicApi.publishQuestionSetCreationComplete(event.ownerId(), responseDto);
-      log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", event.questionSetId());
+      processQuestionGeneration(event);
+      handleSuccess(event);
     } catch (Exception e) {
-      log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
-      questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.FAILED);
+      handleFailure(event, e);
     }
+  }
+
+  private void processQuestionGeneration(QuestionSetCreatedEvent event) {
+    QuestionGenerationRequest request = createGenerationRequest(event);
+    List<LlmGeneratedQuestionResponse> questionDtos = questionPublicApi.generateQuestions(request);
+    saveQuestions(event.questionSetId(), questionDtos);
+    questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.COMPLETE);
+  }
+
+  private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.getQuestionSetById(event.questionSetId());
+
+    QuestionGenerationSpecification specification =
+        new QuestionGenerationSpecification(
+            questionSetResponse.getDifficulty(),
+            questionSetResponse.getType(),
+            questionSetResponse.getQuestionLength());
+
+    return new QuestionGenerationRequest(
+        event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
+  }
+
+  private void saveQuestions(Long questionSetId, List<LlmGeneratedQuestionResponse> questionDtos) {
+    QuestionSet questionSet = findQuestionSetById(questionSetId);
+
+    for (LlmGeneratedQuestionResponse questionDto : questionDtos) {
+      log.info("Generated Question: {}", questionDto.questionText());
+      Question question = createQuestion(questionSet, questionDto);
+      questionPublicApi.saveQuestion(question);
+    }
+  }
+
+  private QuestionSet findQuestionSetById(Long questionSetId) {
+    return questionSetPublicApi
+        .findEntityById(questionSetId)
+        .orElseThrow(
+            () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
+  }
+
+  private Question createQuestion(
+      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
+    return new Question(
+        questionSet,
+        questionDto.questionText(),
+        questionDto.options(),
+        questionDto.answer(),
+        questionDto.explanation());
+  }
+
+  private void handleSuccess(QuestionSetCreatedEvent event) {
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.getQuestionSetById(event.questionSetId());
+    QuestionSetCreationCompleteResponse responseDto =
+        new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
+
+    notificationPublicApi.publishQuestionSetCreationComplete(event.ownerId(), responseDto);
+    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", event.questionSetId());
+  }
+
+  private void handleFailure(QuestionSetCreatedEvent event, Exception e) {
+    log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
+    questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.FAILED);
   }
 }
