@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.genai.Client;
-import com.google.genai.types.Content;
-import com.google.genai.types.GenerateContentConfig;
-import com.google.genai.types.GenerateContentResponse;
-import com.google.genai.types.Part;
+import com.google.genai.types.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +101,24 @@ public class GeminiClient implements LlmClient {
         Part.fromBytes(fileDataList.getFirst(), "application/pdf"), Part.fromText(prompt));
   }
 
+  private void handleResponseFinishReason(GenerateContentResponse response) {
+    switch (response.finishReason().knownEnum()) {
+      case BLOCKLIST -> throw new RuntimeException("Content was filtered");
+      case FINISH_REASON_UNSPECIFIED -> throw new RuntimeException("Finish reason unspecified");
+      case IMAGE_SAFETY -> throw new RuntimeException("Image safety triggered");
+      case LANGUAGE -> throw new RuntimeException("Not allowed language");
+      case MALFORMED_FUNCTION_CALL -> throw new RuntimeException("Malformed function call");
+      case MAX_TOKENS -> throw new RuntimeException("Max tokens exceeded");
+      case OTHER -> throw new RuntimeException("Other finish reason");
+      case PROHIBITED_CONTENT -> throw new RuntimeException("Prohibited content");
+      case RECITATION -> throw new RuntimeException("Recitation");
+      case SAFETY -> throw new RuntimeException("Safety triggered");
+      case SPII -> throw new RuntimeException("Spii triggered");
+      case UNEXPECTED_TOOL_CALL -> throw new RuntimeException("Unexpected tool call");
+      default -> throw new RuntimeException("Unknown finish reason: " + response.finishReason());
+    }
+  }
+
   @Override
   public List<LlmGeneratedQuestionResponse> getLlmGeneratedQuestionContent(
       LlmGeneratedQuestionRequest request) {
@@ -115,12 +130,12 @@ public class GeminiClient implements LlmClient {
     }
     Content content = getGeminiContent(request.fileDataList(), request.prompt());
     try {
-
       GenerateContentResponse response =
           client.models.generateContent(model, content, this.getConfig(request.questionCount()));
-      String result = response.text();
-
-      return mapper.readValue(result, new TypeReference<>() {});
+      if (response.finishReason().knownEnum() != FinishReason.Known.STOP) {
+        handleResponseFinishReason(response);
+      }
+      return mapper.readValue(response.text(), new TypeReference<>() {});
     } catch (IOException e) {
       throw new RuntimeException("Failed to parse LLM response", e);
     } catch (Exception e) {
