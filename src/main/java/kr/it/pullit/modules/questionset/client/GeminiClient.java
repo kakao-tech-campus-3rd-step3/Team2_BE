@@ -16,11 +16,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
-import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.questionset.api.LlmClient;
-import kr.it.pullit.modules.questionset.api.SseDataCallback;
+import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -129,51 +128,6 @@ public class GeminiClient implements LlmClient {
     }
   }
 
-  @Override
-  public List<LlmGeneratedQuestionDto> getLlmGeneratedQuestionContent(
-      String prompt, List<byte[]> fileDataList, int questionCount, String model) {
-
-    log.info(
-        "\n--- Gemini API Request Parameters ---"
-            + "\n[Model Name] : "
-            + model
-            + "\n[Question Count] : "
-            + questionCount
-            + "\n[Prompt Length] : "
-            + (prompt != null ? prompt.length() : "null")
-            + " characters"
-            + "\n[File Count] : "
-            + (fileDataList != null ? fileDataList.size() : "null")
-            + (fileDataList != null && !fileDataList.isEmpty()
-                ? "\n[File Details] : \n"
-                    + fileDataList.stream()
-                        .map(
-                            data ->
-                                "  - Size: "
-                                    + (data != null ? data.length : "null")
-                                    + " bytes, SHA-256: "
-                                    + calculateSha256(data))
-                        .collect(Collectors.joining("\n"))
-                : "")
-            + "\n--- End of Parameters ---");
-
-    if (model == null) {
-      model = "gemini-2.5-flash-lite";
-    }
-
-    Content content = getGeminiContent(fileDataList, prompt);
-
-    GenerateContentResponse response =
-        client.models.generateContent(model, content, this.getConfig(questionCount));
-    String result = response.text();
-
-    try {
-      return mapper.readValue(result, new TypeReference<>() {});
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to parse LLM response", e);
-    }
-  }
-
   private String calculateSha256(byte[] data) {
     if (data == null) {
       return "null";
@@ -205,6 +159,26 @@ public class GeminiClient implements LlmClient {
       model = "gemini-2.5-flash-lite";
     }
     Content content = getGeminiContent(request.fileDataList(), request.prompt());
+
+    log.info(
+        "\n--- Gemini API Request Parameters ---\n[Model Name] : {}\n[Question Count] : {}\n"
+            + "[Prompt Length] : {} characters\n[File Count] : {}{}\n--- End of Parameters ---",
+        model,
+        request.questionCount(),
+        request.prompt() != null ? request.prompt().length() : "null",
+        request.fileDataList() != null ? request.fileDataList().size() : "null",
+        request.fileDataList() != null && !request.fileDataList().isEmpty()
+            ? "\n[File Details] : \n"
+                + request.fileDataList().stream()
+                    .map(
+                        data ->
+                            "  - Size: "
+                                + (data != null ? data.length : "null")
+                                + " bytes, SHA-256: "
+                                + calculateSha256(data))
+                    .collect(Collectors.joining("\n"))
+            : "");
+
     try {
       GenerateContentResponse response =
           client.models.generateContent(model, content, this.getConfig(request.questionCount()));
