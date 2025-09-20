@@ -3,8 +3,6 @@ package kr.it.pullit.platform.security.handler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 import kr.it.pullit.modules.auth.service.AuthService;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
@@ -24,6 +22,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+  private static final String COOKIE_DOMAIN = "pull.it.kr";
 
   private final AuthService authService;
   private final JwtProps jwtProps;
@@ -60,7 +60,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       HttpServletRequest request, HttpServletResponse response, String refreshToken) {
     long maxAge = jwtProps.refreshTokenExpirationDays().getSeconds();
     boolean isSecure = request.isSecure();
-    String domain = getDomainFromRedirectUrl();
 
     ResponseCookie cookie =
         ResponseCookie.from("refresh_token", refreshToken)
@@ -68,26 +67,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             .secure(isSecure)
             .path("/")
             .maxAge(maxAge)
-            .domain(domain)
+            .domain(COOKIE_DOMAIN)
             .sameSite(isSecure ? "None" : "Lax")
             .build();
 
     response.addHeader("Set-Cookie", cookie.toString());
     log.info("Refresh token cookie added to response: {}", cookie);
-  }
-
-  private String getDomainFromRedirectUrl() {
-    String redirectUrl = jwtProps.redirectUrl();
-    log.info("Attempting to extract domain from redirect URL: '{}'", redirectUrl);
-
-    try {
-      URI redirectUri = new URI(redirectUrl);
-      String host = redirectUri.getHost();
-      log.info("Successfully extracted domain for cookie: '{}'", host);
-      return host;
-    } catch (URISyntaxException e) {
-      log.error("Invalid redirect URL syntax: {}", redirectUrl, e);
-      return null;
-    }
   }
 }
