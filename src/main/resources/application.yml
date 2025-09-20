@@ -11,6 +11,7 @@ spring:
     password: secret
 
   jpa:
+    defer-datasource-initialization: true
     generate-ddl: true # Explicitly enable DDL generation by Hibernate
     hibernate:
       ddl-auto: create-drop
@@ -98,13 +99,17 @@ logging:
 # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
 management:
+  endpoint:
+    health:
+      show-details: always
+    env:
+      show-values: always
   endpoints:
     web:
       exposure:
-        include: "*"  # 모든 엔드포인트 노출
-  endpoint:
-    health:
-      show-details: always  # 헬스 체크 상세 정보 표시
+        include: "*"
+
+
 
 cors:
   allowed-origins:
