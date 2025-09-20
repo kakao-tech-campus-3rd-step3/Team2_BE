@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
-@Profile("no-auth")
+@Profile("mock-auth")
 public class MockAuthenticationFilter extends OncePerRequestFilter {
 
   @Override

@@ -16,14 +16,6 @@ spring:
     livereload:
       enabled: false
 
-security:
-  oauth2:
-    client:
-      registration:
-        kakao:
-          client-id: ${KAKAO_REST_API_KEY}
-          client-secret: ${KAKAO_CLIENT_SECRET}
-
 server:
   error:
     whitelabel:

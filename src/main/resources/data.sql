@@ -53,19 +53,19 @@ ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), upda
 -- Table `source`
 -- -----------------------------------------------------
 INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (1, 1, 1, 'chapter1_variables.pdf', 'application/pdf', 's3://learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 1048576, 'READY', NOW(), NOW())
+VALUES (1, 1, 1, 'chapter1_variables.pdf', 'application/pdf', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 1048576, 'READY', NOW(), NOW())
 ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
 
 INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (2, 1, 1, 'chapter2_operators.pdf', 'application/pdf', 's3://learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 2097152, 'READY', NOW(), NOW())
+VALUES (2, 1, 1, 'chapter2_operators.pdf', 'application/pdf', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 2097152, 'READY', NOW(), NOW())
 ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
 
 INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (3, 2, 2, 'sorting_algorithms.pdf', 'application/pdf', 's3://learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 3145728, 'READY', NOW(), NOW())
+VALUES (3, 2, 2, 'sorting_algorithms.pdf', 'application/pdf', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 3145728, 'READY', NOW(), NOW())
 ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
 
 INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (4, 1, 3, 'spring_aop_deep_dive.txt', 'text/plain', 's3://learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 512000, 'READY', NOW(), NOW())
+VALUES (4, 1, 3, 'spring_aop_deep_dive.txt', 'text/plain', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 512000, 'READY', NOW(), NOW())
 ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
 
 
