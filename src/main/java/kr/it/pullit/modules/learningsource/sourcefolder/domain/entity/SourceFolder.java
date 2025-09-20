@@ -20,6 +20,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SourceFolder extends BaseEntity {
 
+  public static final String DEFAULT_FOLDER_NAME = "전체 폴더";
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

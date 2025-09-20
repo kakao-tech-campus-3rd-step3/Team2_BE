@@ -24,13 +24,6 @@ security:
           client-id: ${KAKAO_REST_API_KEY}
           client-secret: ${KAKAO_CLIENT_SECRET}
 
-  # QA 환경에서는 DevTools 비활성화
-  devtools:
-    restart:
-      enabled: false
-    livereload:
-      enabled: false
-
 server:
   error:
     whitelabel:

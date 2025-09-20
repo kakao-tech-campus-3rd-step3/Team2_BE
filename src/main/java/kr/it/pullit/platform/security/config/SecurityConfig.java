@@ -1,6 +1,8 @@
 package kr.it.pullit.platform.security.config;
 
 import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
+import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
+import kr.it.pullit.platform.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -19,6 +22,8 @@ public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
   private final CorsConfigurationSource corsConfigurationSource;
+  private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
+  private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Bean
   @Profile("!no-auth & !qa")
@@ -37,13 +42,18 @@ public class SecurityConfig {
                         "/login/oauth2/code/**",
                         "/oauth/authorize/**",
                         "/oauth2/authorization/**",
-                        "/api/auth/refresh")
+                        "/api/auth/refresh",
+                        "/api/notifications/**")
                     .permitAll()
                     .anyRequest()
-                    .authenticated())
-        .oauth2Login(
-            oauth2 ->
-                oauth2.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)));
+                    .authenticated());
+    http.oauth2Login(
+        oauth2 ->
+            oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(oauth2AuthenticationSuccessHandler));
+
+    http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
@@ -51,18 +61,33 @@ public class SecurityConfig {
   @Bean
   @Profile("qa")
   public SecurityFilterChain qaSecurityFilterChain(HttpSecurity http) throws Exception {
-    // TODO: QA 환경의 모든 요청을 임시로 허용하고 있습니다. 추후 인증 로직을 추가
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
-        // .sessionManagement(
-        // session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        // .authorizeHttpRequests(authorize -> authorize.requestMatchers("/", "/api", "/api/health",
-        // "/api/notifications/**", "/login/oauth2/code/**", "/oauth/authorize/**",
-        // "/oauth2/authorization/**", "/api/auth/refresh").permitAll().anyRequest()
-        // .authenticated())
-        // .oauth2Login(oauth2 -> oauth2
-        // .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)));
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            authorize ->
+                authorize
+                    .requestMatchers(
+                        "/",
+                        "/api",
+                        "/api/health",
+                        "/login/oauth2/code/**",
+                        "/oauth/authorize/**",
+                        "/oauth2/authorization/**",
+                        "/api/auth/refresh",
+                        "/api/notifications/**")
+                    .permitAll()
+                    .anyRequest()
+                    .permitAll());
+    http.oauth2Login(
+        oauth2 ->
+            oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(oauth2AuthenticationSuccessHandler));
+
+    // http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
     return http.build();
   }
 

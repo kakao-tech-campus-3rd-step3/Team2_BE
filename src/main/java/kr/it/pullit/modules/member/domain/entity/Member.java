@@ -26,6 +26,15 @@ import lombok.NoArgsConstructor;
 @Table(name = "members")
 public class Member extends BaseEntity {
 
+  @OneToMany(mappedBy = "owner")
+  private final List<QuestionSet> questionSets = new ArrayList<>();
+
+  @OneToMany(mappedBy = "member")
+  private final List<SourceFolder> sourceFolders = new ArrayList<>();
+
+  @OneToMany(mappedBy = "member")
+  private final List<Source> sources = new ArrayList<>();
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -38,33 +47,26 @@ public class Member extends BaseEntity {
 
   @Column private String name;
 
+  @Column(length = 512)
+  private String refreshToken;
+
   @Enumerated(EnumType.STRING)
   @Column
   private MemberStatus status;
-
-  @OneToMany(mappedBy = "owner")
-  private final List<QuestionSet> questionSets = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<SourceFolder> sourceFolders = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<Source> sources = new ArrayList<>();
 
   @Builder
   public Member(Long kakaoId, String email, String name, MemberStatus status) {
     this.kakaoId = kakaoId;
     this.email = email;
     this.name = name;
-    this.status = status;
+    this.status = (status != null) ? status : MemberStatus.ACTIVE;
   }
 
   public static Member create(Long kakaoId, String email, String name) {
-    return Member.builder()
-        .kakaoId(kakaoId)
-        .email(email)
-        .name(name)
-        .status(MemberStatus.ACTIVE)
-        .build();
+    return Member.builder().kakaoId(kakaoId).email(email).name(name).build();
+  }
+
+  public void updateRefreshToken(String refreshToken) {
+    this.refreshToken = refreshToken;
   }
 }

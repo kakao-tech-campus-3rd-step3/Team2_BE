@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class JsonStreamParser {
+
   private int depth = 0;
   private boolean inString = false;
   private boolean isEscape = false;

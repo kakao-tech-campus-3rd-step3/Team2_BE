@@ -12,4 +12,6 @@ public interface MemberRepository {
   Member save(Member member);
 
   Optional<Member> findByKakaoId(Long kakaoId);
+
+  Optional<Member> findByRefreshToken(String refreshToken);
 }
