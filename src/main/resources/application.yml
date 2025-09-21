@@ -18,7 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+        show_sql: false
 
   sql:
     init:
@@ -73,6 +73,13 @@ spring:
         queue-capacity: 100
         prefix: LLM-GEN-
 
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+#      if you want to write in the spy.log file. this might be used in qa or product profile
+#      logging: file
+
 jwt:
   secret: ${JWT_SECRET_KEY:Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=}
   issuer: ${JWT_ISSUER:pullit-backend}
@@ -101,6 +108,8 @@ logging:
     sun.rmi.loader: WARN
     sun.rmi.transport.tcp: WARN
     javax.management.remote.rmi: WARN
+    # org.hibernate.orm.jdbc.bind: TRACE
+    p6spy: INFO
 
 # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
