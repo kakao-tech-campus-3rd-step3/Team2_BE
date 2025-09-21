@@ -19,7 +19,10 @@ public class AuthService {
   private final JwtTokenPort jwtTokenPort;
 
   @Transactional
-  public AuthTokens issueAndSaveTokens(Member member) {
+  public AuthTokens issueAndSaveTokens(Long memberId) {
+    Member member = memberPublicApi.findById(memberId)
+        .orElseThrow(() -> new IllegalArgumentException("Cannot find member by id"));
+
     String existingRefreshToken = member.getRefreshToken();
 
     // 기존 리프레시 토큰이 있고, 유효하다면 재사용
@@ -34,7 +37,7 @@ public class AuthService {
     AuthTokens newAuthTokens =
         jwtTokenPort.createAuthTokens(member.getId(), member.getEmail(), Role.USER);
     member.updateRefreshToken(newAuthTokens.refreshToken());
-    memberPublicApi.save(member);
+    // memberPublicApi.save(member); <-- This line is redundant due to dirty checking
 
     return newAuthTokens;
   }
@@ -64,6 +67,6 @@ public class AuthService {
     Member member = memberPublicApi.findById(memberId)
         .orElseThrow(() -> new IllegalArgumentException("Cannot find member by id"));
     member.updateRefreshToken(null);
-    memberPublicApi.save(member);
+    // memberPublicApi.save(member); <-- This line is redundant due to dirty checking
   }
 }
