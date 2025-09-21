@@ -16,13 +16,12 @@ services:
       # 외부 서비스 API 키 (CD 파이프라인에서 주입)
       - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
       - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
-      - GENINI_API_KEY=${GENINI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - AWS_REGION=${AWS_REGION}
       - SCHEME=${SCHEME}
       - BASE_URI=${BASE_URI}
-      - ACCESS_CONTROL_ALLOWED_ORIGINS=${ACCESS_CONTROL_ALLOWED_ORIGINS}
       # JVM 옵션 (메모리 최적화)
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
