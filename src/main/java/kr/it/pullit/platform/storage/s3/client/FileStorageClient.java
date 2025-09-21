@@ -12,4 +12,6 @@ public interface FileStorageClient {
   boolean fileExists(String filePath);
 
   String getFileUrl(String filePath);
+
+  byte[] downloadFileAsBytes(String filePath);
 }

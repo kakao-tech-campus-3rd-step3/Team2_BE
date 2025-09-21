@@ -1,3 +1,6 @@
 package kr.it.pullit.modules.questionset.domain.enums;
 
-public enum DifficultyType {}
+public enum DifficultyType {
+  EASY,
+  HARD,
+}

@@ -21,11 +21,22 @@ spring:
 #      presigned-url-expiration: PT15M
 #      base-path: test-sources
 app:
+  google-api-key: "test-google-api-key"
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"
       region: "ap-northeast-2"
-      access-key: ${S3_ACCESS_KEY}
-      secret-key: ${S3_SECRET_KEY}
+      access-key: test
+      secret-key: test
       presigned-url-expiration: PT15M
       base-path: "learning-sources"
+
+oauth:
+  kakao:
+    client-id: "test-kakao-client-id"
+    client-secret: "test-kakao-client-secret"
+    redirect-uri: "/login/oauth2/code/kakao"
+    kauth-url: "https://kauth.kakao.com"
+    authorize-path: "/oauth/authorize"
+    token-path: "/oauth/token"
+    user-info-path: "/v2/user/me"

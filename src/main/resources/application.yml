@@ -9,6 +9,7 @@ spring:
     password: secret
 
   jpa:
+    defer-datasource-initialization: true # This is crucial for data.sql to run after DDL creation
     hibernate:
       ddl-auto: create-drop
     properties:
@@ -16,17 +17,32 @@ spring:
         format_sql: true
         show_sql: true
 
+  sql:
+    init:
+      mode: always
+
   flyway:
     enabled: false
 
-  liquibase:
-    enabled: false
-
-  # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
   security:
-    user:
-      name: pullit
-      password: pullit
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_REST_API_KEY:}
+            client-secret: ${KAKAO_CLIENT_SECRET:}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile_nickname, account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
 
   # Spring Boot DevTools 설정
   devtools:
@@ -45,6 +61,16 @@ spring:
       enabled: true
       # 라이브 리로드 포트 지정 (기본값: 35729)
       port: 35729
+
+  # llm generator 설정
+  async:
+    executor:
+      llm-generator:
+        core-pool-size: 5
+        max-pool-size: 10
+        queue-capacity: 100
+        prefix: LLM-GEN-
+
 
 server:
   error:
@@ -80,19 +106,34 @@ management:
 
 cors:
   allowed-origins:
-    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://localhost:3000}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://local.pull.it.kr:5173}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
-  max-age-seconds: ${CORS_MAX_AGE_SECONDS:3600}
-
-oauth:
-  kakao:
-    client-id: ${KAKAO_CLIENT_ID:}
-    client-secret: ${KAKAO_CLIENT_SECRET:}
-    redirect-uri: ${KAKAO_REDIRECT_URI:}
-    kauth-url: "https://kauth.kakao.com"
-    authorize-path: "/oauth/authorize"
-    token-path: "/oauth/token"
-    user-info-path: "/v2/user/me"
+  max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
 app:
-  base-url: ${BASE_URL:}
+  scheme: ${SCHEME:http}
+  base-uri: ${BASE_URI:localhost:8080}
+  google-api-key: ${GOOGLE_API_KEY:test}
+  storage:
+    s3:
+      bucket-name: "pullit-uploaded-files"
+      region: "ap-northeast-2"
+      access-key: ${S3_ACCESS_KEY:test}
+      secret-key: ${S3_SECRET_KEY:test}
+      presigned-url-expiration: PT15M
+      base-path: learning-sources
+
+# OpenAPI/Swagger 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    url: /openapi/swagger.yml
+    disable-swagger-default-url: true
+  # 기존 YAML 파일을 로드하여 통합
+  openapi:
+    try-it-out-enabled: true
+    filter: true

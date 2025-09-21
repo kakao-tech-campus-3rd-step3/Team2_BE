@@ -44,6 +44,15 @@ tasks.register("codeCheck") {
     dependsOn("checkstyleMain")
 }
 
+// git hooks 업데이트
+tasks.register("updateGitHooks", Copy) {
+    group = "Git hooks"
+    description = "Update git hooks files"
+    from "./scripts/pre-push"
+    into './.git/hooks/'
+    fileMode 0775
+}
+
 // 의존성 구성 설정
 configurations {
     compileOnly {
@@ -72,6 +81,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // AI SDK
+    implementation 'com.google.genai:google-genai:1.15.0'
+
     // 코드 생성 도구
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -79,12 +92,16 @@ dependencies {
     // 데이터베이스 마이그레이션 도구
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
-    implementation 'org.liquibase:liquibase-core'
 
     // 회로 차단기 및 탄력성 패턴
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+
+    // OpenAPI 문서 생성용 추가 의존성
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11'
 
     // AOP 및 개발 도구
     implementation 'org.springframework.boot:spring-boot-starter-aop'

@@ -1,33 +1,46 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.util.List;
+import kr.it.pullit.shared.jpa.BaseEntity;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /** */
 @Entity
+@Getter
 @NoArgsConstructor
-public class Question {
+public class Question extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private Long sourceId;
-  private Long questionSetId;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "question_set_id")
+  private QuestionSet questionSet;
+
   private String questionText;
-  private List<String> options;
+
+  @ElementCollection private List<String> options;
+
   private String answer;
   private String explanation;
 
   /**
    * Question 생성자
    *
-   * @param sourceId 문제 출처 ID
-   * @param questionSetId 문제집 ID
+   * @param sourceId 문제 출처 ID (nullable)
+   * @param questionSet 문제집
    * @param questionText 문제 제목
    * @param options 선지 목록 (오답만)
    * @param answer 정답
@@ -35,16 +48,20 @@ public class Question {
    */
   public Question(
       Long sourceId,
-      Long questionSetId,
+      QuestionSet questionSet,
       String questionText,
       List<String> options,
       String answer,
       String explanation) {
     this.sourceId = sourceId;
-    this.questionSetId = questionSetId;
+    this.questionSet = questionSet;
     this.questionText = questionText;
     this.options = options;
     this.answer = answer;
     this.explanation = explanation;
+  }
+
+  void setQuestionSet(QuestionSet questionSet) {
+    this.questionSet = questionSet;
   }
 }

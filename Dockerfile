@@ -1,5 +1,5 @@
 # Multi-stage build를 위한 Dockerfile
-FROM amazoncorretto:21-alpine-jdk AS builder
+FROM docker.io/amazoncorretto:21-alpine-jdk AS builder
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -21,7 +21,7 @@ COPY src/ src/
 RUN ./gradlew bootJar --no-daemon
 
 # 런타임 이미지
-FROM amazoncorretto:21-alpine
+FROM docker.io/amazoncorretto:21-alpine
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -31,7 +31,7 @@ ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 헬스체크 의존 도구 설치
-RUN apk add --no-cache wget
+RUN apk add --no-cache tzdata wget
 
 # 보안 사용자 생성
 RUN addgroup -S spring && adduser -S spring -G spring
