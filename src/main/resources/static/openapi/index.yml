@@ -8,7 +8,7 @@ info:
     url: https://pullit.kr
     email: support@pullit.kr
 servers:
-  - url: https://api-qa.pull.it.kr
+  - url: https://qa.api.pull.it.kr
     description: QA 서버 (HTTPS)
   - url: https://api.pullit.kr
     description: 운영 서버 (HTTPS)
