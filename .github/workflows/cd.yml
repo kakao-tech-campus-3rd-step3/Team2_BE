@@ -57,7 +57,6 @@ jobs:
             export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}' && \
             export SCHEME='${{ secrets.SCHEME }}' && \
             export BASE_URI='${{ secrets.BASE_URI }}' && \
-            export ACCESS_CONTROL_ALLOWED_ORIGINS='${{ secrets.ACCESS_CONTROL_ALLOWED_ORIGINS }}' && \
             export AWS_REGION='ap-northeast-2' && \
             cd /home/ubuntu/app && \
             docker compose -f docker-compose.qa.yml down --remove-orphans && \
