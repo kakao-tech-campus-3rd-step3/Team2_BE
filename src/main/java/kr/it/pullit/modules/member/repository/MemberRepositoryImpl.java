@@ -26,4 +26,9 @@ public class MemberRepositoryImpl implements MemberRepository {
   public Member save(Member member) {
     return memberJpaRepository.save(member);
   }
+
+  @Override
+  public Optional<Member> findByKakaoId(Long kakaoId) {
+    return memberJpaRepository.findByKakaoId(kakaoId);
+  }
 }

@@ -18,9 +18,20 @@ public class SourceRepositoryImpl implements SourceRepository {
     return sourceJpaRepository.save(source);
   }
 
+  /**
+   * 사용처: 학습 소스 목록 조회 API.
+   *
+   * @param memberId 조회 대상 회원 식별자
+   * @return 생성일시 최신순의 소스 목록
+   */
   @Override
-  public Optional<Source> findById(Long id) {
-    return sourceJpaRepository.findById(id);
+  public List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
+    return sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+  }
+
+  @Override
+  public List<Source> findByIdIn(List<Long> ids) {
+    return sourceJpaRepository.findByIdIn(ids);
   }
 
   @Override
@@ -29,7 +40,7 @@ public class SourceRepositoryImpl implements SourceRepository {
   }
 
   @Override
-  public List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId) {
-    return sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+  public Optional<Source> findById(Long id) {
+    return sourceJpaRepository.findById(id);
   }
 }

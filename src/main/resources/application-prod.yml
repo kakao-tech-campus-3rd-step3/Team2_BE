@@ -13,9 +13,6 @@ spring:
       ddl-auto: validate  # 프로덕션에서는 validate로 변경
     show-sql: false
 
-  liquibase:
-    enabled: false
-
   # 프로덕션에서는 DevTools 비활성화
   devtools:
     restart:
