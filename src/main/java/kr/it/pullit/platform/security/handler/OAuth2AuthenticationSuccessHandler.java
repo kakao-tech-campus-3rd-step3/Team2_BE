@@ -46,7 +46,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     new IllegalStateException(
                         "OAuth2 user not found in DB by kakaoId: " + kakaoId));
 
-    AuthTokens authTokens = authService.issueAndSaveTokens(member);
+    AuthTokens authTokens = authService.issueAndSaveTokens(member.getId());
 
     addRefreshTokenToCookie(request, response, authTokens.refreshToken());
 
