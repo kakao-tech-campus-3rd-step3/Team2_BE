@@ -18,20 +18,24 @@ public class MemberService implements MemberPublicApi {
   private final MemberRepository memberRepository;
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<Member> findById(Long id) {
     return memberRepository.findById(id);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<Member> findByKakaoId(Long kakaoId) {
     return memberRepository.findByKakaoId(kakaoId);
   }
 
+  //TODO: REMOVE THIS METHOD.
   @Override
   public Member create(Member member) {
     return memberRepository.save(member);
   }
 
+  //TODO: REMOVE THIS METHOD.
   @Transactional
   public Member signup(SignUpRequest request) {
     Member newMember =
