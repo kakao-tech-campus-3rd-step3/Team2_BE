@@ -2,23 +2,31 @@ package kr.it.pullit.modules.notification.service;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.notification.domain.enums.SseEventType;
 import kr.it.pullit.modules.notification.repository.EmitterRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class NotificationService implements NotificationPublicApi {
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 30; // 30분
   private static final long HEARTBEAT_INTERVAL_MS = 3_000L; // 3초
   private final EmitterRepository emitterRepository;
+  Executor executor;
+
+  public NotificationService(
+      EmitterRepository emitterRepository,
+      @Qualifier("applicationTaskExecutor") Executor executor) {
+    this.emitterRepository = emitterRepository;
+    this.executor = executor;
+  }
 
   @Override
   public SseEmitter subscribe(Long userId) {
@@ -43,9 +51,18 @@ public class NotificationService implements NotificationPublicApi {
           emitterRepository.deleteById(userId);
         });
 
-    // 연결 직후, 503 Service Unavailable 방지를 위한 더미 데이터 전송
-    sendToMember(
-        userId, SseEventType.HAND_SHAKE_COMPLETE.code(), "EventStream Created. userId: " + userId);
+    executor.execute(
+        () -> {
+          try {
+            sendToMember(
+                userId,
+                SseEventType.HAND_SHAKE_COMPLETE.code(),
+                "EventStream Created. userId: " + userId);
+          } catch (Exception e) {
+            log.error("Failed to send initial SSE message for user {}", userId, e);
+            emitter.completeWithError(e);
+          }
+        });
 
     return emitter;
   }

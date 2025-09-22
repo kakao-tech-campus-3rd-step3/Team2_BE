@@ -29,7 +29,7 @@ public class QuestionGenerationEventHandler {
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
 
-  @Async("llmGeneratorAsyncExecutor")
+  @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleQuestionSetCreatedEvent(QuestionSetCreatedEvent event) {
     log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}", event.questionSetId());

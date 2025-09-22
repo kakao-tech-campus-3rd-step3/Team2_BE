@@ -19,6 +19,12 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 public class ResponseLoggingFilter extends OncePerRequestFilter {
 
   @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return path.startsWith("/api/notifications/subscribe");
+  }
+
+  @Override
   protected void doFilterInternal(
       @NotNull HttpServletRequest request,
       @NotNull HttpServletResponse response,
