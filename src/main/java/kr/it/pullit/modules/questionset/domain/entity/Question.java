@@ -1,14 +1,6 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import java.util.List;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
@@ -37,6 +29,9 @@ public class Question extends BaseEntity {
 
   @Column(columnDefinition = "TEXT")
   private String explanation;
+
+  @OneToOne(mappedBy = "question")
+  private IncorrectAnswerQuestion incorrectAnswerQuestion;
 
   /**
    * Question 생성자
