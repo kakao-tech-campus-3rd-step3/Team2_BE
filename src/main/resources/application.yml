@@ -67,11 +67,11 @@ spring:
   # llm generator 설정
   async:
     executor:
-      llm-generator:
+      application-task-executor:
         core-pool-size: 5
         max-pool-size: 10
         queue-capacity: 100
-        prefix: LLM-GEN-
+        prefix: TASK-
 
 decorator:
   datasource:
