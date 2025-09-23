@@ -7,26 +7,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.notification.domain.EventData;
-import org.springframework.stereotype.Repository;
 
-@Repository
+/**
+ * A non-thread-safe implementation of SseEventCache for testing concurrency issues. This version
+ * lacks the synchronized blocks, making it susceptible to race conditions.
+ */
 public class UnsafeInMemorySseEventCache implements SseEventCache {
-  private static final int MAX_CACHE_SIZE_PER_USER = 100;
-
-  /**
-   * Key: userId, Value: A Deque of events for the user (like a conveyor belt). Both
-   * ConcurrentHashMap and LinkedBlockingDeque are thread-safe data structures.
-   */
+  private static final int MAX_CACHE_SIZE_PER_USER = 10000; // Increase size for high-volume tests
   private final Map<Long, Deque<EventData>> userEventDeques = new ConcurrentHashMap<>();
 
   @Override
   public void put(Long userId, EventData event) {
-    // computeIfAbsent is atomic, so retrieving the Deque itself is thread-safe.
-    Deque<EventData> userEvents =
-        userEventDeques.computeIfAbsent(
-            userId, k -> new LinkedBlockingDeque<>(MAX_CACHE_SIZE_PER_USER));
+    Deque<EventData> userEvents = userEventDeques.computeIfAbsent(userId,
+        k -> new LinkedBlockingDeque<>(MAX_CACHE_SIZE_PER_USER));
 
-    // If the queue is full, remove the oldest event.
+    // This block is NOT synchronized, creating a race condition with the read operation.
     if (!userEvents.offerLast(event)) {
       userEvents.pollFirst();
       userEvents.offerLast(event);
@@ -40,8 +35,10 @@ public class UnsafeInMemorySseEventCache implements SseEventCache {
       return List.of();
     }
 
-    return userEvents.stream()
-        .filter(event -> event.id() > lastEventId)
+    // The stream operation here is NOT synchronized with the put operation.
+    // The iterator created by stream() is weakly consistent and may not reflect
+    // concurrent modifications, leading to event loss.
+    return userEvents.stream().filter(event -> event.id() > lastEventId)
         .collect(Collectors.toList());
   }
 }
