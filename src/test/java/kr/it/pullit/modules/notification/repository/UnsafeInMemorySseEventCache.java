@@ -18,8 +18,9 @@ public class UnsafeInMemorySseEventCache implements SseEventCache {
 
   @Override
   public void put(Long userId, EventData event) {
-    Deque<EventData> userEvents = userEventDeques.computeIfAbsent(userId,
-        k -> new LinkedBlockingDeque<>(MAX_CACHE_SIZE_PER_USER));
+    Deque<EventData> userEvents =
+        userEventDeques.computeIfAbsent(
+            userId, k -> new LinkedBlockingDeque<>(MAX_CACHE_SIZE_PER_USER));
 
     // This block is NOT synchronized, creating a race condition with the read operation.
     if (!userEvents.offerLast(event)) {
@@ -38,7 +39,8 @@ public class UnsafeInMemorySseEventCache implements SseEventCache {
     // The stream operation here is NOT synchronized with the put operation.
     // The iterator created by stream() is weakly consistent and may not reflect
     // concurrent modifications, leading to event loss.
-    return userEvents.stream().filter(event -> event.id() > lastEventId)
+    return userEvents.stream()
+        .filter(event -> event.id() > lastEventId)
         .collect(Collectors.toList());
   }
 }

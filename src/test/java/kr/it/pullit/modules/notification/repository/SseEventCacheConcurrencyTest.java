@@ -35,48 +35,51 @@ class SseEventCacheConcurrencyTest {
 
     // When: Multiple threads write events concurrently
     for (int i = 0; i < NUM_WRITER_THREADS; i++) {
-      executor.submit(() -> {
-        try {
-          startLatch.await(); // Wait for the signal to start
-          for (int j = 0; j < EVENTS_PER_WRITER; j++) {
-            long eventId = eventIdGenerator.getAndIncrement();
-            unsafeCache.put(TEST_USER_ID, new EventData(eventId, "testEvent", "data" + eventId));
-          }
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        } finally {
-          writersDoneLatch.countDown();
-        }
-      });
+      executor.submit(
+          () -> {
+            try {
+              startLatch.await(); // Wait for the signal to start
+              for (int j = 0; j < EVENTS_PER_WRITER; j++) {
+                long eventId = eventIdGenerator.getAndIncrement();
+                unsafeCache.put(
+                    TEST_USER_ID, new EventData(eventId, "testEvent", "data" + eventId));
+              }
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            } finally {
+              writersDoneLatch.countDown();
+            }
+          });
     }
 
     // And: One thread reads events concurrently
     Set<EventData> receivedEvents = Collections.synchronizedSet(new HashSet<>());
     AtomicLong lastReadEventId = new AtomicLong(-1);
 
-    executor.submit(() -> {
-      try {
-        // Wait for all writer threads to complete their work first.
-        // This prevents the reader from stopping prematurely.
-        writersDoneLatch.await();
+    executor.submit(
+        () -> {
+          try {
+            // Wait for all writer threads to complete their work first.
+            // This prevents the reader from stopping prematurely.
+            writersDoneLatch.await();
 
-        // After all writers are finished, drain any remaining events from the cache.
-        // A loop is necessary because the last read might have occurred just before the final
-        // write.
-        while (true) {
-          List<EventData> newEvents =
-              unsafeCache.findAllByUserIdAfter(TEST_USER_ID, lastReadEventId.get());
-          if (newEvents.isEmpty()) {
-            // No more events found, it's safe to exit.
-            break;
+            // After all writers are finished, drain any remaining events from the cache.
+            // A loop is necessary because the last read might have occurred just before the final
+            // write.
+            while (true) {
+              List<EventData> newEvents =
+                  unsafeCache.findAllByUserIdAfter(TEST_USER_ID, lastReadEventId.get());
+              if (newEvents.isEmpty()) {
+                // No more events found, it's safe to exit.
+                break;
+              }
+              receivedEvents.addAll(newEvents);
+              newEvents.stream().mapToLong(EventData::id).max().ifPresent(lastReadEventId::set);
+            }
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
           }
-          receivedEvents.addAll(newEvents);
-          newEvents.stream().mapToLong(EventData::id).max().ifPresent(lastReadEventId::set);
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    });
+        });
 
     startLatch.countDown(); // Signal all threads to start
     executor.shutdown();
@@ -101,43 +104,45 @@ class SseEventCacheConcurrencyTest {
 
     // When
     for (int i = 0; i < NUM_WRITER_THREADS; i++) {
-      executor.submit(() -> {
-        try {
-          startLatch.await();
-          for (int j = 0; j < EVENTS_PER_WRITER; j++) {
-            long eventId = eventIdGenerator.getAndIncrement();
-            safeCache.put(TEST_USER_ID, new EventData(eventId, "testEvent", "data" + eventId));
-          }
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        } finally {
-          writersDoneLatch.countDown();
-        }
-      });
+      executor.submit(
+          () -> {
+            try {
+              startLatch.await();
+              for (int j = 0; j < EVENTS_PER_WRITER; j++) {
+                long eventId = eventIdGenerator.getAndIncrement();
+                safeCache.put(TEST_USER_ID, new EventData(eventId, "testEvent", "data" + eventId));
+              }
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            } finally {
+              writersDoneLatch.countDown();
+            }
+          });
     }
 
     Set<EventData> receivedEvents = Collections.synchronizedSet(new HashSet<>());
     AtomicLong lastReadEventId = new AtomicLong(-1);
 
-    executor.submit(() -> {
-      try {
-        // Wait for all writer threads to complete their work first.
-        writersDoneLatch.await();
+    executor.submit(
+        () -> {
+          try {
+            // Wait for all writer threads to complete their work first.
+            writersDoneLatch.await();
 
-        // After all writers are finished, drain any remaining events from the cache.
-        while (true) {
-          List<EventData> newEvents =
-              safeCache.findAllByUserIdAfter(TEST_USER_ID, lastReadEventId.get());
-          if (newEvents.isEmpty()) {
-            break;
+            // After all writers are finished, drain any remaining events from the cache.
+            while (true) {
+              List<EventData> newEvents =
+                  safeCache.findAllByUserIdAfter(TEST_USER_ID, lastReadEventId.get());
+              if (newEvents.isEmpty()) {
+                break;
+              }
+              receivedEvents.addAll(newEvents);
+              newEvents.stream().mapToLong(EventData::id).max().ifPresent(lastReadEventId::set);
+            }
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
           }
-          receivedEvents.addAll(newEvents);
-          newEvents.stream().mapToLong(EventData::id).max().ifPresent(lastReadEventId::set);
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-    });
+        });
 
     startLatch.countDown();
     executor.shutdown();

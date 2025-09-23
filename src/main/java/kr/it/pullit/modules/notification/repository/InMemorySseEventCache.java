@@ -23,8 +23,9 @@ public class InMemorySseEventCache implements SseEventCache {
   @Override
   public void put(Long userId, EventData event) {
     // computeIfAbsent is atomic, so retrieving the Deque itself is thread-safe.
-    Deque<EventData> userEvents = userEventDeques.computeIfAbsent(userId,
-        k -> new LinkedBlockingDeque<>(MAX_CACHE_SIZE_PER_USER));
+    Deque<EventData> userEvents =
+        userEventDeques.computeIfAbsent(
+            userId, k -> new LinkedBlockingDeque<>(MAX_CACHE_SIZE_PER_USER));
 
     // Synchronize this entire block that modifies the Deque's contents.
     // This ensures no conflict with the read operation in findAllByUserIdAfter.
