@@ -63,4 +63,19 @@ public class Question extends BaseEntity {
   void setQuestionSet(QuestionSet questionSet) {
     this.questionSet = questionSet;
   }
+
+  /**
+   * Question 수정
+   *
+   * @param questionText 문제 제목
+   * @param options 선지 목록
+   * @param answer 정답
+   * @param explanation 해설
+   */
+  public void update(String questionText, List<String> options, String answer, String explanation) {
+    this.questionText = questionText;
+    this.options = options;
+    this.answer = answer;
+    this.explanation = explanation;
+  }
 }

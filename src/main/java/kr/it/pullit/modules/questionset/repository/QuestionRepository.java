@@ -8,4 +8,6 @@ public interface QuestionRepository {
   Optional<Question> findById(Long id);
 
   Question save(Question question);
+
+  void deleteById(Long id);
 }
