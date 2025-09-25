@@ -58,6 +58,7 @@ jobs:
             export SCHEME='${{ secrets.SCHEME }}' && \
             export BASE_URI='${{ secrets.BASE_URI }}' && \
             export JWT_REDIRECT_URL='${{ secrets.JWT_REDIRECT_URL }}' && \
+            export JWT_COOKIE_DOMAIN='${{ secrets.JWT_COOKIE_DOMAIN }}' && \
             export AWS_REGION='ap-northeast-2' && \
             cd /home/ubuntu/app && \
             docker compose -f docker-compose.qa.yml down --remove-orphans && \
