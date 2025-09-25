@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
+import kr.it.pullit.modules.questionset.domain.entity.IncorrectAnswerQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
@@ -34,6 +35,9 @@ public class Member extends BaseEntity {
 
   @OneToMany(mappedBy = "member")
   private final List<Source> sources = new ArrayList<>();
+
+  @OneToMany(mappedBy = "member")
+  private final List<IncorrectAnswerQuestion> incorrectAnswerQuestions = new ArrayList<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
