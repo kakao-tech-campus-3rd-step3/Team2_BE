@@ -13,4 +13,6 @@ public interface EmitterRepository {
   Optional<SseEmitter> findById(Long userId);
 
   Map<Long, SseEmitter> findAll();
+
+  boolean notExistsById(Long userId);
 }
