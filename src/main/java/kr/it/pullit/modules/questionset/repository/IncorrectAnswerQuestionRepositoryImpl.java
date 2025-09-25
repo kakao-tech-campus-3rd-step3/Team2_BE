@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.IncorrectAnswerQuestion;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.IncorrectAnswerQuestionJpaRepository;
@@ -20,5 +21,10 @@ public class IncorrectAnswerQuestionRepositoryImpl implements IncorrectAnswerQue
   public Optional<IncorrectAnswerQuestion> findByMemberIdAndQuestionId(
       Long memberId, Long questionId) {
     return incorrectAnswerQuestionJpaRepository.findByMemberIdAndQuestionId(memberId, questionId);
+  }
+
+  @Override
+  public List<IncorrectAnswerQuestion> saveAll(Iterable<IncorrectAnswerQuestion> entities) {
+    return incorrectAnswerQuestionJpaRepository.saveAll(entities);
   }
 }

@@ -1,5 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
@@ -18,24 +20,28 @@ public class MarkingService {
   private final QuestionRepository questionRepository;
   private final MemberRepository memberRepository;
 
-  public void markQuestionAsIncorrect(MarkingServiceRequest request) {
-    Objects.requireNonNull(request.questionId(), "questionId must not be null");
-    Objects.requireNonNull(request.userId(), "userId must not be null");
-    Objects.requireNonNull(request.isCorrect(), "isCorrect must not be null");
+  public void markQuestionAsIncorrect(List<MarkingServiceRequest> request) {
+    Objects.requireNonNull(request, "questionId must not be null");
 
-    if (request.isCorrect()) {
-      return;
+    List<IncorrectAnswerQuestion> inCorrectAnswers = new ArrayList<>();
+
+    for (MarkingServiceRequest req : request) {
+      if (req.isCorrect()) {
+        continue;
+      }
+
+      Member member =
+          memberRepository
+              .findById(req.userId())
+              .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+      Question question =
+          questionRepository
+              .findById(req.questionId())
+              .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+
+      inCorrectAnswers.add(new IncorrectAnswerQuestion(member, question));
     }
 
-    Member member =
-        memberRepository
-            .findById(request.userId())
-            .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-    Question question =
-        questionRepository
-            .findById(request.questionId())
-            .orElseThrow(() -> new IllegalArgumentException("Question not found"));
-
-    incorrectAnswerQuestionRepository.save(new IncorrectAnswerQuestion(member, question));
+    incorrectAnswerQuestionRepository.saveAll(inCorrectAnswers);
   }
 }

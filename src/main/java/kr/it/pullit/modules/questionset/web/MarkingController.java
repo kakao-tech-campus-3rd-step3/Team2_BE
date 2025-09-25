@@ -23,10 +23,11 @@ public class MarkingController {
       @RequestBody List<MarkingRequest> markingRequest) {
 
     final Long userId = 1L; // TODO: 인증 기능이 추가되면 수정 필요
-    for (MarkingRequest request : markingRequest) {
-      markingService.markQuestionAsIncorrect(
-          new MarkingServiceRequest(userId, request.questionId(), request.isCorrect()));
-    }
+    List<MarkingServiceRequest> markingServiceRequest =
+        markingRequest.stream()
+            .map(req -> new MarkingServiceRequest(userId, req.questionId(), req.isCorrect()))
+            .toList();
+    markingService.markQuestionAsIncorrect(markingServiceRequest);
 
     return ResponseEntity.ok().build();
   }
