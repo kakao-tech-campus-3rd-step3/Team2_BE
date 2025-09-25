@@ -2,17 +2,10 @@ package kr.it.pullit.modules.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.notification.repository.EmitterRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
@@ -24,17 +17,22 @@ import okhttp3.Response;
 import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSourceListener;
 import okhttp3.sse.EventSources;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 class SseReconnectionTest extends TestContainerTest {
 
-  @Autowired
-  private NotificationPublicApi notificationPublicApi;
+  @Autowired private NotificationPublicApi notificationPublicApi;
 
-  @Autowired
-  private EmitterRepository emitterRepository;
+  @Autowired private EmitterRepository emitterRepository;
 
-  @LocalServerPort
-  private int port;
+  @LocalServerPort private int port;
 
   private static final Long TEST_USER_ID = 1L;
   private SseTestClient client;
@@ -64,17 +62,23 @@ class SseReconnectionTest extends TestContainerTest {
     await().atMost(4, TimeUnit.SECONDS).until(() -> emitterRepository.notExistsById(TEST_USER_ID));
 
     // And: Two events are published while disconnected
-    notificationPublicApi.publishQuestionSetCreationComplete(TEST_USER_ID,
-        new QuestionSetCreationCompleteResponse(true, 101L, "New Question Set 1"));
-    notificationPublicApi.publishQuestionSetCreationComplete(TEST_USER_ID,
-        new QuestionSetCreationCompleteResponse(true, 102L, "New Question Set 2"));
+    notificationPublicApi.publishQuestionSetCreationComplete(
+        TEST_USER_ID, new QuestionSetCreationCompleteResponse(true, 101L, "New Question Set 1"));
+    notificationPublicApi.publishQuestionSetCreationComplete(
+        TEST_USER_ID, new QuestionSetCreationCompleteResponse(true, 102L, "New Question Set 2"));
 
     // And: The client reconnects WITHOUT Last-Event-ID
     client.subscribe("/api/notifications/subscribe");
 
     // Then: The client only receives the new connection event, and misses the 2 events.
-    await().atMost(4, TimeUnit.SECONDS).until(() -> client.getReceivedEvents().stream()
-        .filter(e -> e.contains("EventStream Created")).count() == 2);
+    await()
+        .atMost(4, TimeUnit.SECONDS)
+        .until(
+            () ->
+                client.getReceivedEvents().stream()
+                        .filter(e -> e.contains("EventStream Created"))
+                        .count()
+                    == 2);
 
     assertThat(client.getReceivedEvents()).hasSize(2);
     assertThat(client.getReceivedEvents().stream().filter(e -> e.contains("questionSetId\":101")))
@@ -99,10 +103,10 @@ class SseReconnectionTest extends TestContainerTest {
     await().atMost(4, TimeUnit.SECONDS).until(() -> emitterRepository.notExistsById(TEST_USER_ID));
 
     // And: Two events are published while disconnected
-    notificationPublicApi.publishQuestionSetCreationComplete(TEST_USER_ID,
-        new QuestionSetCreationCompleteResponse(true, 101L, "New Question Set 1"));
-    notificationPublicApi.publishQuestionSetCreationComplete(TEST_USER_ID,
-        new QuestionSetCreationCompleteResponse(true, 102L, "New Question Set 2"));
+    notificationPublicApi.publishQuestionSetCreationComplete(
+        TEST_USER_ID, new QuestionSetCreationCompleteResponse(true, 101L, "New Question Set 1"));
+    notificationPublicApi.publishQuestionSetCreationComplete(
+        TEST_USER_ID, new QuestionSetCreationCompleteResponse(true, 102L, "New Question Set 2"));
 
     // And: The client reconnects WITH Last-Event-ID
     String lastEventId = parseIdFromEvent(firstEvent);
@@ -133,8 +137,7 @@ class SseReconnectionTest extends TestContainerTest {
     private final int port;
     private final OkHttpClient client;
     private EventSource eventSource;
-    @Getter
-    private final List<String> receivedEvents = new CopyOnWriteArrayList<>();
+    @Getter private final List<String> receivedEvents = new CopyOnWriteArrayList<>();
 
     public SseTestClient(int port) {
       this.port = port;
@@ -145,26 +148,35 @@ class SseReconnectionTest extends TestContainerTest {
       Request request = new Request.Builder().url("http://localhost:" + port + path).get().build();
 
       eventSource =
-          EventSources.createFactory(client).newEventSource(request, new EventSourceListener() {
+          EventSources.createFactory(client)
+              .newEventSource(
+                  request,
+                  new EventSourceListener() {
 
-            @Override
-            public void onEvent(@NotNull EventSource eventSource, @Nullable String id,
-                @Nullable String type, @NotNull String data) {
-              // This is the correct implementation to capture events
-              receivedEvents.add("id:" + id + "\n" + "event:" + type + "\n" + "data:" + data);
-            }
+                    @Override
+                    public void onEvent(
+                        @NotNull EventSource eventSource,
+                        @Nullable String id,
+                        @Nullable String type,
+                        @NotNull String data) {
+                      // This is the correct implementation to capture events
+                      receivedEvents.add(
+                          "id:" + id + "\n" + "event:" + type + "\n" + "data:" + data);
+                    }
 
-            @Override
-            public void onClosed(@NotNull EventSource eventSource) {
-              // Connection closed
-            }
+                    @Override
+                    public void onClosed(@NotNull EventSource eventSource) {
+                      // Connection closed
+                    }
 
-            @Override
-            public void onFailure(@NotNull EventSource eventSource, @Nullable Throwable t,
-                @Nullable Response response) {
-              // Handle failure
-            }
-          });
+                    @Override
+                    public void onFailure(
+                        @NotNull EventSource eventSource,
+                        @Nullable Throwable t,
+                        @Nullable Response response) {
+                      // Handle failure
+                    }
+                  });
     }
 
     public void disconnect() {
