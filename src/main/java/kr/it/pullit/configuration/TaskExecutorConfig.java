@@ -1,11 +1,13 @@
 package kr.it.pullit.configuration;
 
+import jakarta.annotation.PostConstruct;
 import java.util.concurrent.Executor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Configuration
 @EnableAsync
@@ -25,6 +27,11 @@ public class TaskExecutorConfig {
     this.maxPoolSize = maxPoolSize;
     this.queueCapacity = queueCapacity;
     this.prefix = prefix;
+  }
+
+  @PostConstruct
+  public void initialize() {
+    SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
   }
 
   @Bean(name = "applicationTaskExecutor")

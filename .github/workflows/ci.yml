@@ -50,6 +50,7 @@ jobs:
           KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
           KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          JWT_REDIRECT_URL: ${{ secrets.JWT_REDIRECT_URL }}
 
       - name: Build and push image with tags (latest and sha)
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'

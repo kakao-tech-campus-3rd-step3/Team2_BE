@@ -11,4 +11,4 @@ public record JwtProps(
     Duration accessTokenExpirationMinutes,
     Duration refreshTokenExpirationDays,
     String redirectUrl,
-    String refreshTokenCookieName) {}
+    String cookieDomain) {}

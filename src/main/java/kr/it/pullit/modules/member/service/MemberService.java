@@ -6,7 +6,7 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.domain.entity.MemberStatus;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
-import kr.it.pullit.modules.member.web.dto.SignUpRequest;
+import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,25 +27,6 @@ public class MemberService implements MemberPublicApi {
   @Transactional(readOnly = true)
   public Optional<Member> findByKakaoId(Long kakaoId) {
     return memberRepository.findByKakaoId(kakaoId);
-  }
-
-  // TODO: REMOVE THIS METHOD.
-  @Override
-  public Member create(Member member) {
-    return memberRepository.save(member);
-  }
-
-  // TODO: REMOVE THIS METHOD.
-  @Transactional
-  public Member signup(SignUpRequest request) {
-    Member newMember =
-        Member.builder()
-            .kakaoId(request.kakaoId())
-            .email(request.email())
-            .name(request.name())
-            .status(MemberStatus.ACTIVE)
-            .build();
-    return memberRepository.save(newMember);
   }
 
   @Override
@@ -72,5 +53,10 @@ public class MemberService implements MemberPublicApi {
   @Override
   public Member save(Member member) {
     return memberRepository.save(member);
+  }
+
+  @Override
+  public Optional<MemberInfoResponse> getMemberInfo(Long memberId) {
+    return memberRepository.findById(memberId).map(MemberInfoResponse::from);
   }
 }

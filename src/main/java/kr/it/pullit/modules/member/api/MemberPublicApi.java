@@ -3,6 +3,7 @@ package kr.it.pullit.modules.member.api;
 import java.util.Optional;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
+import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 
 public interface MemberPublicApi {
 
@@ -10,11 +11,11 @@ public interface MemberPublicApi {
 
   Optional<Member> findByKakaoId(Long kakaoId);
 
-  Member create(Member member);
-
   Member findOrCreateMember(SocialLoginCommand command);
 
   Optional<Member> findByRefreshToken(String refreshToken);
 
   Member save(Member member);
+
+  Optional<MemberInfoResponse> getMemberInfo(Long memberId);
 }

@@ -2,6 +2,8 @@ spring:
   application:
     name: pullit
   mvc:
+    problemdetails:
+      enabled: true
     async:
       request-timeout: 30m
   datasource:
@@ -86,7 +88,8 @@ jwt:
   audience: ${JWT_AUDIENCE:pullit-client}
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:30m}
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:7d}
-  redirect-url: ${JWT_REDIRECT_URL:http://local.pull.it.kr:5173/}
+  redirect-url: ${JWT_REDIRECT_URL:http://local.pull.it.kr:5173/login-success}
+  cookie-domain: ${JWT_COOKIE_DOMAIN:local.pull.it.kr}
 
 server:
   error:

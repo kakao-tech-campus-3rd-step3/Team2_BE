@@ -9,6 +9,7 @@ import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,10 +25,7 @@ public class SourceController {
 
   @PostMapping("/upload")
   public ResponseEntity<SourceUploadResponse> generateUploadUrl(
-      @Valid @RequestBody SourceUploadRequest request) {
-    // TODO: 실제 인증 구현 후 현재 사용자 ID 가져오기
-    Long memberId = 1L;
-
+      @AuthenticationPrincipal Long memberId, @Valid @RequestBody SourceUploadRequest request) {
     SourceUploadResponse uploadResponse =
         sourcePublicApi.generateUploadUrl(
             request.fileName(), request.contentType(), request.fileSize(), memberId);
@@ -37,19 +35,14 @@ public class SourceController {
 
   @PostMapping("/upload-complete")
   public ResponseEntity<Void> processUploadComplete(
+      @AuthenticationPrincipal Long memberId,
       @Valid @RequestBody SourceUploadCompleteRequest request) {
-    // TODO: 실제 인증 구현 후 현재 사용자 ID 가져오기
-    Long memberId = 1L;
-
     sourcePublicApi.processUploadComplete(request, memberId);
     return ResponseEntity.ok().build();
   }
 
   @GetMapping
-  public ResponseEntity<List<SourceResponse>> getMySources() {
-    // TODO: 실제 인증 구현 후 현재 사용자 ID 가져오기
-    Long memberId = 1L;
-
+  public ResponseEntity<List<SourceResponse>> getMySources(@AuthenticationPrincipal Long memberId) {
     return ResponseEntity.ok(sourcePublicApi.getMySources(memberId));
   }
 }

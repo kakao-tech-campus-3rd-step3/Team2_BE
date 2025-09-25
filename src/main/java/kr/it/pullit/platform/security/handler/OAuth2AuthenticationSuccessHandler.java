@@ -9,9 +9,9 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.platform.security.jwt.JwtProps;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
+import kr.it.pullit.platform.web.cookie.CookieManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -23,11 +23,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  private static final String COOKIE_DOMAIN = "pull.it.kr";
-
   private final AuthService authService;
   private final JwtProps jwtProps;
   private final MemberPublicApi memberPublicApi;
+  private final CookieManager cookieManager;
 
   @Override
   public void onAuthenticationSuccess(
@@ -48,30 +47,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     AuthTokens authTokens = authService.issueAndSaveTokens(member.getId());
 
-    addRefreshTokenToCookie(request, response, authTokens.refreshToken());
+    cookieManager.addRefreshTokenCookie(request, response, authTokens.refreshToken());
 
     String targetUrl =
-        UriComponentsBuilder.fromUriString(jwtProps.redirectUrl()).build().toUriString();
+        UriComponentsBuilder.fromUriString(jwtProps.redirectUrl())
+            .queryParam("accessToken", authTokens.accessToken())
+            .build()
+            .toUriString();
 
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
-  }
-
-  private void addRefreshTokenToCookie(
-      HttpServletRequest request, HttpServletResponse response, String refreshToken) {
-    long maxAge = jwtProps.refreshTokenExpirationDays().getSeconds();
-    boolean isSecure = request.isSecure();
-
-    ResponseCookie cookie =
-        ResponseCookie.from("refresh_token", refreshToken)
-            .httpOnly(true)
-            .secure(isSecure)
-            .path("/")
-            .maxAge(maxAge)
-            .domain(COOKIE_DOMAIN)
-            .sameSite(isSecure ? "None" : "Lax")
-            .build();
-
-    response.addHeader("Set-Cookie", cookie.toString());
-    log.info("Refresh token cookie added to response: {}", cookie);
   }
 }

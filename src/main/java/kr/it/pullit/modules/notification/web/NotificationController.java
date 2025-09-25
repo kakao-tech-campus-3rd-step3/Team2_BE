@@ -3,6 +3,7 @@ package kr.it.pullit.modules.notification.web;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,9 +19,9 @@ public class NotificationController {
 
   @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter subscribe(
+      @AuthenticationPrincipal Long memberId,
       @RequestHeader(value = "Last-Event-ID", required = false) String headerLastEventId,
       @RequestParam(value = "lastEventId", required = false) String paramLastEventId) {
-    final Long memberId = 1L; // TODO: 인증된 회원 ID로 변경
 
     String lastEventId = headerLastEventId != null ? headerLastEventId : paramLastEventId;
 
