@@ -1,8 +1,10 @@
 package kr.it.pullit.modules.questionset.web;
 
 import java.net.URI;
+import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,12 @@ public class QuestionSetController {
   public ResponseEntity<QuestionSetResponse> getQuestionSetById(@PathVariable Long id) {
     QuestionSetResponse questionSetResponse = questionSetPublicApi.getQuestionSetById(id);
     return ResponseEntity.ok(questionSetResponse);
+  }
+
+  @GetMapping
+  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets() {
+    final Long userId = 1L;
+    return ResponseEntity.ok(questionSetPublicApi.getUserQuestionSets(userId));
   }
 
   @PostMapping
