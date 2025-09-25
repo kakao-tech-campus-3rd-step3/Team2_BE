@@ -1,12 +1,12 @@
 package kr.it.pullit.platform.security.repository;
 
-import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.stereotype.Component;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OAuth2AuthorizationRequestRepository
@@ -21,32 +21,38 @@ public class OAuth2AuthorizationRequestRepository
 
   @Override
   public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-    return (OAuth2AuthorizationRequest) request.getSession()
-        .getAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
+    return (OAuth2AuthorizationRequest)
+        request.getSession().getAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
   }
 
   @Override
-  public void saveAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest,
-      HttpServletRequest request, HttpServletResponse response) {
+  public void saveAuthorizationRequest(
+      OAuth2AuthorizationRequest authorizationRequest,
+      HttpServletRequest request,
+      HttpServletResponse response) {
     if (authorizationRequest == null) {
       request.getSession().removeAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
-      request.getSession()
+      request
+          .getSession()
           .removeAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY);
       return;
     }
 
-    request.getSession().setAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME,
-        authorizationRequest);
+    request
+        .getSession()
+        .setAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, authorizationRequest);
     String redirectUriAfterLogin = request.getParameter("redirect_uri");
     if (StringUtils.isNotBlank(redirectUriAfterLogin)) {
-      request.getSession().setAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY,
-          redirectUriAfterLogin);
+      request
+          .getSession()
+          .setAttribute(
+              OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, redirectUriAfterLogin);
     }
   }
 
   @Override
-  public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request,
-      HttpServletResponse response) {
+  public OAuth2AuthorizationRequest removeAuthorizationRequest(
+      HttpServletRequest request, HttpServletResponse response) {
     return this.loadAuthorizationRequest(request);
   }
 }
