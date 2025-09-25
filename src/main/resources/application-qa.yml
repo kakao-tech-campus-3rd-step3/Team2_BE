@@ -44,7 +44,7 @@ management:
     web:
       # QA 환경에서는 액추에이터 엔드포인트 노출 최소화
       exposure:
-        include: "health,info,metrics,env"
+        include: "health,info,metrics"
       base-path: "/actuator"
   endpoint:
     health:
