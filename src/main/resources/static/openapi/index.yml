@@ -21,6 +21,8 @@ tags:
     description: SSE 알림에 관한 API
   - name: auth
     description: 카카오 로그인 및 인증에 관한 API
+  - name: marking
+    description: 문제 채점에 관한 API
 paths:
   '/api/learning/source/upload':
     $ref: './paths/learning_source.yml#/~1api~1learning~1source~1upload'
@@ -38,6 +40,8 @@ paths:
     $ref: './paths/auth.yml#/~1api~1auth~1refresh'
   '/api/auth/logout':
     $ref: './paths/auth.yml#/~1api~1auth~1logout'
+  '/api/marking':
+    $ref: './paths/marking.yml#/~1api~1marking'
 components:
   schemas:
     UploadRequest:
@@ -62,3 +66,5 @@ components:
       $ref: './components/schemas/question_set.yml#/QuestionType'
     AccessTokenResponse:
       $ref: './components/schemas/auth.yml#/AccessTokenResponse'
+    MarkingRequest:
+      $ref: './components/schemas/marking.yml#/MarkingRequest'

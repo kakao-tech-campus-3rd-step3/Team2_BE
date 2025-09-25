@@ -1,0 +1,33 @@
+/api/marking:
+  post:
+    tags:
+      - marking
+    summary: 문제 채점 결과 등록
+    description: 사용자가 푼 문제들의 정답/오답 여부를 등록합니다.
+    operationId: markQuestions
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../components/schemas/marking.yml#/MarkingRequest'
+          example:
+            - questionId: 1
+              isCorrect: true
+            - questionId: 2
+              isCorrect: false
+    responses:
+      '200':
+        description: 채점 결과가 성공적으로 등록되었습니다.
+        content:
+          application/json:
+            schema:
+              type: object
+      '400':
+        description: 잘못된 요청입니다.
+      '401':
+        description: 인증이 필요합니다.
+      '500':
+        description: 서버 내부 오류입니다.
