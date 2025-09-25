@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -63,6 +65,38 @@ public class QuestionSetService implements QuestionSetPublicApi {
     eventPublisher.publishEvent(new QuestionSetCreatedEvent(savedQuestionSet.getId(), ownerId));
 
     return new QuestionSetResponse(savedQuestionSet);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<MyQuestionSetsResponse> getUserQuestionSets(Long userId) {
+    Member member =
+        memberPublicApi
+            .findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("맴버를 찾을 수 없습니다."));
+
+    List<QuestionSet> questionSets = questionSetRepository.findByUserId(userId);
+    List<MyQuestionSetsResponse> myQuestionSetsResponses = new ArrayList<>();
+
+    for (QuestionSet questionSet : questionSets) {
+      List<Long> sourceIds = questionSet.getSources().stream().map(Source::getId).toList();
+      List<String> sourceNames =
+          questionSet.getSources().stream().map(Source::getOriginalName).toList();
+      MyQuestionSetsResponse response =
+          MyQuestionSetsResponse.builder()
+              .questionSetId(questionSet.getId())
+              .title(questionSet.getTitle())
+              .sourceIds(sourceIds)
+              .sourceNames(sourceNames)
+              .questionCount(questionSet.getQuestionLength())
+              .difficultyType(questionSet.getDifficulty())
+              .questionType(questionSet.getType())
+              .createdAt(questionSet.getCreatedAt())
+              .build();
+      myQuestionSetsResponses.add(response);
+    }
+
+    return myQuestionSetsResponses;
   }
 
   @Override
