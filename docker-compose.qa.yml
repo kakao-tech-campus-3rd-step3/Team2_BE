@@ -22,6 +22,7 @@ services:
       - AWS_REGION=${AWS_REGION}
       - SCHEME=${SCHEME}
       - BASE_URI=${BASE_URI}
+      - JWT_REDIRECT_URL=${JWT_REDIRECT_URL}
       # JVM 옵션 (메모리 최적화)
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
