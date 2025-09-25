@@ -38,7 +38,7 @@ jwt:
   audience: pullit-client
   access-token-expiration-minutes: 30
   refresh-token-expiration-days: 7
-  redirect-url: http://local.pull.it.kr:5173/
+  redirect-url: https://local.pull.it.kr:5173/
   cookie-domain: local.pull.it.kr
 
 app:

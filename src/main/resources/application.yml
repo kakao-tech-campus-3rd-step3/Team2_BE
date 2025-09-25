@@ -1,8 +1,10 @@
 spring:
+  profiles:
+    active: local
   application:
     name: pullit
   mvc:
-    problemdetails:
+    problem details:
       enabled: true
     async:
       request-timeout: 30m
@@ -88,7 +90,7 @@ jwt:
   audience: ${JWT_AUDIENCE:pullit-client}
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:30m}
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:7d}
-  redirect-url: ${JWT_REDIRECT_URL:http://local.pull.it.kr:5173/login-success}
+  redirect-url: ${JWT_REDIRECT_URL:https://local.pull.it.kr:5173/login-success}
   cookie-domain: ${JWT_COOKIE_DOMAIN:local.pull.it.kr}
 
 server:
@@ -131,13 +133,11 @@ management:
 
 cors:
   allowed-origins:
-    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://local.pull.it.kr:5173}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:https://local.pull.it.kr:5173}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
 app:
-  scheme: ${SCHEME:http}
-  base-uri: ${BASE_URI:localhost:8080}
   gemini:
     api-key: ${GEMINI_API_KEY:test}
   storage:
