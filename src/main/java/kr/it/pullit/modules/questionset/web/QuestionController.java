@@ -2,7 +2,7 @@ package kr.it.pullit.modules.questionset.web;
 
 import java.net.URI;
 import kr.it.pullit.modules.questionset.service.QuestionService;
-import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +26,9 @@ public class QuestionController {
 
   @PostMapping
   public ResponseEntity<Void> createQuestion(
-      @RequestBody QuestionCreateRequestDto questionCreateRequestDto) {
+      @RequestBody QuestionCreateRequest questionCreateRequest) {
 
-    QuestionResponse questionResponse = questionService.createQuestion(questionCreateRequestDto);
+    QuestionResponse questionResponse = questionService.createQuestion(questionCreateRequest);
 
     URI location =
         ServletUriComponentsBuilder.fromCurrentRequest()

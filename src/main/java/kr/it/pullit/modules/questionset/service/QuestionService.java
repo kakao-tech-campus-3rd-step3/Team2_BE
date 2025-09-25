@@ -13,7 +13,7 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
-import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class QuestionService implements QuestionPublicApi {
 
   @Override
   @Transactional
-  public QuestionResponse createQuestion(QuestionCreateRequestDto requestDto) {
+  public QuestionResponse createQuestion(QuestionCreateRequest requestDto) {
     var questionSet =
         questionSetRepository
             .findById(requestDto.questionSetId())

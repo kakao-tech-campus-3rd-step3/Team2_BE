@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record QuestionCreateRequestDto(
+public record QuestionCreateRequest(
     Long questionSetId,
     String questionText,
     List<String> options,
