@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
@@ -25,5 +26,10 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public QuestionSet save(QuestionSet questionSet) {
     return questionSetJpaRepository.save(questionSet);
+  }
+
+  @Override
+  public List<QuestionSet> findByUserId(Long userId) {
+    return questionSetJpaRepository.findByUserId(userId);
   }
 }

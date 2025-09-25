@@ -1,10 +1,10 @@
 package kr.it.pullit.modules.questionset.web;
 
 import java.net.URI;
-import kr.it.pullit.modules.notification.service.NotificationService;
+import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +22,17 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class QuestionSetController {
 
   private final QuestionSetPublicApi questionSetPublicApi;
-  private final QuestionService questionService;
-  private final NotificationService notificationService;
 
   @GetMapping("/{id}")
   public ResponseEntity<QuestionSetResponse> getQuestionSetById(@PathVariable Long id) {
     QuestionSetResponse questionSetResponse = questionSetPublicApi.getQuestionSetById(id);
     return ResponseEntity.ok(questionSetResponse);
+  }
+
+  @GetMapping
+  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets() {
+    final Long userId = 1L;
+    return ResponseEntity.ok(questionSetPublicApi.getUserQuestionSets(userId));
   }
 
   @PostMapping
