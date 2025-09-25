@@ -137,6 +137,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
+    testImplementation 'com.squareup.okhttp3:okhttp-sse'
 }
 
 // 의존성 버전 관리 (BOM 사용)
@@ -150,4 +151,5 @@ dependencyManagement {
 // 테스트 실행 설정 (JUnit 5 사용)
 tasks.named('test') {
     useJUnitPlatform()
+    environment 'AWS_REGION', 'ap-northeast-2'
 }

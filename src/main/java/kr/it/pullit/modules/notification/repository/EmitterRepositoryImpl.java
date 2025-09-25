@@ -27,4 +27,9 @@ public class EmitterRepositoryImpl implements EmitterRepository {
   public Map<Long, SseEmitter> findAll() {
     return Map.copyOf(emitters);
   }
+
+  @Override
+  public boolean notExistsById(Long userId) {
+    return !emitters.containsKey(userId);
+  }
 }
