@@ -2,6 +2,7 @@ package kr.it.pullit.platform.web.cookie;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 import kr.it.pullit.platform.security.jwt.JwtProps;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +30,8 @@ public class CookieManager {
   }
 
   public void removeRefreshTokenCookie(HttpServletRequest request, HttpServletResponse response) {
-    // Note: When removing a cookie, the domain must also match.
-    // This might need enhancement if cookies can be set on multiple domains.
-    // For now, it uses the default domain from props.
-    ResponseCookie cookie = createRefreshTokenCookie(request, "", 0, jwtProps.cookieDomain());
+    String domain = determineDomainFromRequest(request);
+    ResponseCookie cookie = createRefreshTokenCookie(request, "", 0, domain);
     response.addHeader("Set-Cookie", cookie.toString());
   }
 
@@ -41,15 +40,41 @@ public class CookieManager {
     ResponseCookie.ResponseCookieBuilder cookieBuilder =
         ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, value)
             .httpOnly(true)
-            .secure(request.isSecure())
+            .secure(true)
             .path("/")
             .maxAge(maxAge)
-            .sameSite(request.isSecure() ? "None" : "Lax");
+            .sameSite("None");
 
     if (domain != null && !domain.isBlank()) {
       cookieBuilder.domain(domain);
     }
 
     return cookieBuilder.build();
+  }
+
+  private String determineDomainFromRequest(HttpServletRequest request) {
+    String host = request.getServerName();
+    if (host == null) {
+      log.warn("요청에서 호스트를 추출할 수 없어 기본 쿠키 도메인을 사용합니다.");
+      return getDefaultCookieDomain();
+    }
+
+    return jwtProps.authorizedCookieDomains().stream()
+        .filter(host::endsWith)
+        .findFirst()
+        .orElseGet(
+            () -> {
+              log.warn("호스트 '{}'에 일치하는 쿠키 도메인 설정이 없어 기본 쿠키 도메인을 사용합니다.", host);
+              return getDefaultCookieDomain();
+            });
+  }
+
+  private String getDefaultCookieDomain() {
+    List<String> domains = jwtProps.authorizedCookieDomains();
+    if (domains == null || domains.isEmpty()) {
+      log.error("설정된 쿠키 도메인이 없습니다.");
+      throw new IllegalStateException("No authorized cookie domains configured");
+    }
+    return domains.get(0);
   }
 }

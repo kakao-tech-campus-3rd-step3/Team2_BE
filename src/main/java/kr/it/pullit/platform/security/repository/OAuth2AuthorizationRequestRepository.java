@@ -4,10 +4,12 @@ import com.nimbusds.oauth2.sdk.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class OAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
@@ -31,28 +33,45 @@ public class OAuth2AuthorizationRequestRepository
       HttpServletRequest request,
       HttpServletResponse response) {
     if (authorizationRequest == null) {
-      request.getSession().removeAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
-      request
-          .getSession()
-          .removeAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY);
+      log.debug("AuthorizationRequest가 null입니다. 세션 속성을 제거합니다.");
+      removeSessionAttributes(request);
       return;
     }
 
+    log.debug(
+        "[AUTH_REQ_REPO] AuthorizationRequest 저장 중. state={}, redirect_uri={}",
+        authorizationRequest.getState(),
+        authorizationRequest.getRedirectUri());
     request
         .getSession()
         .setAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, authorizationRequest);
+
     String redirectUriAfterLogin = request.getParameter("redirect_uri");
+    log.debug("[AUTH_REQ_REPO] 요청에서 redirect_uri 파라미터 확인: {}", redirectUriAfterLogin);
+
     if (StringUtils.isNotBlank(redirectUriAfterLogin)) {
       request
           .getSession()
           .setAttribute(
               OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, redirectUriAfterLogin);
+      log.debug(
+          "[AUTH_REQ_REPO] redirect_uri '{}'를 세션 속성 '{}'에 저장했습니다.",
+          redirectUriAfterLogin,
+          OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY);
     }
   }
 
   @Override
   public OAuth2AuthorizationRequest removeAuthorizationRequest(
       HttpServletRequest request, HttpServletResponse response) {
-    return this.loadAuthorizationRequest(request);
+    OAuth2AuthorizationRequest authorizationRequest = this.loadAuthorizationRequest(request);
+    if (authorizationRequest != null) {
+      this.removeSessionAttributes(request);
+    }
+    return authorizationRequest;
+  }
+
+  private void removeSessionAttributes(HttpServletRequest request) {
+    request.getSession().removeAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
   }
 }
