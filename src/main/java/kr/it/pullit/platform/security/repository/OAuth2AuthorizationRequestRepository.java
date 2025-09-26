@@ -23,8 +23,23 @@ public class OAuth2AuthorizationRequestRepository
 
   @Override
   public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-    return (OAuth2AuthorizationRequest)
-        request.getSession().getAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
+    OAuth2AuthorizationRequest req =
+        (OAuth2AuthorizationRequest)
+            request.getSession().getAttribute(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
+    if (req == null) {
+      log.error(
+          "[AUTH_REQ_REPO] loadAuthorizationRequest: NOT FOUND. sessionId={}, incomingState={}",
+          request.getSession().getId(),
+          request.getParameter("state"));
+    } else {
+      log.debug(
+          "[AUTH_REQ_REPO] loadAuthorizationRequest: FOUND. "
+              + "sessionId={}, savedState={}, redirectUri={}",
+          request.getSession().getId(),
+          req.getState(),
+          req.getRedirectUri());
+    }
+    return req;
   }
 
   @Override

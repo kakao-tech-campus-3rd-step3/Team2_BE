@@ -38,11 +38,16 @@ info:
     description: Pullit 스터디 플랫폼 QA 테스트 환경
 
 
-#logging:
-#  level:
-#    root: info
-#    org.springframework.security: info
-#    kr.it.pullit: info
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.security.oauth2.client.endpoint: DEBUG
+    org.springframework.security.web.authentication: DEBUG
+    OAuth2Failure: DEBUG
+    kr.it.pullit: DEBUG
   # QA 로그 파일 설정
   # file:
   #   name: logs/pullit-qa.log

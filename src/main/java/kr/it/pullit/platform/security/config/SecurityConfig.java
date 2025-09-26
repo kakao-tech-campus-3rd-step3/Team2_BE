@@ -5,6 +5,7 @@ import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler
 import kr.it.pullit.platform.security.jwt.JwtAuthenticationFilter;
 import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -38,6 +40,52 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
+  private static final String[] PUBLIC_ENDPOINTS = {
+    "/",
+    "/api",
+    "/api/health",
+    "/login/oauth2/code/**",
+    "/oauth/authorize/**",
+    "/oauth2/authorization/**",
+    "/api/auth/refresh",
+    "/api/notifications/**"
+  };
+
+  private static final AuthenticationFailureHandler OAUTH2_FAILURE_HANDLER =
+      (request, response, ex) -> {
+        LoggerFactory.getLogger("OAuth2Failure")
+            .error(
+                "[OAUTH2_FAILURE] errorClass={}, message={}, state={}, redirectUriFromSession={}",
+                ex.getClass().getSimpleName(),
+                ex.getMessage(),
+                request.getParameter("state"),
+                request.getSession(false) == null
+                    ? null
+                    : request
+                        .getSession(false)
+                        .getAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY));
+        response.sendRedirect("/login?error");
+      };
+
+  private void applyCommon(HttpSecurity http) throws Exception {
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(session -> session.sessionFixation().migrateSession());
+  }
+
+  private void configureOAuth2Login(HttpSecurity http) throws Exception {
+    http.oauth2Login(
+        oauth2 ->
+            oauth2
+                .authorizationEndpoint(
+                    config ->
+                        config.authorizationRequestRepository(
+                            httpCookieOAuth2AuthorizationRequestRepository))
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(oauth2AuthenticationSuccessHandler)
+                .failureHandler(OAUTH2_FAILURE_HANDLER));
+  }
+
   /**
    * 'auth' 프로필 활성화 시 적용되는 보안 필터 체인입니다.
    *
@@ -50,33 +98,11 @@ public class SecurityConfig {
   @Bean
   @Profile("auth")
   public SecurityFilterChain authSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionFixation().migrateSession())
-        .authorizeHttpRequests(
-            authorize ->
-                authorize
-                    .requestMatchers(
-                        "/",
-                        "/api",
-                        "/api/health",
-                        "/login/oauth2/code/**",
-                        "/oauth/authorize/**",
-                        "/oauth2/authorization/**",
-                        "/api/auth/refresh",
-                        "/api/notifications/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated());
-    http.oauth2Login(
-        oauth2 ->
-            oauth2
-                .authorizationEndpoint(
-                    config ->
-                        config.authorizationRequestRepository(
-                            httpCookieOAuth2AuthorizationRequestRepository))
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(oauth2AuthenticationSuccessHandler));
+    applyCommon(http);
+    http.authorizeHttpRequests(
+        authorize ->
+            authorize.requestMatchers(PUBLIC_ENDPOINTS).permitAll().anyRequest().authenticated());
+    configureOAuth2Login(http);
 
     http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -95,33 +121,11 @@ public class SecurityConfig {
   @Bean
   @Profile("qa")
   public SecurityFilterChain qaSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionFixation().migrateSession())
-        .authorizeHttpRequests(
-            authorize ->
-                authorize
-                    .requestMatchers(
-                        "/",
-                        "/api",
-                        "/api/health",
-                        "/login/oauth2/code/**",
-                        "/oauth/authorize/**",
-                        "/oauth2/authorization/**",
-                        "/api/auth/refresh",
-                        "/api/notifications/**")
-                    .permitAll()
-                    .anyRequest()
-                    .permitAll());
-    http.oauth2Login(
-        oauth2 ->
-            oauth2
-                .authorizationEndpoint(
-                    config ->
-                        config.authorizationRequestRepository(
-                            httpCookieOAuth2AuthorizationRequestRepository))
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(oauth2AuthenticationSuccessHandler));
+    applyCommon(http);
+    http.authorizeHttpRequests(
+        authorize ->
+            authorize.requestMatchers(PUBLIC_ENDPOINTS).permitAll().anyRequest().permitAll());
+    configureOAuth2Login(http);
 
     // http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -140,19 +144,11 @@ public class SecurityConfig {
   @Bean
   @Profile("!auth & !qa")
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionFixation().migrateSession())
-        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
-    http.oauth2Login(
-        oauth2 ->
-            oauth2
-                .authorizationEndpoint(
-                    config ->
-                        config.authorizationRequestRepository(
-                            httpCookieOAuth2AuthorizationRequestRepository))
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(oauth2AuthenticationSuccessHandler));
+    applyCommon(http);
+    http.authorizeHttpRequests(
+        authorize ->
+            authorize.requestMatchers(PUBLIC_ENDPOINTS).permitAll().anyRequest().permitAll());
+    configureOAuth2Login(http);
     return http.build();
   }
 }

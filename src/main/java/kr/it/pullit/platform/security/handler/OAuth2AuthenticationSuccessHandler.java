@@ -57,7 +57,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     AuthTokens authTokens = authService.issueAndSaveTokens(member.getId());
 
     String targetUrl = determineTargetUrl(request, authTokens.accessToken());
-    String cookieDomain = determineCookieDomain(targetUrl);
+    String cookieDomain = determineBackendCookieDomain(request);
 
     cookieManager.addRefreshTokenCookie(request, response, authTokens.refreshToken(), cookieDomain);
 
@@ -102,15 +102,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     return jwtProps.authorizedRedirectUris().get(0);
   }
 
-  private String determineCookieDomain(String targetUrl) {
-    String host = URI.create(targetUrl).getHost();
+  private String determineBackendCookieDomain(HttpServletRequest request) {
+    String host = request.getServerName();
     if (host == null) {
-      log.warn("타겟 URL '{}'에서 호스트를 추출할 수 없어 기본 쿠키 도메인을 사용합니다.", targetUrl);
+      log.warn("요청에서 서버 호스트를 추출할 수 없어 기본 쿠키 도메인을 사용합니다.");
       return getDefaultCookieDomain();
     }
 
+    // 로컬 백엔드(개발): Domain 미지정(host-only) 쿠키로 발급해야 브라우저가 수용
+    if ("localhost".equalsIgnoreCase(host)) {
+      return null;
+    }
+
+    if (host.endsWith("pull.it.kr")) {
+      return ".pull.it.kr";
+    }
+
     return jwtProps.authorizedCookieDomains().stream()
-        .filter(domain -> host.endsWith(domain))
+        .filter(host::endsWith)
         .findFirst()
         .orElseGet(
             () -> {
