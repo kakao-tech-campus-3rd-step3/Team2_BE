@@ -16,6 +16,13 @@ spring:
     livereload:
       enabled: false
 
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            redirect-uri: "https://qa.api.pull.it.kr/login/oauth2/code/{registrationId}"
+
 server:
   error:
     whitelabel:
@@ -30,11 +37,12 @@ info:
     name: Pullit QA
     description: Pullit 스터디 플랫폼 QA 테스트 환경
 
-logging:
-  level:
-    root: info
-    org.springframework.security: info
-    kr.it.pullit: info
+
+#logging:
+#  level:
+#    root: info
+#    org.springframework.security: info
+#    kr.it.pullit: info
   # QA 로그 파일 설정
   # file:
   #   name: logs/pullit-qa.log
@@ -66,6 +74,7 @@ resilience4j:
 
 cors:
   allowed-origins:
+    - "https://localhost:5173"
     - "https://www.pull.it.kr"
     - "https://pull.it.kr"
     - "https://local.pull.it.kr:5173"
