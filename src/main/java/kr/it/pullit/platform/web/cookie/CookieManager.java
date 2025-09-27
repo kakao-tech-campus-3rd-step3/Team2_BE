@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class CookieManager {
 
   private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+  public static final String REFRESH_TOKEN_COOKIE_PATH = "/auth/refresh";
 
   private final JwtProps jwtProps;
 
@@ -41,7 +42,7 @@ public class CookieManager {
         ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, value)
             .httpOnly(true)
             .secure(true)
-            .path("/")
+            .path(REFRESH_TOKEN_COOKIE_PATH)
             .maxAge(maxAge)
             .sameSite("None");
 

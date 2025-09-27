@@ -11,7 +11,7 @@ public interface MemberPublicApi {
 
   Optional<Member> findByKakaoId(Long kakaoId);
 
-  Member findOrCreateMember(SocialLoginCommand command);
+  Optional<Member> findOrCreateMember(SocialLoginCommand command);
 
   Optional<Member> findByRefreshToken(String refreshToken);
 

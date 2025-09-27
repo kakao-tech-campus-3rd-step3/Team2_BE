@@ -47,7 +47,8 @@ public class SecurityConfig {
     "/login/oauth2/code/**",
     "/oauth/authorize/**",
     "/oauth2/authorization/**",
-    "/api/auth/refresh",
+    "/auth/refresh",
+    "/auth/logout",
     "/api/notifications/**"
   };
 

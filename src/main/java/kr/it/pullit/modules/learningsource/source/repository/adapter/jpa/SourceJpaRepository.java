@@ -12,10 +12,11 @@ public interface SourceJpaRepository extends JpaRepository<Source, Long> {
   List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 
   @Query(
-      "SELECT DISTINCT s FROM Source s "
-          + "LEFT JOIN FETCH s.sourceFolder "
-          + "LEFT JOIN FETCH s.questionSets "
-          + "WHERE s.member.id = :memberId "
+      "SELECT s "
+          + "FROM Source s "
+          + "JOIN FETCH s.member m "
+          + "JOIN FETCH s.sourceFolder sf "
+          + "WHERE m.id = :memberId "
           + "ORDER BY s.createdAt DESC")
   List<Source> findSourcesByMemberIdWithDetails(@Param("memberId") Long memberId);
 
