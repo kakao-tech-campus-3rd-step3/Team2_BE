@@ -5,8 +5,4 @@ import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 
 public record QuestionSetCreateRequestDto(
-    String title,
-    DifficultyType difficulty,
-    int questionCount,
-    QuestionType type,
-    List<Long> sourceIds) {}
+    DifficultyType difficulty, int questionCount, QuestionType type, List<Long> sourceIds) {}

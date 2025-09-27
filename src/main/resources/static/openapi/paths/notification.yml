@@ -1,0 +1,26 @@
+/api/notifications/subscribe:
+  get:
+    summary: SSE 구독 요청
+    description: |
+      실시간 알림을 받기 위해 SSE(Server-Sent Events) 연결을 구독합니다.
+      이 연결을 통해 문제 생성 완료 등의 비동기 작업 상태를 실시간으로 클라이언트에게 전송합니다.
+      **응답 형식 (Content-Type: text/event-stream)**
+      ```
+      event: generation-complete
+      data: {"sourceId":1,"questionSetId":123,"status":"SUCCESS"}
+      event: generation-failed
+      data: {"sourceId":1,"errorMessage":"문제 생성 중 오류가 발생했습니다."}
+      ```
+    operationId: subscribeToNotifications
+    tags:
+      - notification
+    responses:
+      '200':
+        description: SSE 연결 성공. 스트림이 열립니다.
+        content:
+          text/event-stream:
+            schema:
+              type: string
+              example: |
+                event: message
+                data: Connection established.

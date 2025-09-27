@@ -31,4 +31,9 @@ public class MemberRepositoryImpl implements MemberRepository {
   public Optional<Member> findByKakaoId(Long kakaoId) {
     return memberJpaRepository.findByKakaoId(kakaoId);
   }
+
+  @Override
+  public Optional<Member> findByRefreshToken(String refreshToken) {
+    return memberJpaRepository.findByRefreshToken(refreshToken);
+  }
 }

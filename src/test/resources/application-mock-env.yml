@@ -1,0 +1,56 @@
+spring:
+  jpa:
+    defer-datasource-initialization: false # 테스트 환경에서는 DB 초기화를 지연시키지 않고 즉시 실행
+  sql:
+    init:
+      mode: never # 테스트 환경에서는 SQL 스크립트 초기화 기능을 사용하지 않음
+  flyway:
+    enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile_nickname, account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+  async:
+    executor:
+      llm-generator:
+        core-pool-size: 5
+        max-pool-size: 10
+        queue-capacity: 100
+        prefix: LLM-GEN-
+
+jwt:
+  secret: mockYn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=
+  issuer: pullit-backend
+  audience: pullit-client
+  access-token-expiration-minutes: 30
+  refresh-token-expiration-days: 7
+  redirect-url: http://local.pull.it.kr:5173/
+
+
+app:
+  scheme: http
+  base-uri: localhost:8080
+  gemini:
+    api-key: test
+  storage:
+    s3:
+      bucket-name: "pullit-uploaded-files"
+      region: "ap-northeast-2"
+      access-key: test
+      secret-key: test
+      presigned-url-expiration: PT15M
+      base-path: "learning-sources"
