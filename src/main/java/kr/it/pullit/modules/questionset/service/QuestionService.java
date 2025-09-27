@@ -1,99 +1,71 @@
 package kr.it.pullit.modules.questionset.service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
-import kr.it.pullit.modules.questionset.client.dto.LlmGeneratedQuestionDto;
+import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
+import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
+import kr.it.pullit.modules.questionset.domain.entity.LlmPrompt;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
-import kr.it.pullit.modules.questionset.service.callback.QuestionGenerationSuccessCallback;
-import kr.it.pullit.modules.questionset.service.factory.DifficultyPolicyFactory;
-import kr.it.pullit.modules.questionset.service.factory.QuestionTypePolicyFactory;
-import kr.it.pullit.modules.questionset.service.policy.difficulty.DifficultyPolicy;
-import kr.it.pullit.modules.questionset.service.policy.type.QuestionTypePolicy;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
-public class QuestionService {
+public class QuestionService implements QuestionPublicApi {
 
   private final QuestionRepository questionRepository;
   private final QuestionSetRepository questionSetRepository;
-  private final DifficultyPolicyFactory difficultyPolicyFactory;
-  private final QuestionTypePolicyFactory questionTypePolicyFactory;
+  private final SourcePublicApi sourcePublicApi;
   private final LlmClient llmClient;
 
-  @Transactional
-  @Async("llmGeneratorAsyncExecutor")
-  public void generateQuestions(
-      QuestionSetDto questionSetDto, QuestionGenerationSuccessCallback callback) {
+  public List<LlmGeneratedQuestionResponse> generateQuestions(QuestionGenerationRequest request) {
+    questionSetRepository
+        .findById(request.questionSetId())
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "QuestionSet not found with id: " + request.questionSetId()));
 
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetDto.getId())
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "QuestionSet not found with id: " + questionSetDto.getId()));
+    LlmPrompt llmPrompt =
+        LlmPrompt.compose(
+            request.specification().difficultyType(), request.specification().questionType());
 
-    DifficultyPolicy difficultyPolicy =
-        difficultyPolicyFactory.getInstance(questionSetDto.getDifficulty());
-    QuestionTypePolicy questionTypePolicy =
-        questionTypePolicyFactory.getInstance(questionSetDto.getType());
-
-    String difficultyPrompt = difficultyPolicy.getDifficultyPrompt();
-    String questionTypePrompt = questionTypePolicy.getQuestionTypePrompt();
-    String examplePrompt = questionTypePolicy.getExamplePrompt();
-
-    String prompt = LlmClient.getPrompt(difficultyPrompt, questionTypePrompt, examplePrompt);
-    // TODO: 정책에 따라 모델 변경
-    List<LlmGeneratedQuestionDto> llmGeneratedQuestionDtoList =
-        llmClient.getLlmGeneratedQuestionContent(
-            prompt,
-            getSourceFileDataBytes(questionSetDto.getSourceIds()),
-            questionSetDto.getQuestionLength(),
-            "gemini-2.5-flash-lite");
-
-    for (LlmGeneratedQuestionDto llmGeneratedQuestionDto : llmGeneratedQuestionDtoList) {
-      // TODO: soureceId 동적으로 변경
-      Question question =
-          new Question(
-              questionSetDto.getSourceIds().getFirst(),
-              questionSet,
-              llmGeneratedQuestionDto.questionText(),
-              llmGeneratedQuestionDto.options(),
-              llmGeneratedQuestionDto.answer(),
-              llmGeneratedQuestionDto.explanation());
-      questionRepository.save(question);
+    List<byte[]> sourceFileDataBytes = new ArrayList<>();
+    for (Long sourceId : request.sourceIds()) {
+      byte[] contentBytes = sourcePublicApi.getContentBytes(sourceId, request.ownerId());
+      sourceFileDataBytes.add(contentBytes);
     }
-    callback.onSuccess(llmGeneratedQuestionDtoList);
+
+    // TODO: 정책에 따라 모델 변경
+    final String modelName = "gemini-2.5-flash-lite";
+    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}", request.questionSetId(), modelName);
+
+    return llmClient.getLlmGeneratedQuestionContent(
+        new LlmGeneratedQuestionRequest(
+            llmPrompt.value(),
+            sourceFileDataBytes,
+            request.specification().questionCount(),
+            modelName));
   }
 
-  private List<byte[]> getSourceFileDataBytes(List<Long> sourceIds) {
-    List<byte[]> fileDataList = new ArrayList<>();
+  @Override
+  @Transactional
+  public void saveQuestion(Question question) {
+    Long questionSetId = question.getQuestionSet().getId();
+    questionSetRepository
+        .findById(questionSetId)
+        .orElseThrow(
+            () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
 
-    // TODO: 파일 S3에서 읽어오기
-    // TODO: sourceIds로 파일 불러오기
-    /* ------------------------- */
-    final String pdfPath = "src/test/resources/test.pdf";
-    byte[] pdfData;
-    try {
-      pdfData = Files.readAllBytes(Paths.get(pdfPath));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    fileDataList.add(pdfData);
-    /* ------------------------- */
-
-    return fileDataList;
+    questionRepository.save(question);
   }
 }

@@ -9,10 +9,16 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class QuestionSetRepositoryImpl implements QuestionSetRepository {
+
   private final QuestionSetJpaRepository questionSetJpaRepository;
 
   @Override
   public Optional<QuestionSet> findById(Long id) {
+    return questionSetJpaRepository.findByIdWithQuestions(id);
+  }
+
+  @Override
+  public Optional<QuestionSet> findByIdWithoutQuestions(Long id) {
     return questionSetJpaRepository.findById(id);
   }
 

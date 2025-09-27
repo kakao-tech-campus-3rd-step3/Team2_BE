@@ -8,6 +8,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Repository
 public class EmitterRepositoryImpl implements EmitterRepository {
+
   private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
   public void save(Long userId, SseEmitter emitter) {
@@ -20,5 +21,10 @@ public class EmitterRepositoryImpl implements EmitterRepository {
 
   public Optional<SseEmitter> findById(Long userId) {
     return Optional.ofNullable(emitters.get(userId));
+  }
+
+  @Override
+  public Map<Long, SseEmitter> findAll() {
+    return Map.copyOf(emitters);
   }
 }
