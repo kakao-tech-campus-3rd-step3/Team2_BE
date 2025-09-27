@@ -45,7 +45,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     Member member =
-        memberPublicApi.findOrCreateMember(SocialLoginCommand.kakao(kakaoId, email, name));
+        memberPublicApi
+            .findOrCreateMember(SocialLoginCommand.kakao(kakaoId, email, name))
+            .orElseThrow(
+                () -> new IllegalArgumentException("Cannot find member by kakaoId: " + kakaoId));
     log.info("멤버 생성 또는 조회 완료: {}", member.getId());
 
     return new DefaultOAuth2User(

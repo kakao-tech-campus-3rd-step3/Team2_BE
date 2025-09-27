@@ -67,10 +67,19 @@ public class Member extends BaseEntity {
   }
 
   public static Member create(Long kakaoId, String email, String name) {
-    return Member.builder().kakaoId(kakaoId).email(email).name(name).build();
+    return Member.builder()
+        .kakaoId(kakaoId)
+        .email(email)
+        .name(name)
+        .status(MemberStatus.ACTIVE)
+        .build();
   }
 
   public void updateRefreshToken(String refreshToken) {
     this.refreshToken = refreshToken;
+  }
+
+  public void linkKakaoId(Long kakaoId) {
+    this.kakaoId = kakaoId;
   }
 }
