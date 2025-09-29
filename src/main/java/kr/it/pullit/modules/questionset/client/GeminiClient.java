@@ -2,8 +2,6 @@ package kr.it.pullit.modules.questionset.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.FinishReason;
@@ -20,6 +18,8 @@ import java.util.stream.Collectors;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
+import kr.it.pullit.modules.questionset.client.exception.LlmException;
+import kr.it.pullit.modules.questionset.client.exception.LlmResponseParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -27,71 +27,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class GeminiClient implements LlmClient {
 
-  // TODO: config로 빼기
-  @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
-  final int MIN_OPTION_COUNT = 3;
-
-  @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
-  final int MAX_OPTION_COUNT = 3;
-
-  final String questionId = LlmGeneratedQuestionResponse.Fields.id;
-  final String questionTextFieldName = LlmGeneratedQuestionResponse.Fields.questionText;
-  final String wrongsFieldName = LlmGeneratedQuestionResponse.Fields.options;
-  final String answerFieldName = LlmGeneratedQuestionResponse.Fields.answer;
-  final String explanationFieldName = LlmGeneratedQuestionResponse.Fields.explanation;
   private final Client client;
   private final ObjectMapper mapper = new ObjectMapper();
 
-  public GeminiClient(GeminiProperties geminiProperties) {
+  private final GeminiConfigBuilder configBuilder;
+
+  public GeminiClient(GeminiProperties geminiProperties, GeminiConfigBuilder configBuilder) {
     this.client = new Client.Builder().apiKey(geminiProperties.getApiKey()).build();
-  }
-
-  private GenerateContentConfig getConfig(int questionCount) {
-    ImmutableMap<String, Object> schema =
-        ImmutableMap.of(
-            "type",
-            "array",
-            "minItems",
-            questionCount,
-            "maxItems",
-            questionCount,
-            "items",
-            ImmutableMap.of(
-                "type",
-                "object",
-                "properties",
-                ImmutableMap.of(
-                    questionId,
-                    ImmutableMap.of("type", "integer"),
-                    questionTextFieldName,
-                    ImmutableMap.of("type", "string"),
-                    wrongsFieldName,
-                    ImmutableMap.of(
-                        "type",
-                        "array",
-                        "items",
-                        ImmutableMap.of("type", "string"),
-                        "minItems",
-                        MIN_OPTION_COUNT,
-                        "maxItems",
-                        MAX_OPTION_COUNT),
-                    answerFieldName,
-                    ImmutableMap.of("type", "string"),
-                    explanationFieldName,
-                    ImmutableMap.of("type", "string")),
-                "required",
-                ImmutableList.of(
-                    questionId,
-                    questionTextFieldName,
-                    wrongsFieldName,
-                    answerFieldName,
-                    explanationFieldName)));
-
-    return GenerateContentConfig.builder()
-        .responseMimeType("application/json")
-        .candidateCount(1)
-        .responseJsonSchema(schema)
-        .build();
+    this.configBuilder = configBuilder;
   }
 
   private List<Part> getByteParts(List<byte[]> fileDataList) {
@@ -129,38 +72,62 @@ public class GeminiClient implements LlmClient {
     }
   }
 
-  private String calculateSha256(byte[] data) {
-    if (data == null) {
-      return "null";
-    }
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(data);
-      StringBuilder hexString = new StringBuilder();
-      for (byte b : hash) {
-        String hex = Integer.toHexString(0xff & b);
-        if (hex.length() == 1) {
-          hexString.append('0');
-        }
-        hexString.append(hex);
-      }
-      return hexString.toString();
-    } catch (NoSuchAlgorithmException e) {
-      return "Hashing failed";
-    }
-  }
-
   @Override
   public List<LlmGeneratedQuestionResponse> getLlmGeneratedQuestionContent(
       LlmGeneratedQuestionRequest request) {
-    Objects.requireNonNull(request, "request cannot be null");
 
-    String model = request.model();
-    if (model == null) {
-      model = "gemini-2.5-flash-lite";
+    validateRequest(request);
+
+    String model = determineModel(request.model());
+    Content content = buildContent(request);
+    GenerateContentConfig config = configBuilder.build(request.questionCount());
+
+    logRequestDetails(model, request);
+
+    try {
+      GenerateContentResponse response = callGeminiApi(model, content, config);
+      validateResponse(response);
+      return parseResponse(response);
+
+    } catch (IOException e) {
+      throw new LlmResponseParseException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new LlmException("LLM 콘텐츠 생성 실패", e);
     }
-    Content content = getGeminiContent(request.fileDataList(), request.prompt());
+  }
 
+  private void validateRequest(LlmGeneratedQuestionRequest request) {
+    Objects.requireNonNull(request, "request cannot be null");
+  }
+
+  private String determineModel(String model) {
+    if (model == null) {
+      return "gemini-2.5-flash-lite";
+    }
+    return model;
+  }
+
+  private Content buildContent(LlmGeneratedQuestionRequest request) {
+    return getGeminiContent(request.fileDataList(), request.prompt());
+  }
+
+  private GenerateContentResponse callGeminiApi(
+      String model, Content content, GenerateContentConfig config) {
+    return client.models.generateContent(model, content, config);
+  }
+
+  private void validateResponse(GenerateContentResponse response) {
+    if (response.finishReason().knownEnum() != FinishReason.Known.STOP) {
+      handleResponseFinishReason(response);
+    }
+  }
+
+  private List<LlmGeneratedQuestionResponse> parseResponse(GenerateContentResponse response)
+      throws IOException {
+    return mapper.readValue(response.text(), new TypeReference<>() {});
+  }
+
+  private void logRequestDetails(String model, LlmGeneratedQuestionRequest request) {
     log.info(
         "\n--- Gemini API Request Parameters ---\n[Model Name] : {}\n[Question Count] : {}\n"
             + "[Prompt Length] : {} characters\n[File Count] : {}{}\n--- End of Parameters ---",
@@ -179,18 +146,26 @@ public class GeminiClient implements LlmClient {
                                 + calculateSha256(data))
                     .collect(Collectors.joining("\n"))
             : "");
+  }
 
+  private String calculateSha256(byte[] data) {
+    if (data == null) {
+      return "null";
+    }
     try {
-      GenerateContentResponse response =
-          client.models.generateContent(model, content, this.getConfig(request.questionCount()));
-      if (response.finishReason().knownEnum() != FinishReason.Known.STOP) {
-        handleResponseFinishReason(response);
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] hash = digest.digest(data);
+      StringBuilder hexString = new StringBuilder();
+      for (byte b : hash) {
+        String hex = Integer.toHexString(0xff & b);
+        if (hex.length() == 1) {
+          hexString.append('0');
+        }
+        hexString.append(hex);
       }
-      return mapper.readValue(response.text(), new TypeReference<>() {});
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to parse LLM response", e);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to generate content", e);
+      return hexString.toString();
+    } catch (NoSuchAlgorithmException e) {
+      return "Hashing failed";
     }
   }
 }

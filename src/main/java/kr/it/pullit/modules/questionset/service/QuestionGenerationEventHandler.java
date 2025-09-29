@@ -1,9 +1,12 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
+import kr.it.pullit.modules.notification.service.NotificationService;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.client.GeminiClient;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
@@ -13,10 +16,14 @@ import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.modules.source.domain.event.SourceExtractionCompleteEvent;
+import kr.it.pullit.modules.source.domain.event.SourceExtractionStartEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -25,6 +32,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class QuestionGenerationEventHandler {
 
+  private final GeminiClient geminiClient;
+  private final SourceRepository sourceRepository;
+  private final NotificationService notificationService;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
@@ -103,5 +113,22 @@ public class QuestionGenerationEventHandler {
   private void handleFailure(QuestionSetCreatedEvent event, Exception e) {
     log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
     questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.FAILED);
+  }
+
+  @TransactionalEventListener
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void handleSourceExtractionStart(final SourceExtractionStartEvent event) {
+    sourceRepository
+        .findById(event.sourceId())
+        .ifPresent(
+            source -> {
+              // TODO: Source 상태 업데이트 로직 구현 필요
+              log.info("Source extraction started for source ID: {}", event.sourceId());
+            });
+  }
+
+  @TransactionalEventListener
+  public void handleSourceExtractionComplete(final SourceExtractionCompleteEvent event) {
+    // ...
   }
 }

@@ -1,4 +1,4 @@
-package kr.it.pullit.boot.config;
+package kr.it.pullit.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

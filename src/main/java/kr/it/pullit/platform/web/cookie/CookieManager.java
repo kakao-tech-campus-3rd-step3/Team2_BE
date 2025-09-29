@@ -20,24 +20,17 @@ public class CookieManager {
   private final JwtProps jwtProps;
 
   public void addRefreshTokenCookie(
-      HttpServletRequest request,
       HttpServletResponse response,
       String refreshToken,
       String domain) {
     long maxAge = jwtProps.refreshTokenExpirationDays().getSeconds();
-    ResponseCookie cookie = createRefreshTokenCookie(request, refreshToken, maxAge, domain);
-    log.info("Generated Refresh Token Cookie string: {}", cookie.toString());
-    response.addHeader("Set-Cookie", cookie.toString());
-  }
-
-  public void removeRefreshTokenCookie(HttpServletRequest request, HttpServletResponse response) {
-    String domain = determineDomainFromRequest(request);
-    ResponseCookie cookie = createRefreshTokenCookie(request, "", 0, domain);
+    ResponseCookie cookie = createRefreshTokenCookie(refreshToken, maxAge, domain);
+    log.info("Generated Refresh Token Cookie string: {}", cookie);
     response.addHeader("Set-Cookie", cookie.toString());
   }
 
   private ResponseCookie createRefreshTokenCookie(
-      HttpServletRequest request, String value, long maxAge, String domain) {
+      String value, long maxAge, String domain) {
     ResponseCookie.ResponseCookieBuilder cookieBuilder =
         ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, value)
             .httpOnly(true)
@@ -51,6 +44,21 @@ public class CookieManager {
     }
 
     return cookieBuilder.build();
+  }
+
+  public void expireCookie(
+      HttpServletRequest request, HttpServletResponse response, String cookieName) {
+    String domain = determineDomainFromRequest(request);
+    ResponseCookie cookie =
+        ResponseCookie.from(cookieName, "")
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(0)
+            .sameSite("None")
+            .domain(domain)
+            .build();
+    response.addHeader("Set-Cookie", cookie.toString());
   }
 
   private String determineDomainFromRequest(HttpServletRequest request) {
@@ -76,6 +84,6 @@ public class CookieManager {
       log.error("설정된 쿠키 도메인이 없습니다.");
       throw new IllegalStateException("No authorized cookie domains configured");
     }
-    return domains.get(0);
+    return domains.getFirst();
   }
 }
