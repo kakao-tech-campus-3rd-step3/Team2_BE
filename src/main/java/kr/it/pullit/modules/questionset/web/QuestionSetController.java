@@ -31,9 +31,9 @@ public class QuestionSetController {
   }
 
   @GetMapping
-  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets() {
-    final Long userId = 1L;
-    return ResponseEntity.ok(questionSetPublicApi.getUserQuestionSets(userId));
+  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets(
+      @AuthenticationPrincipal Long memberId) {
+    return ResponseEntity.ok(questionSetPublicApi.getUserQuestionSets(memberId));
   }
 
   @PostMapping
