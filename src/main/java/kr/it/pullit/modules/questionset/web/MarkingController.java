@@ -6,6 +6,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,12 +21,11 @@ public class MarkingController {
 
   @PostMapping
   public ResponseEntity<Void> markQuestionAsIncorrect(
-      @RequestBody List<MarkingRequest> markingRequest) {
+      @AuthenticationPrincipal Long memberId, @RequestBody List<MarkingRequest> markingRequest) {
 
-    final Long userId = 1L; // TODO: 인증 기능이 추가되면 수정 필요
     List<MarkingServiceRequest> markingServiceRequest =
         markingRequest.stream()
-            .map(req -> new MarkingServiceRequest(userId, req.questionId(), req.isCorrect()))
+            .map(req -> new MarkingServiceRequest(memberId, req.questionId(), req.isCorrect()))
             .toList();
     markingService.markQuestionAsIncorrect(markingServiceRequest);
 
