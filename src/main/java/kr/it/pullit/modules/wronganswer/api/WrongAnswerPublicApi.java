@@ -1,3 +1,15 @@
 package kr.it.pullit.modules.wronganswer.api;
 
-public interface WrongAnswerPublicApi {}
+import java.util.List;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
+import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
+
+public interface WrongAnswerPublicApi {
+
+  CursorPageResponse<WrongAnswerSetResponse> getMyWrongAnswers(
+      Long memberId, Long cursor, int size);
+
+  List<WrongAnswerSetResponse> getAllMyWrongAnswers(Long memberId);
+
+  void markAsWrongAnswers(Long memberId, List<Long> questionIds);
+}

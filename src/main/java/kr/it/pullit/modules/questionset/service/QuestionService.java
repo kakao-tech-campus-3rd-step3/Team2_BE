@@ -3,6 +3,7 @@ package kr.it.pullit.modules.questionset.service;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -131,5 +132,10 @@ public class QuestionService implements QuestionPublicApi {
             .orElseThrow(
                 () -> new IllegalArgumentException("Question not found with id: " + questionId));
     return QuestionResponse.from(question);
+  }
+
+  @Override
+  public Optional<Question> findEntityById(Long questionId) {
+    return questionRepository.findById(questionId);
   }
 }
