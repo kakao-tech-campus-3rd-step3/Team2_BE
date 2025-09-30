@@ -1,8 +1,8 @@
 package kr.it.pullit.modules.wronganswer.api;
 
 import java.util.List;
-import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 
 public interface WrongAnswerPublicApi {
 

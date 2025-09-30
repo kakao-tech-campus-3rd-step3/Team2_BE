@@ -20,17 +20,14 @@ public class CookieManager {
   private final JwtProps jwtProps;
 
   public void addRefreshTokenCookie(
-      HttpServletResponse response,
-      String refreshToken,
-      String domain) {
+      HttpServletResponse response, String refreshToken, String domain) {
     long maxAge = jwtProps.refreshTokenExpirationDays().getSeconds();
     ResponseCookie cookie = createRefreshTokenCookie(refreshToken, maxAge, domain);
     log.info("Generated Refresh Token Cookie string: {}", cookie);
     response.addHeader("Set-Cookie", cookie.toString());
   }
 
-  private ResponseCookie createRefreshTokenCookie(
-      String value, long maxAge, String domain) {
+  private ResponseCookie createRefreshTokenCookie(String value, long maxAge, String domain) {
     ResponseCookie.ResponseCookieBuilder cookieBuilder =
         ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, value)
             .httpOnly(true)
