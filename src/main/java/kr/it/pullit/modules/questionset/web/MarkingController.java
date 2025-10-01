@@ -21,11 +21,11 @@ public class MarkingController {
 
   @PostMapping
   public ResponseEntity<Void> markQuestionAsIncorrect(
-      @AuthenticationPrincipal Long memberId, @RequestBody List<MarkingRequest> markingRequest) {
+      @RequestBody List<MarkingRequest> markingRequest, @AuthenticationPrincipal Long memberId) {
 
     List<MarkingServiceRequest> markingServiceRequest =
         markingRequest.stream()
-            .map(req -> new MarkingServiceRequest(memberId, req.questionId(), req.isCorrect()))
+            .map(req -> new MarkingServiceRequest(memberId, req.questionId()))
             .toList();
     markingService.markQuestionAsIncorrect(markingServiceRequest);
 
