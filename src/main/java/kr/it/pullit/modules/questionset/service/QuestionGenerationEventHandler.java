@@ -1,6 +1,8 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.event.SourceExtractionCompleteEvent;
+import kr.it.pullit.modules.learningsource.source.event.SourceExtractionStartEvent;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -14,8 +16,6 @@ import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.modules.source.domain.event.SourceExtractionCompleteEvent;
-import kr.it.pullit.modules.source.domain.event.SourceExtractionStartEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -57,7 +57,7 @@ public class QuestionGenerationEventHandler {
 
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSetByIdAndMemberId(event.questionSetId(), event.ownerId());
+        questionSetPublicApi.getQuestionSet(event.questionSetId(), event.ownerId(), false);
 
     QuestionGenerationSpecification specification =
         new QuestionGenerationSpecification(
@@ -69,7 +69,8 @@ public class QuestionGenerationEventHandler {
         event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
   }
 
-  private void saveQuestions(Long questionSetId, Long memberId, List<LlmGeneratedQuestionResponse> questionDtos) {
+  private void saveQuestions(
+      Long questionSetId, Long memberId, List<LlmGeneratedQuestionResponse> questionDtos) {
     QuestionSet questionSet = findQuestionSetById(questionSetId, memberId);
 
     for (LlmGeneratedQuestionResponse questionDto : questionDtos) {
@@ -81,7 +82,7 @@ public class QuestionGenerationEventHandler {
 
   private QuestionSet findQuestionSetById(Long questionSetId, Long memberId) {
     return questionSetPublicApi
-        .findEntityByIdAndMemberId(questionSetId,memberId)
+        .findEntityByIdAndMemberId(questionSetId, memberId)
         .orElseThrow(
             () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
   }
@@ -98,7 +99,7 @@ public class QuestionGenerationEventHandler {
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSetByIdAndMemberId(event.questionSetId(), event.ownerId());
+        questionSetPublicApi.getQuestionSet(event.questionSetId(), event.ownerId(), false);
     QuestionSetCreationCompleteResponse responseDto =
         new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
 

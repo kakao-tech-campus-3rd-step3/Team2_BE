@@ -82,4 +82,13 @@ public class Member extends BaseEntity {
   public void linkKakaoId(Long kakaoId) {
     this.kakaoId = kakaoId;
   }
+
+  public void updateMemberInfo(String email, String name) {
+    if (email != null && !email.isEmpty()) {
+      this.email = email;
+    }
+    if (name != null && !name.isEmpty()) {
+      this.name = name;
+    }
+  }
 }

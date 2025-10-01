@@ -99,4 +99,11 @@ public class Source extends BaseEntity {
         .max(LocalDateTime::compareTo)
         .orElse(null);
   }
+
+  public void updateFileInfo(String originalName, String contentType, Long fileSizeBytes) {
+    this.originalName = originalName;
+    this.contentType = contentType;
+    this.fileSizeBytes = fileSizeBytes;
+    this.status = SourceStatus.UPLOADED;
+  }
 }

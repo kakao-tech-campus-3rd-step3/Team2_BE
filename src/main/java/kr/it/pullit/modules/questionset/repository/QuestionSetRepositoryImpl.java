@@ -14,13 +14,24 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   private final QuestionSetJpaRepository questionSetJpaRepository;
 
   @Override
-  public Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId) {
-    return questionSetJpaRepository.findByIdWithQuestions(id, memberId);
+  public Optional<QuestionSet> findById(Long id) {
+    return questionSetJpaRepository.findById(id);
   }
 
   @Override
+  public Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId) {
+    return questionSetJpaRepository.findByIdAndMemberId(id, memberId);
+  }
+
+  @Override
+  public Optional<QuestionSet> findByIdWithQuestionsForSolve(Long id, Long memberId) {
+    return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
+  }
+
+  /** lazy loading을 위해 문제 목록을 제외한 문제집 메타데이터만 조회합니다. */
+  @Override
   public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
-    return questionSetJpaRepository.findQuestionSetByIdAndOwner_Id(id, memberId);
+    return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
   }
 
   @Override

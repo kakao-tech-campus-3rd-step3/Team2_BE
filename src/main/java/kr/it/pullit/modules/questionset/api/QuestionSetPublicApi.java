@@ -19,5 +19,4 @@ public interface QuestionSetPublicApi {
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
-
 }

@@ -6,7 +6,11 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 
 public interface QuestionSetRepository {
 
+  Optional<QuestionSet> findById(Long id);
+
   Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId);
+
+  Optional<QuestionSet> findByIdWithQuestionsForSolve(Long id, Long memberId);
 
   Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId);
 
@@ -14,5 +18,5 @@ public interface QuestionSetRepository {
 
   QuestionSet save(QuestionSet questionSet);
 
-  Optional<QuestionSet> findWrongAnswersByIdAndMemberId(Long id, Long memberId);
+  Optional<QuestionSet> findWrongAnswersByIdAndMemberId(Long questionSetId, Long memberId);
 }

@@ -1,12 +1,12 @@
 package kr.it.pullit.modules.learningsource.sourcefolder.service;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.sourcefolder.api.SourceFolderPublicApi;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.learningsource.sourcefolder.repository.SourceFolderRepository;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,9 +47,7 @@ public class SourceFolderService implements SourceFolderPublicApi {
 
   private SourceFolder createDefaultFolderForMember(Long memberId) {
     Optional<Member> maybeMember = memberPublicApi.findById(memberId);
-    Member member =
-        maybeMember.orElseThrow(
-            () -> new NoSuchElementException("Member not found with id: " + memberId));
+    Member member = maybeMember.orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
     SourceFolder folder =
         SourceFolder.builder()

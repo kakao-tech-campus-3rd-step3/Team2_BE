@@ -11,4 +11,5 @@ public record WrongAnswerSetResponse(
     List<String> sourceNames,
     DifficultyType difficulty,
     String majorTopic,
-    int incorrectCount) {}
+    int incorrectCount,
+    String category) {}

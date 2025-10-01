@@ -2,11 +2,11 @@ package kr.it.pullit.modules.wronganswer.repository;
 
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.modules.wronganswer.repository.adapter.jpa.WrongAnswerJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -34,16 +34,9 @@ public class WrongAnswerRepositoryImpl implements WrongAnswerRepository {
   }
 
   @Override
-  public List<Object[]> findWrongAnswerQuestionSetWithCursor(Long memberId, Long cursor,
-      Pageable pageable) {
-    return wrongAnswerJpaRepository.findWrongAnswerQuestionSetWithCursor(memberId, cursor,
-        pageable);
-  }
-
-  @Override
-  public List<Long> findWrongQuestionIdsByMemberIdAndQuestionSetId(Long memberId,
-      Long questionSetId) {
-    return wrongAnswerJpaRepository.findWrongQuestionIdsByMemberIdAndQuestionSetId(memberId,
-        questionSetId);
+  public List<Object[]> findWrongAnswerQuestionSetWithCursor(
+      Long memberId, Long cursor, Pageable pageable) {
+    return wrongAnswerJpaRepository.findWrongAnswerQuestionSetWithCursor(
+        memberId, cursor, pageable);
   }
 }

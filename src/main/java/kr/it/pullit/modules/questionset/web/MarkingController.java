@@ -1,6 +1,5 @@
 package kr.it.pullit.modules.questionset.web;
 
-import java.util.List;
 import kr.it.pullit.modules.questionset.service.MarkingService;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,30 +20,22 @@ public class MarkingController {
   private final MarkingService markingService;
 
   /**
-   * 문제풀이 과정을 다 마치고 호출 할 엔드포인트
-   * @param markingRequest questionId
-   * @param memberId memberId
-   * @return ResponseEntity<Void>
+   * 문제풀이 완료 후 채점 결과를 저장하는 엔드포인트
+   *
+   * @param markingRequest 문제 채점 요청 정보
+   * @param memberId 회원 ID
+   * @param isReviewing 오답노트 복습 모드 여부 (true: 맞힌 문제 제거, false: 틀린 문제 추가)
+   * @return ResponseEntity 응답
    */
   @PostMapping
-  public ResponseEntity<Void> markQuestionAsWrong(
-      @RequestBody MarkingRequest markingRequest, @AuthenticationPrincipal Long memberId) {
+  public ResponseEntity<Void> markQuestions(
+      @RequestBody MarkingRequest markingRequest,
+      @AuthenticationPrincipal Long memberId,
+      @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
-    MarkingServiceRequest markingServiceRequest = MarkingServiceRequest.of(memberId, markingRequest.questionIds());
-    markingService.markQuestionsAsWrong(markingServiceRequest);
-    return ResponseEntity.ok().build();
-  }
-
-  /**
-   * 오답노트 문제풀이 과정을 다 마치고 호출할 엔드포인트
-   * @return
-   */
-  @PostMapping
-  public ResponseEntity<Void> markQuestionAsCorrect(
-      @RequestBody MarkingRequest markingRequest, @AuthenticationPrincipal Long memberId
-      ) {
-    MarkingServiceRequest markingServiceRequest = MarkingServiceRequest.of(memberId, markingRequest.questionIds());
-    markingService.markQuestionsAsCorrect(markingServiceRequest);
+    MarkingServiceRequest markingServiceRequest =
+        MarkingServiceRequest.of(memberId, markingRequest.questionIds(), isReviewing);
+    markingService.markQuestions(markingServiceRequest);
     return ResponseEntity.ok().build();
   }
 }

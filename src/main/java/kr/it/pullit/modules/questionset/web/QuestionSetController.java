@@ -30,9 +30,8 @@ public class QuestionSetController {
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
-
-
-    QuestionSetResponse questionSetResponse = questionSetPublicApi.getQuestionSet(id, memberId, isReviewing);
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.getQuestionSet(id, memberId, isReviewing);
     return ResponseEntity.ok(questionSetResponse);
   }
 
