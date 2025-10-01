@@ -31,7 +31,7 @@ public class QuestionSetController {
       @PathVariable Long id,
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSet(id, memberId, isReviewing);
+        questionSetPublicApi.getQuestionSetForSolving(id, memberId, isReviewing);
     return ResponseEntity.ok(questionSetResponse);
   }
 

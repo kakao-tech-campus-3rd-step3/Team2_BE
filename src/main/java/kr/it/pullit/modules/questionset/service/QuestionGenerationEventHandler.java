@@ -57,7 +57,7 @@ public class QuestionGenerationEventHandler {
 
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSet(event.questionSetId(), event.ownerId(), false);
+        questionSetPublicApi.getQuestionSetWhenHaveNoQuestionsYet(event.questionSetId(), event.ownerId());
 
     QuestionGenerationSpecification specification =
         new QuestionGenerationSpecification(
@@ -99,7 +99,7 @@ public class QuestionGenerationEventHandler {
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSet(event.questionSetId(), event.ownerId(), false);
+        questionSetPublicApi.getQuestionSetForSolving(event.questionSetId(), event.ownerId(), false);
     QuestionSetCreationCompleteResponse responseDto =
         new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
 

@@ -10,7 +10,7 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 
 public interface QuestionSetPublicApi {
 
-  QuestionSetResponse getQuestionSet(Long id, Long memberId, Boolean isReviewing);
+  QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId, Boolean isReviewing);
 
   QuestionSetResponse create(QuestionSetCreateRequestDto request, Long ownerId);
 
@@ -19,4 +19,6 @@ public interface QuestionSetPublicApi {
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
+
+  QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }

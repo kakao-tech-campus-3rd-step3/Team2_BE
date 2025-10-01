@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -24,7 +25,7 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithQuestionsForSolve(Long id, Long memberId) {
+  public Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
   }
 
@@ -40,8 +41,13 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSet> findWrongAnswersByIdAndMemberId(Long id, Long memberId) {
+  public Optional<QuestionSet> findQuestionSetForReviewing(Long id, Long memberId) {
     return questionSetJpaRepository.findWrongAnswersByIdAndMemberId(id, memberId);
+  }
+
+  @Override
+  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
+    return questionSetJpaRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId).map(QuestionSetResponse::new);
   }
 
   @Override

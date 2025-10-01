@@ -3,6 +3,7 @@ package kr.it.pullit.modules.questionset.repository;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 
 public interface QuestionSetRepository {
 
@@ -10,7 +11,7 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId);
 
-  Optional<QuestionSet> findByIdWithQuestionsForSolve(Long id, Long memberId);
+  Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId);
 
   Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId);
 
@@ -18,5 +19,7 @@ public interface QuestionSetRepository {
 
   QuestionSet save(QuestionSet questionSet);
 
-  Optional<QuestionSet> findWrongAnswersByIdAndMemberId(Long questionSetId, Long memberId);
+  Optional<QuestionSet> findQuestionSetForReviewing(Long questionSetId, Long memberId);
+
+  Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }

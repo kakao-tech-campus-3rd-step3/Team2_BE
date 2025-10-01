@@ -39,27 +39,4 @@ public class QuestionSetResponse {
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
   }
-
-  private QuestionSetResponse(
-      Long id,
-      List<Long> sourceIds,
-      Long ownerID,
-      String title,
-      List<QuestionResponse> questions,
-      DifficultyType difficulty,
-      QuestionType type,
-      Integer questionLength,
-      LocalDateTime createTime,
-      LocalDateTime updateTime) {
-    this.id = id;
-    this.sourceIds = sourceIds;
-    this.ownerID = ownerID;
-    this.title = title;
-    this.questions = questions;
-    this.difficulty = difficulty;
-    this.type = type;
-    this.questionLength = questionLength;
-    this.createTime = createTime;
-    this.updateTime = updateTime;
-  }
 }

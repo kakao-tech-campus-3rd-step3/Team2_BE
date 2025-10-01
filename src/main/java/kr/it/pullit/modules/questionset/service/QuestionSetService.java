@@ -39,17 +39,25 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
-  public QuestionSetResponse getQuestionSet(Long id, Long memberId, Boolean isReviewing) {
+  @Transactional(readOnly = true)
+  public QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
+    return questionSetRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId).orElseThrow(()->
+        QuestionSetNotFoundException.byId(id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId, Boolean isReviewing) {
     if (isReviewing) {
       return getQuestionSetForReviewing(id, memberId);
     }
-    return getQuestionSetForSolving(id, memberId);
+    return getQuestionSetForFirstSolving(id, memberId);
   }
 
-  private QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId) {
+  private QuestionSetResponse getQuestionSetForFirstSolving(Long id, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findByIdWithQuestionsForSolve(id, memberId)
+            .findByIdWithQuestionsForFirstSolving(id, memberId)
             .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
 
     return new QuestionSetResponse(questionSet);
@@ -57,7 +65,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private QuestionSetResponse getQuestionSetForReviewing(Long id, Long memberId) {
     return questionSetRepository
-        .findWrongAnswersByIdAndMemberId(id, memberId)
+        .findQuestionSetForReviewing(id, memberId)
         .map(QuestionSetResponse::new)
         .orElseThrow(
             () -> {
@@ -154,6 +162,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId) {
     return questionSetRepository.findByIdWithoutQuestions(id, memberId);
   }

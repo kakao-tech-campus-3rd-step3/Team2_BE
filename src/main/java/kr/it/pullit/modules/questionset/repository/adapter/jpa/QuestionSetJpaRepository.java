@@ -55,4 +55,14 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       @Param("id") Long id, @Param("memberId") Long memberId);
 
   Optional<QuestionSet> findByIdAndOwnerId(Long id, Long ownerId);
+
+  @Query(
+      """
+        SELECT qs
+        FROM QuestionSet qs
+        WHERE qs.id = :id
+        AND qs.owner.id = :memberId
+        AND qs.status != 'COMPLETE'
+      """)
+  Optional<QuestionSet> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }
