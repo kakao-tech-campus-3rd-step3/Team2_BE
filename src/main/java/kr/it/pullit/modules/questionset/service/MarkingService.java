@@ -1,47 +1,29 @@
 package kr.it.pullit.modules.questionset.service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.repository.MemberRepository;
-import kr.it.pullit.modules.questionset.domain.entity.IncorrectAnswerQuestion;
-import kr.it.pullit.modules.questionset.domain.entity.Question;
-import kr.it.pullit.modules.questionset.repository.IncorrectAnswerQuestionRepository;
-import kr.it.pullit.modules.questionset.repository.QuestionRepository;
+import java.util.stream.Collectors;
+import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
+import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class MarkingService {
-  private final IncorrectAnswerQuestionRepository incorrectAnswerQuestionRepository;
-  private final QuestionRepository questionRepository;
-  private final MemberRepository memberRepository;
+public class MarkingService implements MarkingPublicApi {
 
-  public void markQuestionAsIncorrect(List<MarkingServiceRequest> request) {
-    Objects.requireNonNull(request, "questionId must not be null");
+  private final WrongAnswerPublicApi wrongAnswerPublicApi;
 
-    List<IncorrectAnswerQuestion> inCorrectAnswers = new ArrayList<>();
-
-    for (MarkingServiceRequest req : request) {
-      if (req.isCorrect()) {
-        continue;
-      }
-
-      Member member =
-          memberRepository
-              .findById(req.userId())
-              .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-      Question question =
-          questionRepository
-              .findById(req.questionId())
-              .orElseThrow(() -> new IllegalArgumentException("Question not found"));
-
-      inCorrectAnswers.add(new IncorrectAnswerQuestion(member, question));
+  @Override
+  public void markQuestionAsIncorrect(List<MarkingServiceRequest> requests) {
+    if (requests == null || requests.isEmpty()) {
+      return;
     }
 
-    incorrectAnswerQuestionRepository.saveAll(inCorrectAnswers);
+    Long memberId = requests.getFirst().memberId();
+    List<Long> questionIds =
+        requests.stream().map(MarkingServiceRequest::questionId).collect(Collectors.toList());
+
+    wrongAnswerPublicApi.markAsWrongAnswers(memberId, questionIds);
   }
 }

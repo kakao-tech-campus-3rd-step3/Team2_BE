@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.api;
 
 import java.util.List;
+import java.util.Optional;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
@@ -21,4 +22,6 @@ public interface QuestionPublicApi {
   void deleteQuestion(Long questionId);
 
   QuestionResponse getQuestionById(Long questionId);
+
+  Optional<Question> findEntityById(Long questionId);
 }
