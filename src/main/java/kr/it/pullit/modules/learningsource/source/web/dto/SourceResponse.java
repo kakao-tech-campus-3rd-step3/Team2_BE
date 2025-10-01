@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 
 /**
  * 내 학습 소스 조회 응답 DTO
@@ -32,12 +31,6 @@ public record SourceResponse(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
         LocalDateTime recentQuestionGeneratedAt) {
   public static SourceResponse from(Source source) {
-    LocalDateTime recentQuestionGeneratedAt =
-        source.getQuestionSets().stream()
-            .map(QuestionSet::getCreatedAt)
-            .max(LocalDateTime::compareTo)
-            .orElse(null);
-
     return new SourceResponse(
         source.getId(),
         source.getOriginalName(),
@@ -47,6 +40,6 @@ public record SourceResponse(
         source.getPageCount(),
         source.getFileSizeBytes(),
         source.getCreatedAt(),
-        recentQuestionGeneratedAt);
+        source.getRecentQuestionGeneratedAt());
   }
 }

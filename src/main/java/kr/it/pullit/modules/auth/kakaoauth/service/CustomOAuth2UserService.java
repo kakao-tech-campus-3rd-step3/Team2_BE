@@ -24,6 +24,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
   private final MemberPublicApi memberPublicApi;
 
+  // TODO: 외부 API연동할 때 응답부에서 Value Object를 도출해서 타입체크하거나, 적어도 Optional로 받아서 예외 상황에 대한 에러 핸들링
+  // TODO: CustomOAuth2UserService의 역할이 너무 많음. OAuth2 인증, 사용자 데이터 추출, 멤버 생성/조회..
+
   @Override
   @Transactional
   @SuppressWarnings("unchecked")

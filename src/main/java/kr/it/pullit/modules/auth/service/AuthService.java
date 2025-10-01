@@ -16,6 +16,8 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class AuthService {
 
+  // TODO: REVIEW-3 : 메서드를 기능 단위로 추출해보세요. 그리고 값을 꺼내서 처리하고 있다면 Value Object를 도출하거나 객체에게 메시지를 보내보세요.
+
   private final MemberPublicApi memberPublicApi;
   private final JwtTokenPort jwtTokenPort;
 
@@ -41,7 +43,6 @@ public class AuthService {
     AuthTokens newAuthTokens =
         jwtTokenPort.createAuthTokens(member.getId(), member.getEmail(), Role.USER);
     member.updateRefreshToken(newAuthTokens.refreshToken());
-    // memberPublicApi.save(member); <-- This line is redundant due to dirty checking
 
     return newAuthTokens;
   }
@@ -75,6 +76,5 @@ public class AuthService {
             .findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("Cannot find member by id"));
     member.updateRefreshToken(null);
-    // memberPublicApi.save(member); <-- This line is redundant due to dirty checking
   }
 }

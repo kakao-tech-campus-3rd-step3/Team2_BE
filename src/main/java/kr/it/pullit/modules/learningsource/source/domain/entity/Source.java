@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
@@ -90,5 +91,12 @@ public class Source extends BaseEntity {
         .fileSizeBytes(param.fileSizeBytes())
         .status(SourceStatus.UPLOADED)
         .build();
+  }
+
+  public LocalDateTime getRecentQuestionGeneratedAt() {
+    return questionSets.stream()
+        .map(QuestionSet::getCreatedAt)
+        .max(LocalDateTime::compareTo)
+        .orElse(null);
   }
 }

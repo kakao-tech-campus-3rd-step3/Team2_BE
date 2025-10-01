@@ -23,6 +23,7 @@ import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.shared.jpa.BaseEntity;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -64,6 +65,7 @@ public class QuestionSet extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private QuestionSetStatus status;
 
+  @Builder
   public QuestionSet(
       Member owner,
       Set<Source> sources,
