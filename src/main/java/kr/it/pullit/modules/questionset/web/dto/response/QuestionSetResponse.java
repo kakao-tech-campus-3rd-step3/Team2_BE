@@ -32,11 +32,33 @@ public class QuestionSetResponse {
     this.questionLength = questionSet.getQuestionLength();
     this.createTime = questionSet.getCreatedAt();
     this.updateTime = questionSet.getUpdatedAt();
-    this.questions =
-        questionSet.getQuestions().stream()
-            .map(QuestionResponse::from)
-            .collect(Collectors.toList());
+    this.questions = questionSet.getQuestions().stream().map(QuestionResponse::from)
+        .collect(Collectors.toList());
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
+  }
+
+  private QuestionSetResponse(Long id, List<Long> sourceIds, Long ownerID, String title,
+      List<QuestionResponse> questions, DifficultyType difficulty, QuestionType type,
+      Integer questionLength, LocalDateTime createTime, LocalDateTime updateTime) {
+    this.id = id;
+    this.sourceIds = sourceIds;
+    this.ownerID = ownerID;
+    this.title = title;
+    this.questions = questions;
+    this.difficulty = difficulty;
+    this.type = type;
+    this.questionLength = questionLength;
+    this.createTime = createTime;
+    this.updateTime = updateTime;
+  }
+
+  public static QuestionSetResponse createWithFilteredQuestions(QuestionSet questionSet,
+      List<QuestionResponse> filteredQuestions, int questionCount) {
+    return new QuestionSetResponse(questionSet.getId(),
+        questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList()),
+        questionSet.getOwner().getId(), questionSet.getTitle(), filteredQuestions,
+        questionSet.getDifficulty(), questionSet.getType(), questionCount,
+        questionSet.getCreatedAt(), questionSet.getUpdatedAt());
   }
 }

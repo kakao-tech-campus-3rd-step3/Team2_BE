@@ -15,15 +15,17 @@ public class MarkingService implements MarkingPublicApi {
   private final WrongAnswerPublicApi wrongAnswerPublicApi;
 
   @Override
-  public void markQuestionAsIncorrect(List<MarkingServiceRequest> requests) {
-    if (requests == null || requests.isEmpty()) {
-      return;
+  public void markQuestionsAsWrong(MarkingServiceRequest request) {
+    if (request == null || request.questionIds() == null || request.questionIds().isEmpty()) {
+      throw new IllegalArgumentException("request or questionIds is null or empty");
     }
-
-    Long memberId = requests.getFirst().memberId();
-    List<Long> questionIds =
-        requests.stream().map(MarkingServiceRequest::questionId).collect(Collectors.toList());
-
-    wrongAnswerPublicApi.markAsWrongAnswers(memberId, questionIds);
+    wrongAnswerPublicApi.markAsWrongAnswers(request.memberId(), request.questionIds());
+  }
+  @Override
+  public void markQuestionsAsCorrect(MarkingServiceRequest request) {
+    if (request == null || request.questionIds() == null || request.questionIds().isEmpty()) {
+      throw new IllegalArgumentException("request or questionIds is null or empty");
+    }
+    wrongAnswerPublicApi.markAsCorrectAnswers(request.memberId(), request.questionIds());
   }
 }

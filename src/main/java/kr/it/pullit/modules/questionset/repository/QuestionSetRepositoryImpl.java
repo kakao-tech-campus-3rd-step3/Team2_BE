@@ -14,13 +14,13 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   private final QuestionSetJpaRepository questionSetJpaRepository;
 
   @Override
-  public Optional<QuestionSet> findById(Long id) {
-    return questionSetJpaRepository.findByIdWithQuestions(id);
+  public Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId) {
+    return questionSetJpaRepository.findByIdWithQuestions(id, memberId);
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithoutQuestions(Long id) {
-    return questionSetJpaRepository.findById(id);
+  public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
+    return questionSetJpaRepository.findQuestionSetByIdAndOwner_Id(id, memberId);
   }
 
   @Override
@@ -29,7 +29,12 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findByUserId(Long userId) {
-    return questionSetJpaRepository.findByUserId(userId);
+  public Optional<QuestionSet> findWrongAnswersByIdAndMemberId(Long id, Long memberId) {
+    return questionSetJpaRepository.findWrongAnswersByIdAndMemberId(id, memberId);
+  }
+
+  @Override
+  public List<QuestionSet> findByMemberId(Long memberId) {
+    return questionSetJpaRepository.findByMemberId(memberId);
   }
 }

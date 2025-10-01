@@ -5,5 +5,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 
 public interface MarkingPublicApi {
 
-  void markQuestionAsIncorrect(List<MarkingServiceRequest> requests);
+  void markQuestionsAsWrong(MarkingServiceRequest request);
+
+  void markQuestionsAsCorrect(MarkingServiceRequest request);
 }

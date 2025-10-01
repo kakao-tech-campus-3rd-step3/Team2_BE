@@ -88,6 +88,16 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
     }
   }
 
+  @Override
+  public void markAsCorrectAnswers(Long memberId, List<Long> questionIds) {
+    for (Long questionId : questionIds) {
+      WrongAnswer wrongAnswer = wrongAnswerRepository.findByMemberIdAndQuestionId(memberId,
+              questionId)
+          .orElseThrow(() -> new IllegalArgumentException("Wrong answer not found"));
+      wrongAnswer.markAsReviewed();
+    }
+  }
+
   private WrongAnswerSetResponse mapToDto(Object[] result) {
     QuestionSet questionSet = (QuestionSet) result[0];
     long incorrectCount = (long) result[1];

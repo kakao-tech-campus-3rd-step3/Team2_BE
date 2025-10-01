@@ -19,16 +19,31 @@ public class MarkingController {
 
   private final MarkingService markingService;
 
+  /**
+   * 문제풀이 과정을 다 마치고 호출 할 엔드포인트
+   * @param markingRequest questionId
+   * @param memberId memberId
+   * @return ResponseEntity<Void>
+   */
   @PostMapping
-  public ResponseEntity<Void> markQuestionAsIncorrect(
-      @RequestBody List<MarkingRequest> markingRequest, @AuthenticationPrincipal Long memberId) {
+  public ResponseEntity<Void> markQuestionAsWrong(
+      @RequestBody MarkingRequest markingRequest, @AuthenticationPrincipal Long memberId) {
 
-    List<MarkingServiceRequest> markingServiceRequest =
-        markingRequest.stream()
-            .map(req -> new MarkingServiceRequest(memberId, req.questionId()))
-            .toList();
-    markingService.markQuestionAsIncorrect(markingServiceRequest);
+    MarkingServiceRequest markingServiceRequest = MarkingServiceRequest.of(memberId, markingRequest.questionIds());
+    markingService.markQuestionsAsWrong(markingServiceRequest);
+    return ResponseEntity.ok().build();
+  }
 
+  /**
+   * 오답노트 문제풀이 과정을 다 마치고 호출할 엔드포인트
+   * @return
+   */
+  @PostMapping
+  public ResponseEntity<Void> markQuestionAsCorrect(
+      @RequestBody MarkingRequest markingRequest, @AuthenticationPrincipal Long memberId
+      ) {
+    MarkingServiceRequest markingServiceRequest = MarkingServiceRequest.of(memberId, markingRequest.questionIds());
+    markingService.markQuestionsAsCorrect(markingServiceRequest);
     return ResponseEntity.ok().build();
   }
 }

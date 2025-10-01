@@ -17,6 +17,7 @@ import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -29,16 +30,57 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private final QuestionSetRepository questionSetRepository;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
+  private final WrongAnswerPublicApi wrongAnswerPublicApi;
   private final ApplicationEventPublisher eventPublisher;
 
-  @Transactional(readOnly = true)
-  public QuestionSetResponse getQuestionSetById(Long id) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("문제집을 찾을 수 없습니다"));
+  @Override
+  public QuestionSetResponse getQuestionSet(Long id, Long memberId, Boolean isReviewing) {
+    if (isReviewing) {
+      return getQuestionSetForReviewing(id, memberId);
+    }
+    return getQuestionSetForSolving(id, memberId);
+  }
+
+  private QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId) {
+    QuestionSet questionSet = questionSetRepository
+        .findByIdWithQuestionsForSolve(id)
+        .orElseThrow(() -> {
+          // COMPLETE가 아닌 경우 상태 확인
+          QuestionSet qs = questionSetRepository.findById(id)
+              .orElseThrow(() -> new NotFoundException("문제집을 찾을 수 없습니다."));
+
+          return switch (qs.getStatus()) {
+            case PENDING -> new QuestionSetNotReadyException("문제집이 아직 생성 중입니다.");
+            case FAILED -> new QuestionSetFailedException("문제집 생성에 실패했습니다.");
+            default -> new NotFoundException("문제집을 찾을 수 없습니다.");
+          };
+        });
+
     return new QuestionSetResponse(questionSet);
   }
+
+  private QuestionSetResponse getQuestionSetForReviewing(Long id, Long memberId) {
+    QuestionSet questionSet = questionSetRepository
+        .findWrongAnswersById(id, memberId)
+        .orElseThrow(() -> {
+          // COMPLETE가 아니거나 복습할 오답이 없는 경우
+          QuestionSet qs = questionSetRepository.findById(id)
+              .orElseThrow(() -> new NotFoundException("문제집을 찾을 수 없습니다."));
+
+          if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
+            return switch (qs.getStatus()) {
+              case PENDING -> new QuestionSetNotReadyException("문제집이 아직 생성 중입니다.");
+              case FAILED -> new QuestionSetFailedException("문제집 생성에 실패했습니다.");
+              default -> new NotFoundException("문제집을 찾을 수 없습니다.");
+            };
+          }
+
+          return new NotFoundException("복습할 오답이 없습니다.");
+        });
+
+    return new QuestionSetResponse(questionSet);
+  }
+
 
   @Transactional
   public QuestionSetResponse create(QuestionSetCreateRequestDto request, Long ownerId) {
@@ -69,13 +111,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MyQuestionSetsResponse> getUserQuestionSets(Long userId) {
+  public List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId) {
     Member member =
         memberPublicApi
-            .findById(userId)
+            .findById(memberId)
             .orElseThrow(() -> new IllegalArgumentException("맴버를 찾을 수 없습니다."));
 
-    List<QuestionSet> questionSets = questionSetRepository.findByUserId(userId);
+    List<QuestionSet> questionSets = questionSetRepository.findByMemberId(memberId);
     List<MyQuestionSetsResponse> myQuestionSetsResponses = new ArrayList<>();
 
     for (QuestionSet questionSet : questionSets) {
@@ -111,7 +153,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  public Optional<QuestionSet> findEntityById(Long id) {
-    return questionSetRepository.findByIdWithoutQuestions(id);
+  public Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId) {
+    return questionSetRepository.findByIdWithoutQuestions(id, memberId);
   }
 }
