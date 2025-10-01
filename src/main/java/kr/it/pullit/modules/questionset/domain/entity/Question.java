@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import java.util.List;
 import kr.it.pullit.shared.jpa.BaseEntity;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -51,6 +52,7 @@ public class Question extends BaseEntity {
    * @param answer 정답
    * @param explanation 해설
    */
+  @Builder
   public Question(
       QuestionSet questionSet,
       String questionText,

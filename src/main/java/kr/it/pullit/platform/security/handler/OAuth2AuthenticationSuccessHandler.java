@@ -59,7 +59,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     String targetUrl = determineTargetUrl(request, authTokens.accessToken());
     String cookieDomain = determineBackendCookieDomain(request);
 
-    cookieManager.addRefreshTokenCookie(request, response, authTokens.refreshToken(), cookieDomain);
+    cookieManager.addRefreshTokenCookie(response, authTokens.refreshToken(), cookieDomain);
 
     log.info("모든 `Set-Cookie` 헤더: {}", response.getHeaders("Set-Cookie"));
     log.info("리다이렉션 주소: {}", targetUrl);
