@@ -46,8 +46,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
-    return questionSetJpaRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId).map(QuestionSetResponse::new);
+  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(
+      Long id, Long memberId) {
+    return questionSetJpaRepository
+        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+        .map(QuestionSetResponse::new);
   }
 
   @Override

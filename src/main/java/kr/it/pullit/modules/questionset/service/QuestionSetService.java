@@ -41,8 +41,9 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional(readOnly = true)
   public QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
-    return questionSetRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId).orElseThrow(()->
-        QuestionSetNotFoundException.byId(id));
+    return questionSetRepository
+        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
   }
 
   @Override
