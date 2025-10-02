@@ -7,16 +7,23 @@ import java.util.Optional;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
+import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
+import kr.it.pullit.shared.error.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -31,13 +38,64 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private final MemberPublicApi memberPublicApi;
   private final ApplicationEventPublisher eventPublisher;
 
+  @Override
   @Transactional(readOnly = true)
-  public QuestionSetResponse getQuestionSetById(Long id) {
+  public QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
+    return questionSetRepository
+        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId, Boolean isReviewing) {
+    if (isReviewing) {
+      return getQuestionSetForReviewing(id, memberId);
+    }
+    return getQuestionSetForFirstSolving(id, memberId);
+  }
+
+  private QuestionSetResponse getQuestionSetForFirstSolving(Long id, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("문제집을 찾을 수 없습니다"));
+            .findByIdWithQuestionsForFirstSolving(id, memberId)
+            .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
+
     return new QuestionSetResponse(questionSet);
+  }
+
+  private QuestionSetResponse getQuestionSetForReviewing(Long id, Long memberId) {
+    return questionSetRepository
+        .findQuestionSetForReviewing(id, memberId)
+        .map(QuestionSetResponse::new)
+        .orElseThrow(
+            () -> {
+              QuestionSet qs =
+                  questionSetRepository
+                      .findByIdAndMemberId(id, memberId)
+                      .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
+
+              if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
+                return handleQuestionSetStatusException(qs);
+              }
+
+              return WrongAnswerNotFoundException.withMessage("복습할 오답이 없습니다.");
+            });
+  }
+
+  private RuntimeException handleQuestionSetNotFound(Long id, Long memberId) {
+    return questionSetRepository
+        .findByIdAndMemberId(id, memberId)
+        .map(this::handleQuestionSetStatusException)
+        .orElse(QuestionSetNotFoundException.byId(id));
+  }
+
+  private BusinessException handleQuestionSetStatusException(QuestionSet qs) {
+    return switch (qs.getStatus()) {
+      case PENDING -> QuestionSetNotReadyException.byId(qs.getId());
+      case FAILED -> QuestionSetFailedException.byId(qs.getId());
+      default -> QuestionSetNotFoundException.byId(qs.getId());
+    };
   }
 
   @Transactional
@@ -45,13 +103,11 @@ public class QuestionSetService implements QuestionSetPublicApi {
     List<Source> sources = sourcePublicApi.findByIdIn(request.sourceIds());
 
     if (sources.isEmpty()) {
-      throw new IllegalArgumentException("소스가 존재하지 않습니다.");
+      throw SourceNotFoundException.withMessage("소스가 존재하지 않습니다.");
     }
 
     Member owner =
-        memberPublicApi
-            .findById(ownerId)
-            .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다"));
+        memberPublicApi.findById(ownerId).orElseThrow(() -> MemberNotFoundException.byId(ownerId));
 
     Set<Source> sourceSet = new HashSet<>(sources);
     String title = sources.getFirst().getOriginalName();
@@ -69,13 +125,10 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MyQuestionSetsResponse> getUserQuestionSets(Long userId) {
-    Member member =
-        memberPublicApi
-            .findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("맴버를 찾을 수 없습니다."));
+  public List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId) {
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    List<QuestionSet> questionSets = questionSetRepository.findByUserId(userId);
+    List<QuestionSet> questionSets = questionSetRepository.findByMemberId(memberId);
     List<MyQuestionSetsResponse> myQuestionSetsResponses = new ArrayList<>();
 
     for (QuestionSet questionSet : questionSets) {
@@ -105,13 +158,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
     QuestionSet questionSet =
         questionSetRepository
             .findById(questionSetId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("문제집을 찾을 수 없습니다. ID: " + questionSetId));
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
     questionSet.updateStatus(status);
   }
 
   @Override
-  public Optional<QuestionSet> findEntityById(Long id) {
-    return questionSetRepository.findByIdWithoutQuestions(id);
+  @Transactional(readOnly = true)
+  public Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId) {
+    return questionSetRepository.findByIdWithoutQuestions(id, memberId);
   }
 }

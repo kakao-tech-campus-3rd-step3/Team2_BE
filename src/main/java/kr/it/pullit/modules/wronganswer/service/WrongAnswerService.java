@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -88,9 +89,27 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
     }
   }
 
+  @Override
+  public void markAsCorrectAnswers(Long memberId, List<Long> questionIds) {
+    for (Long questionId : questionIds) {
+      WrongAnswer wrongAnswer =
+          wrongAnswerRepository
+              .findByMemberIdAndQuestionId(memberId, questionId)
+              .orElseThrow(() -> new IllegalArgumentException("Wrong answer not found"));
+      wrongAnswer.markAsReviewed();
+    }
+  }
+
   private WrongAnswerSetResponse mapToDto(Object[] result) {
     QuestionSet questionSet = (QuestionSet) result[0];
     long incorrectCount = (long) result[1];
+
+    String category =
+        questionSet.getSources().stream()
+            .findFirst()
+            .map(Source::getSourceFolder)
+            .map(SourceFolder::getName)
+            .orElse("미분류");
 
     return WrongAnswerSetResponse.builder()
         .questionSetId(questionSet.getId())
@@ -102,6 +121,7 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
         .difficulty(questionSet.getDifficulty())
         .majorTopic("미구현")
         .incorrectCount((int) incorrectCount)
+        .category(category)
         .build();
   }
 }

@@ -34,7 +34,9 @@ public class MemberService implements MemberPublicApi {
   public Optional<Member> findOrCreateMember(SocialLoginCommand command) {
     Optional<Member> memberByKakao = memberRepository.findByKakaoId(command.kakaoId());
     if (memberByKakao.isPresent()) {
-      return memberByKakao;
+      Member member = memberByKakao.get();
+      member.updateMemberInfo(command.email(), command.name());
+      return Optional.of(memberRepository.save(member));
     }
 
     Member memberToReturn =
@@ -43,6 +45,7 @@ public class MemberService implements MemberPublicApi {
             .map(
                 existing -> {
                   existing.linkKakaoId(command.kakaoId());
+                  existing.updateMemberInfo(command.email(), command.name());
                   return memberRepository.save(existing);
                 })
             .orElseGet(

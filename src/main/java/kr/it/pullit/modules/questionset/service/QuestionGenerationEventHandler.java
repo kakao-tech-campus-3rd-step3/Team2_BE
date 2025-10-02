@@ -1,12 +1,12 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.event.SourceExtractionCompleteEvent;
+import kr.it.pullit.modules.learningsource.source.event.SourceExtractionStartEvent;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
-import kr.it.pullit.modules.notification.service.NotificationService;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.client.GeminiClient;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
@@ -16,8 +16,6 @@ import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.modules.source.domain.event.SourceExtractionCompleteEvent;
-import kr.it.pullit.modules.source.domain.event.SourceExtractionStartEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -32,9 +30,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class QuestionGenerationEventHandler {
 
-  private final GeminiClient geminiClient;
   private final SourceRepository sourceRepository;
-  private final NotificationService notificationService;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
@@ -55,13 +51,14 @@ public class QuestionGenerationEventHandler {
   private void processQuestionGeneration(QuestionSetCreatedEvent event) {
     QuestionGenerationRequest request = createGenerationRequest(event);
     List<LlmGeneratedQuestionResponse> questionDtos = questionPublicApi.generateQuestions(request);
-    saveQuestions(event.questionSetId(), questionDtos);
+    saveQuestions(event.questionSetId(), event.ownerId(), questionDtos);
     questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.COMPLETE);
   }
 
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSetById(event.questionSetId());
+        questionSetPublicApi.getQuestionSetWhenHaveNoQuestionsYet(
+            event.questionSetId(), event.ownerId());
 
     QuestionGenerationSpecification specification =
         new QuestionGenerationSpecification(
@@ -73,8 +70,9 @@ public class QuestionGenerationEventHandler {
         event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
   }
 
-  private void saveQuestions(Long questionSetId, List<LlmGeneratedQuestionResponse> questionDtos) {
-    QuestionSet questionSet = findQuestionSetById(questionSetId);
+  private void saveQuestions(
+      Long questionSetId, Long memberId, List<LlmGeneratedQuestionResponse> questionDtos) {
+    QuestionSet questionSet = findQuestionSetById(questionSetId, memberId);
 
     for (LlmGeneratedQuestionResponse questionDto : questionDtos) {
       log.info("Generated Question: {}", questionDto.questionText());
@@ -83,9 +81,9 @@ public class QuestionGenerationEventHandler {
     }
   }
 
-  private QuestionSet findQuestionSetById(Long questionSetId) {
+  private QuestionSet findQuestionSetById(Long questionSetId, Long memberId) {
     return questionSetPublicApi
-        .findEntityById(questionSetId)
+        .findEntityByIdAndMemberId(questionSetId, memberId)
         .orElseThrow(
             () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
   }
@@ -102,7 +100,8 @@ public class QuestionGenerationEventHandler {
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSetById(event.questionSetId());
+        questionSetPublicApi.getQuestionSetForSolving(
+            event.questionSetId(), event.ownerId(), false);
     QuestionSetCreationCompleteResponse responseDto =
         new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
 

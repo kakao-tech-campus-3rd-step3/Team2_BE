@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -25,15 +26,19 @@ public class QuestionSetController {
   private final QuestionSetPublicApi questionSetPublicApi;
 
   @GetMapping("/{id}")
-  public ResponseEntity<QuestionSetResponse> getQuestionSetById(@PathVariable Long id) {
-    QuestionSetResponse questionSetResponse = questionSetPublicApi.getQuestionSetById(id);
+  public ResponseEntity<QuestionSetResponse> getQuestionSetById(
+      @AuthenticationPrincipal Long memberId,
+      @PathVariable Long id,
+      @RequestParam(defaultValue = "false") Boolean isReviewing) {
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.getQuestionSetForSolving(id, memberId, isReviewing);
     return ResponseEntity.ok(questionSetResponse);
   }
 
   @GetMapping
   public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId) {
-    return ResponseEntity.ok(questionSetPublicApi.getUserQuestionSets(memberId));
+    return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId));
   }
 
   @PostMapping

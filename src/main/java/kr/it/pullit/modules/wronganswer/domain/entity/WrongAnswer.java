@@ -33,11 +33,15 @@ public class WrongAnswer extends BaseEntity {
   @JoinColumn(name = "question_id")
   private Question question;
 
-  @Column private Boolean corrected;
+  @Column private Boolean isReviewed;
 
   public WrongAnswer(Member member, Question question) {
     this.member = member;
     this.question = question;
-    this.corrected = false;
+    this.isReviewed = false;
+  }
+
+  public void markAsReviewed() {
+    this.isReviewed = true;
   }
 }
