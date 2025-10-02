@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
+import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.member.domain.entity.Member;
@@ -67,7 +68,7 @@ class SourceServiceTest {
 
     // when & then
     assertThatThrownBy(() -> sourceService.getContentBytes(nonExistentSourceId, memberId))
-        .isInstanceOf(IllegalArgumentException.class)
+        .isInstanceOf(SourceNotFoundException.class)
         .hasMessageContaining("소스를 찾을 수 없습니다.");
   }
 }

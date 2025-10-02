@@ -1,11 +1,12 @@
 package kr.it.pullit.modules.auth.service;
 
+import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.domain.entity.Role;
-import kr.it.pullit.platform.security.exception.InvalidRefreshTokenException;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.platform.security.jwt.JwtTokenPort;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
+import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class AuthService {
     Member member =
         memberPublicApi
             .findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Cannot find member by id"));
+            .orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
     String existingRefreshToken = member.getRefreshToken();
 
@@ -34,14 +35,12 @@ public class AuthService {
     if (StringUtils.hasText(existingRefreshToken)
         && jwtTokenPort.validateToken(existingRefreshToken)
             instanceof TokenValidationResult.Valid) {
-      String newAccessToken =
-          jwtTokenPort.createAccessToken(member.getId(), member.getEmail(), Role.USER);
+      String newAccessToken = jwtTokenPort.createAccessToken(TokenCreationSubject.from(member));
       return new AuthTokens(newAccessToken, existingRefreshToken);
     }
 
     // 기존 토큰이 없거나 유효하지 않으면 새로 발급
-    AuthTokens newAuthTokens =
-        jwtTokenPort.createAuthTokens(member.getId(), member.getEmail(), Role.USER);
+    AuthTokens newAuthTokens = jwtTokenPort.createAuthTokens(TokenCreationSubject.from(member));
     member.updateRefreshToken(newAuthTokens.refreshToken());
 
     return newAuthTokens;
@@ -49,24 +48,14 @@ public class AuthService {
 
   @Transactional(readOnly = true)
   public String reissueAccessToken(String refreshToken) {
-    if (!StringUtils.hasText(refreshToken)) {
-      throw new InvalidRefreshTokenException();
-    }
-
-    TokenValidationResult result = jwtTokenPort.validateToken(refreshToken);
-    if (result instanceof TokenValidationResult.Invalid) {
-      throw new InvalidRefreshTokenException();
-    }
-    if (result instanceof TokenValidationResult.Expired) {
-      throw new InvalidRefreshTokenException();
-    }
+    validateRefreshToken(refreshToken);
 
     Member member =
         memberPublicApi
             .findByRefreshToken(refreshToken)
-            .orElseThrow(InvalidRefreshTokenException::new);
+            .orElseThrow(InvalidRefreshTokenException::by);
 
-    return jwtTokenPort.createAccessToken(member.getId(), member.getEmail(), Role.USER);
+    return jwtTokenPort.createAccessToken(TokenCreationSubject.from(member));
   }
 
   @Transactional
@@ -74,7 +63,17 @@ public class AuthService {
     Member member =
         memberPublicApi
             .findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("Cannot find member by id"));
+            .orElseThrow(() -> MemberNotFoundException.byId(memberId));
     member.updateRefreshToken(null);
+  }
+
+  private void validateRefreshToken(String refreshToken) {
+    if (!StringUtils.hasText(refreshToken)) {
+      throw InvalidRefreshTokenException.by();
+    }
+    TokenValidationResult result = jwtTokenPort.validateToken(refreshToken);
+    if (!(result instanceof TokenValidationResult.Valid)) {
+      throw InvalidRefreshTokenException.by();
+    }
   }
 }

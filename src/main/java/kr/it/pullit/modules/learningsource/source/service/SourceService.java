@@ -1,11 +1,11 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
+import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
@@ -14,6 +14,7 @@ import kr.it.pullit.modules.learningsource.sourcefolder.api.SourceFolderPublicAp
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
@@ -47,25 +48,34 @@ public class SourceService implements SourcePublicApi {
       throw new IllegalArgumentException("S3에 해당 파일이 존재하지 않습니다.");
     }
 
-    SourceCreationParam sourceCreationParam =
-        new SourceCreationParam(
-            memberId,
-            request.getOriginalName(),
-            request.getFilePath(),
-            request.getContentType(),
-            request.getFileSizeBytes());
+    Optional<Source> existingSource =
+        sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath());
 
-    Member member =
-        memberPublicApi
-            .findById(memberId)
-            .orElseThrow(
-                () -> new NoSuchElementException("there is no member with id: " + memberId));
+    if (existingSource.isPresent()) {
+      Source source = existingSource.get();
+      source.updateFileInfo(
+          request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
+      sourceRepository.save(source);
+    } else {
+      SourceCreationParam sourceCreationParam =
+          new SourceCreationParam(
+              memberId,
+              request.getOriginalName(),
+              request.getFilePath(),
+              request.getContentType(),
+              request.getFileSizeBytes());
 
-    SourceFolder sourceFolder = sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
+      Member member =
+          memberPublicApi
+              .findById(memberId)
+              .orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    Source source = Source.create(sourceCreationParam, member, sourceFolder);
+      SourceFolder sourceFolder = sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
 
-    sourceRepository.save(source);
+      Source source = Source.create(sourceCreationParam, member, sourceFolder);
+
+      sourceRepository.save(source);
+    }
   }
 
   @Override
@@ -81,7 +91,7 @@ public class SourceService implements SourcePublicApi {
     Source source =
         sourceRepository
             .findByIdAndMemberId(sourceId, memberId)
-            .orElseThrow(() -> new IllegalArgumentException("소스를 찾을 수 없습니다. ID: " + sourceId));
+            .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
 
     return s3PublicApi.downloadFileAsBytes(source.getFilePath());
   }

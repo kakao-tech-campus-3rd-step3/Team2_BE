@@ -15,7 +15,6 @@ public class OAuth2AuthorizationRequestRepository
     implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
   public static final String OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME = "oauth2_auth_request";
-  private static final int COOKIE_EXPIRE_SECONDS = 180;
 
   // Note: For simplicity, this implementation uses the session to store the request.
   // A cookie-based implementation could also be used for statelessness.

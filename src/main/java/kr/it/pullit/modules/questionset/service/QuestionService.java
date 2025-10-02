@@ -12,6 +12,8 @@ import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestion
 import kr.it.pullit.modules.questionset.domain.entity.LlmPrompt;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
+import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
@@ -33,11 +35,8 @@ public class QuestionService implements QuestionPublicApi {
 
   public List<LlmGeneratedQuestionResponse> generateQuestions(QuestionGenerationRequest request) {
     questionSetRepository
-        .findById(request.questionSetId())
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "QuestionSet not found with id: " + request.questionSetId()));
+        .findByIdAndMemberId(request.questionSetId(), request.ownerId())
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(request.questionSetId()));
 
     LlmPrompt llmPrompt =
         LlmPrompt.compose(
@@ -65,10 +64,10 @@ public class QuestionService implements QuestionPublicApi {
   @Transactional
   public void saveQuestion(Question question) {
     Long questionSetId = question.getQuestionSet().getId();
+    Long memberId = question.getQuestionSet().getOwner().getId();
     questionSetRepository
-        .findById(questionSetId)
-        .orElseThrow(
-            () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
+        .findByIdAndMemberId(questionSetId, memberId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     questionRepository.save(question);
   }
@@ -79,10 +78,7 @@ public class QuestionService implements QuestionPublicApi {
     var questionSet =
         questionSetRepository
             .findById(requestDto.questionSetId())
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "QuestionSet not found with id: " + requestDto.questionSetId()));
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(requestDto.questionSetId()));
 
     Question question =
         new Question(
@@ -102,8 +98,7 @@ public class QuestionService implements QuestionPublicApi {
     Question question =
         questionRepository
             .findById(questionId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Question not found with id: " + questionId));
+            .orElseThrow(() -> QuestionNotFoundException.byId(questionId));
 
     question.update(
         requestDto.questionText(),
@@ -119,7 +114,7 @@ public class QuestionService implements QuestionPublicApi {
   @Transactional
   public void deleteQuestion(Long questionId) {
     if (questionRepository.findById(questionId).isEmpty()) {
-      throw new IllegalArgumentException("Question not found with id: " + questionId);
+      throw QuestionNotFoundException.byId(questionId);
     }
     questionRepository.deleteById(questionId);
   }
@@ -129,8 +124,7 @@ public class QuestionService implements QuestionPublicApi {
     Question question =
         questionRepository
             .findById(questionId)
-            .orElseThrow(
-                () -> new IllegalArgumentException("Question not found with id: " + questionId));
+            .orElseThrow(() -> QuestionNotFoundException.byId(questionId));
     return QuestionResponse.from(question);
   }
 

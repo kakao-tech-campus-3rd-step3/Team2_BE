@@ -34,12 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     String token = jwtTokenPort.resolveToken(request);
-    log.info("[JwtFilter] Request URI: {}", request.getRequestURI());
-    log.info("[JwtFilter] Resolved Token: {}", (token != null ? "found" : "not found"));
+    log.debug("[JwtFilter] Request URI: {}", request.getRequestURI());
+    log.debug("[JwtFilter] Resolved Token: {}", (token != null ? "found" : "not found"));
 
     if (StringUtils.hasText(token)) {
       TokenValidationResult validationResult = jwtTokenPort.validateToken(token);
-      log.info(
+      log.debug(
           "[JwtFilter] Token validation result: {}", validationResult.getClass().getSimpleName());
 
       switch (validationResult) {
@@ -49,26 +49,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           PullitAuthenticationToken authentication =
               new PullitAuthenticationToken(memberId, email, decodedJwt);
           SecurityContextHolder.getContext().setAuthentication(authentication);
-          log.info(
+          log.debug(
               "[JwtFilter] Authentication successful, set in SecurityContext for user: {}", email);
-          log.info(
-              "[JwtFilter] Verification check in filter: {}",
-              SecurityContextHolder.getContext().getAuthentication());
         }
-        case TokenValidationResult.Expired expired -> {
+        case TokenValidationResult.Expired ignored -> {
           log.warn("[JwtFilter] Expired JWT token received.");
-          sendErrorResponse(response, "만료된 토큰");
+          sendErrorResponse(response, "만료된 토큰입니다.");
           return;
         }
         case TokenValidationResult.Invalid(String errorMessage) -> {
           log.warn("[JwtFilter] Invalid JWT token received. Reason: {}", errorMessage);
-          sendErrorResponse(response, "유효하지 않은 토큰: " + errorMessage);
+          sendErrorResponse(response, "유효하지 않은 토큰입니다: " + errorMessage);
           return;
         }
-        default -> {}
       }
     } else {
-      log.info("[JwtFilter] No JWT token found in Authorization header.");
+      log.debug("[JwtFilter] No JWT token found in Authorization header.");
     }
 
     filterChain.doFilter(request, response);

@@ -10,13 +10,15 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 
 public interface QuestionSetPublicApi {
 
-  QuestionSetResponse getQuestionSetById(Long id);
+  QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId, Boolean isReviewing);
 
   QuestionSetResponse create(QuestionSetCreateRequestDto request, Long ownerId);
 
   void updateStatus(Long questionSetId, QuestionSetStatus status);
 
-  Optional<QuestionSet> findEntityById(Long id);
+  Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
-  List<MyQuestionSetsResponse> getUserQuestionSets(Long userId);
+  List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
+
+  QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }

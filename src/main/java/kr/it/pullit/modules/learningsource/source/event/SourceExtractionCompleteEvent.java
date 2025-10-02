@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.source.domain.event;
+package kr.it.pullit.modules.learningsource.source.event;
 
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 

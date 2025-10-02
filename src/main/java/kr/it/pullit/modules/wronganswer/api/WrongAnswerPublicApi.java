@@ -12,4 +12,6 @@ public interface WrongAnswerPublicApi {
   List<WrongAnswerSetResponse> getAllMyWrongAnswers(Long memberId);
 
   void markAsWrongAnswers(Long memberId, List<Long> questionIds);
+
+  void markAsCorrectAnswers(Long memberId, List<Long> questionIds);
 }
