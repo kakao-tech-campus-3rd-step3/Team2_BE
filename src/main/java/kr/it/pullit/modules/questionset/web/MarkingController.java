@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
+import java.util.List;
 import kr.it.pullit.modules.questionset.service.MarkingService;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
@@ -29,13 +30,12 @@ public class MarkingController {
    */
   @PostMapping
   public ResponseEntity<Void> markQuestions(
-      @RequestBody MarkingRequest markingRequest,
+      @RequestBody List<MarkingRequest> markingRequest,
       @AuthenticationPrincipal Long memberId,
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
     MarkingServiceRequest markingServiceRequest =
-        MarkingServiceRequest.of(
-            memberId, markingRequest.questionIds(), markingRequest.answer(), isReviewing);
+        MarkingServiceRequest.of(memberId, markingRequest, isReviewing);
     markingService.markQuestions(markingServiceRequest);
     return ResponseEntity.ok().build();
   }
