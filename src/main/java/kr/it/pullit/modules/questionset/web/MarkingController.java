@@ -34,7 +34,8 @@ public class MarkingController {
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
     MarkingServiceRequest markingServiceRequest =
-        MarkingServiceRequest.of(memberId, markingRequest.questionIds(), isReviewing);
+        MarkingServiceRequest.of(
+            memberId, markingRequest.questionIds(), markingRequest.answer(), isReviewing);
     markingService.markQuestions(markingServiceRequest);
     return ResponseEntity.ok().build();
   }
