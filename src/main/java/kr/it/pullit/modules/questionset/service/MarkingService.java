@@ -6,6 +6,7 @@ import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class MarkingService implements MarkingPublicApi {
   private final QuestionPublicApi questionPublicApi;
 
   @Override
-  public void markQuestions(MarkingServiceRequest request) {
+  public MarkQuestionsResponse markQuestions(MarkingServiceRequest request) {
     if (request == null
         || request.markingRequests() == null
         || request.markingRequests().isEmpty()) {
@@ -42,6 +43,8 @@ public class MarkingService implements MarkingPublicApi {
     } else {
       wrongAnswerPublicApi.markAsWrongAnswers(request.memberId(), questionIds);
     }
+
+    return new MarkQuestionsResponse(questionIds.size());
   }
 
   private boolean isTargetAnswer(String userAnswer, String correctAnswer, Boolean isReviewing) {
