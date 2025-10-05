@@ -1,161 +1,257 @@
--- =========================================================================================
--- Pullit Local Development Seed Data
--- =========================================================================================
--- This script is executed when the Docker container is first created.
--- It populates the database with initial data for local development and testing.
--- Note: The table schema is managed by Flyway. This script should only contain INSERT statements.
--- Using `ON DUPLICATE KEY UPDATE` to prevent errors if the script is run multiple times.
--- =========================================================================================
+SET FOREIGN_KEY_CHECKS=0;
 
--- -----------------------------------------------------
--- Table `members` (5 members)
--- -----------------------------------------------------
-INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
-VALUES (1, 1000000001, 'test.user@example.com', '테스트유저', 'ACTIVE',
-        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyZWZyZXNoLXRva2VuIiwiaWF0IjoxNzE5MzA2NzUzLCJleHAiOjE3MjA1MTYzNTN9.t-28-t1i-X22a3_Q1sZ6_x_x_x_x_x_x',
-        NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
+LOCK TABLES `question` WRITE;
+/*!40000 ALTER TABLE `question` DISABLE KEYS */;
+INSERT INTO `question` (`created_at`, `id`, `question_set_id`, `updated_at`, `answer`, `explanation`, `question_text`) VALUES ('2025-10-05 18:58:54.109236',1,1,'2025-10-05 18:58:54.109236','1개','2020학년도 편입생부터 꿈-설계 교과목 중 1개 교과목 이상 이수해야 합니다.','2018학년도 신입생이 반드시 이수해야 하는 \'꿈-설계\' 교과목 중 하나로, \"진로탐색과 꿈-설계\"와 \"직업선택과 꿈-설계\"가 있습니다. 2020학년도 편입생의 경우 \'꿈-설계\' 교과목 중 몇 개 이상을 이수해야 하나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.134115',2,1,'2025-10-05 18:58:54.134115','학점: 1, 이론: 1, 실습: 0, 설계: 0','1학년 1학기 전선 교과목 \'진로탐색과 꿈-설계(Career Planning)\'는 학점 1, 이론 1, 실습 0, 설계 0으로 구성됩니다.','컴퓨터공학과 2학년 1학기 전선 과목으로 개설된 \'진로탐색과 꿈-설계(Career Planning)\' 교과목의 학점 및 시수는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.150579',3,1,'2025-10-05 18:58:54.150579','학점: 3, 이론: 2, 실습: 2, 설계: 0','2학년 1학기 전필 과목 \'자료구조(Data Structures)\'는 학점 3, 이론 2, 실습 2, 설계 0으로 구성됩니다.','컴퓨터공학과 2학년 1학기 전필 과목인 \'자료구조(Data Structures)\'의 학점 및 시수는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.163269',4,1,'2025-10-05 18:58:54.163269','학점: 3, 이론: 3, 실습: 0, 설계: 0','3학년 1학기 전필 과목 \'운영체제(Operating Systems)\'는 학점 3, 이론 3, 실습 0, 설계 0으로 구성됩니다.','컴퓨터공학과 3학년 1학기 전필 과목으로 개설된 \'운영체제(Operating Systems)\' 교과목의 학점 및 시수는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.173143',5,1,'2025-10-05 18:58:54.173143','학점: 3, 이론: 3, 실습: 0, 설계: 0','3학년 2학기 전필 과목 \'데이터베이스(Database)\'는 학점 3, 이론 3, 실습 0, 설계 0으로 구성됩니다.','컴퓨터공학과 3학년 2학기 전필 과목 중 \'데이터베이스(Database)\'의 학점 및 시수는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.183068',6,1,'2025-10-05 18:58:54.183068','학점: 3, 이론: 0, 실습: 6, 설계: 0','4학년 1학기 전선 과목 \'캡스톤디자인1(Capstone Design 1)\'는 학점 3, 이론 0, 실습 6, 설계 0으로 구성됩니다.','컴퓨터공학과 4학년 1학기 전선 과목인 \'캡스톤디자인1(Capstone Design 1)\'의 학점 및 시수는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.197757',7,1,'2025-10-05 18:58:54.197757','학점: 3, 이론: 2, 실습: 2, 설계: 0','4학년 2학기 전선 과목 \'자연어처리(Natural Language Processing)\'는 학점 3, 이론 2, 실습 2, 설계 0으로 구성됩니다.','컴퓨터공학과 4학년 2학기 전선 과목으로 개설된 \'자연어처리(Natural Language Processing)\'의 학점 및 시수는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 18:58:54.208300',8,1,'2025-10-05 18:58:54.208300','소프트웨어융합전공','타 학과 인정 교과목 중 \'SW개발도구및환경\'은 소프트웨어융합전공에서 개설됩니다.','타 학과 인정 교과목 중, \'SW개발도구및환경\' 교과목의 개설 학과(전공)는 어디인가요?'),
+                                                                                                                              ('2025-10-05 18:58:54.220149',9,1,'2025-10-05 18:58:54.220149','130학점','영역별 이수 학점표에서 졸업 학점(합계)은 130학점입니다.','컴퓨터공학과 졸업에 필요한 총 이수 학점은 얼마인가요?'),
+                                                                                                                              ('2025-10-05 18:58:54.235069',10,1,'2025-10-05 18:58:54.235069','4과목(12학점)','편성 현황의 전공 필수 구분에서 4과목(12학점)을 이수해야 합니다.','컴퓨터공학과 전공 필수 과목은 몇 개이며, 총 몇 학점을 이수해야 하나요?'),
+                                                                                                                              ('2025-10-05 19:00:05.651883',11,3,'2025-10-05 19:00:05.651883','내부 인력의 앱 검사 또는 개발자 가이드라인 미준수','앱 심사 과정에서 내부 인력의 수동 검사가 포함될 수 있으며, 이 과정에서 개발자 가이드라인 미준수, 로그인 정보 누락 등으로 인해 반려가 발생할 수 있습니다. 이는 예상보다 오래 걸리는 배포 과정의 한 원인입니다.','Android 앱 배포 시, 앱 심사 과정에서 예상치 못한 지연이나 반려가 발생하는 주된 이유는 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.673441',12,3,'2025-10-05 19:00:05.673441','앱의 용량을 줄이고 각 기기에 최적화된 APK를 생성합니다.','AAB는 각 기기 설정에 최적화된 APK를 생성하여 앱의 다운로드 크기를 줄이고, 온디맨드 앱 기능 및 애셋-온리 모듈을 지원하는 이점이 있습니다.','Android 앱 배포를 위해 AAB(Android App Bundle)를 사용하는 주된 이점은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.688973',13,3,'2025-10-05 19:00:05.688973','새로운 패키지 이름으로 새 앱을 게시해야 합니다.','앱 서명 키는 앱 업데이트의 신뢰성을 보장하는 데 필수적입니다. 키 저장소를 분실하면 이전 키로 앱을 업데이트할 수 없으므로, 새로운 패키지 이름으로 앱을 다시 게시해야 합니다.','Android 앱 배포 시, 앱 서명 키 저장소를 분실했을 경우 어떤 조치를 취해야 하나요?'),
+                                                                                                                              ('2025-10-05 19:00:05.702063',14,3,'2025-10-05 19:00:05.702063','호환되지 않는 변경 사항이 포함된 경우','시맨틱 버저닝에서 메이저 버전은 호환되지 않는 변경 사항이 포함되었을 때 업데이트됩니다. 마이너 버전은 호환되는 기능 추가, 패치 버전은 호환되는 버그 수정을 의미합니다.','\'시맨틱 버저닝\'에서 메이저 버전 업데이트가 의미하는 것은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.707972',15,3,'2025-10-05 19:00:05.707972','개인정보처리방침을 호스팅하는 URL','Google Play 개발자 프로그램 정책에 따라, 앱이 사용자 데이터를 어떻게 다루고 저장하는지를 명시하는 개인정보처리방침 문서를 제공해야 하며, 이를 호스팅하는 URL을 입력하여 첨부해야 합니다.','앱의 개인정보처리방침을 플레이 스토어에 등록할 때, 필수적으로 제공해야 하는 정보는 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.716396',16,3,'2025-10-05 19:00:05.716396','앱의 소스 코드를 보호하여 역공학을 어렵게 만들기 위해','난독화(Obfuscation)는 앱의 코드 구조를 복잡하게 만들어 외부에서 코드를 분석하거나 복제하기 어렵게 만드는 보안 기법입니다. 이를 통해 앱의 지적 재산권을 보호할 수 있습니다.','Android 앱 개발 시, \'난독화 적용\'의 주된 목적은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.725166',17,3,'2025-10-05 19:00:05.725166','미화 25달러의 등록 수수료 결제','Google Play 개발자 계정을 생성하기 위해서는 일회성 등록 수수료(미화 25달러)를 결제해야 합니다. 또한, 비공개 테스트를 위해 14일 이상 20명 이상의 테스터가 필요합니다.','플레이 스토어에 신규 앱을 등록하기 위한 개발자 계정 생성 시, 추가적으로 요구되는 조건은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.738865',18,3,'2025-10-05 19:00:05.738865','release는 난독화가 적용되고, debug는 적용되지 않습니다.','일반적으로 \'release\' 빌드 타입은 프로덕션 환경을 위한 것이므로 보안을 강화하기 위해 난독화(minifyEnabled = true)가 적용됩니다. 반면 \'debug\' 빌드 타입은 개발 및 테스트 목적으로 사용되며, 난독화가 적용되지 않아(minifyEnabled = false) 디버깅이 용이합니다.','Android 앱의 \'빌드 타입(buildType)\' 설정에서 \'release\'와 \'debug\'의 가장 큰 차이점은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.748967',19,3,'2025-10-05 19:00:05.748967','앱의 일부 또는 전체 기능이 로그인, 멤버십, 위치 인증 등에 의해 제한될 때','앱의 액세스 권한 섹션은 사용자의 로그인 정보, 멤버십, 위치 등 특정 인증을 기반으로 앱의 특정 기능 또는 전체 기능이 제한되는 경우, Google이 해당 기능을 검토할 수 있도록 필요한 정보를 제공하기 위해 사용됩니다.','Android 앱의 \'앱 액세스 권한\' 섹션에서 Google에 제공해야 하는 정보는 언제 필요한가요?'),
+                                                                                                                              ('2025-10-05 19:00:05.758117',20,3,'2025-10-05 19:00:05.758117','그래픽 이미지 및 스크린샷','플레이 스토어 등록 정보에는 앱의 이름, 아이콘, 간단한 설명, 자세한 설명, 그래픽 이미지, 그리고 사용자가 앱의 기능을 시각적으로 확인할 수 있도록 하는 스크린샷(휴대전화 및 태블릿용) 등이 포함됩니다.','Android 앱에서 \'스크린샷\'은 플레이 스토어 등록 정보 중 어떤 항목에 해당하나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.568093',21,4,'2025-10-05 19:01:31.568093','최소 일주일 이상','OCR 텍스트에서 \'앱 심사 과정에서 수동으로 내부 인력들이 앱을 검사하기도 하여 최소 일주일 이상 소요될 수 있다.\'라고 명시되어 있습니다.','안드로이드 앱 배포 시, 내부 인력이 앱을 검사하는 과정에서 최소 얼마나 소요될 수 있다고 언급되었나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.585256',22,4,'2025-10-05 19:01:31.585256','더 빠른 앱 출시 속도','AAB의 장점으로는 \'Smaller download size (작은 다운로드 크기)\', \'On-demand app features (온디맨드 앱 기능)\', \'Asset-only modules (에셋 전용 모듈)\'이 언급되었으나, 더 빠른 앱 출시 속도는 직접적으로 언급되지 않았습니다.','AAB(Android App Bundle)의 장점으로 언급되지 않은 것은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:01:31.592581',23,4,'2025-10-05 19:01:31.592581','Android App Bundle','OCR 텍스트에서 \'Android App Bundle\'을 선택하고 \'Next\'를 눌러 진행하는 과정을 보여줍니다.','Android Studio에서 앱을 빌드하고 서명하기 위해 \'Generate Signed Bundle / APK\' 메뉴를 선택한 후, 어떤 옵션을 선택해야 AAB 생성이 시작되나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.607277',24,4,'2025-10-05 19:01:31.607277','개발자 연락처','스토어 등록 정보에는 앱 이름/아이콘, 간단한 설명, 자세한 설명, 그래픽 이미지, 스크린샷 등이 포함됩니다. 개발자 연락처는 직접적으로 언급되지 않았습니다.','앱을 플레이 스토어에 배포하기 위해 필요한 \'스토어 등록 정보\'에 해당하지 않는 것은 무엇인가요?'),
+                                                                                                                              ('2025-10-05 19:01:31.620379',25,4,'2025-10-05 19:01:31.620379','호환되지 않는 수준의 변경','슬라이드 9에서 시맨틱 버저닝에 대해 설명하며 \'메이저: 호환되지 않는 수준의 변경\'이라고 명시되어 있습니다.','안드로이드 앱의 시맨틱 버저닝(Semantic Versioning)에서 \'메이저(Major)\' 버전 변경은 어떤 경우에 해당하나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.626494',26,4,'2025-10-05 19:01:31.626494','true','슬라이드 6과 7에서 `release` 빌드 타입 내에서 `isMinifyEnabled = true`로 설정되어 있음을 확인할 수 있습니다. 이는 릴리즈 시 코드 난독화 및 최적화를 활성화하기 위함입니다.','프로젝트의 `buildTypes` 설정에서 `release` 빌드의 `isMinifyEnabled` 값은 일반적으로 어떻게 설정되나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.640048',27,4,'2025-10-05 19:01:31.640048','앱 콘텐츠','슬라이드 18에서는 \'앱 콘텐츠\' 섹션에서 앱의 안전성, 정책 준수, 법규 충족 여부를 확인하기 위해 Google에 정보를 제공하고 관리한다고 설명합니다.','앱을 배포하기 전, Google Play 개발자 프로그램 정책을 준수하고 현지 법규를 충족하는지 확인하기 위해 Google에 어떤 정보를 제공하고 관리하는 공간이 필요한가요?'),
+                                                                                                                              ('2025-10-05 19:01:31.647477',28,4,'2025-10-05 19:01:31.647477','개인정보처리방침을 호스팅하는 URL','슬라이드 18에서 \'개인정보처리방침을 호스팅하는 URL을 입력하여 첨부해야 한다.\'고 명시되어 있습니다.','앱의 \'개인정보처리방침\'을 등록할 때, 어떤 정보를 입력해야 하나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.655863',29,4,'2025-10-05 19:01:31.655863','Build > Generate Signed Bundle / APK...','슬라이드 12에서 \'1. Build > Generate Signed Bundle / APK..\'로 메뉴 경로를 안내하고 있습니다.','AAB(Android App Bundle)를 생성하기 위한 메뉴 경로는 어떻게 되나요?'),
+                                                                                                                              ('2025-10-05 19:01:31.664672',30,4,'2025-10-05 19:01:31.664672','미화 25달러','슬라이드 10에서 \'등록 수수료(미화 25달러)를 결제\'한다고 명시되어 있습니다.','플레이 스토어 개발자 계정 생성 시 등록 수수료는 얼마인가요?'),
+                                                                                                                              ('2025-10-05 19:06:55.733742',31,5,'2025-10-05 19:06:55.733742','진로탐색과 꿈-설계','2018학년도 신입생부터 \'진로탐색과 꿈-설계\'와 \'직업선택과 꿈-설계\' 두 개의 꿈-설계 교과목을 모두 이수해야 합니다.','컴퓨터공학과에서 2018학년도 신입생부터 필수적으로 이수해야 하는 교과목은 무엇인가?'),
+                                                                                                                              ('2025-10-05 19:06:55.756053',32,5,'2025-10-05 19:06:55.756053','선형대수학','2학년 1학기에 개설된 전필(필수) 교과목은 \'자료구조\'(4471010)와 \'이산수학\'(4471008)입니다. \'논리회로및실습\'(4471011)은 전선(선택) 과목이며, \'선형대수학\'(4471012)은 전선(선택) 과목입니다.','다음 중 컴퓨터공학과에서 2학년 1학기에 개설된 전필(필수) 교과목이 아닌 것은?'),
+                                                                                                                              ('2025-10-05 19:06:55.763106',33,5,'2025-10-05 19:06:55.763106','4471030','2학년 2학기에 개설된 \'데이터베이스\' 교과목의 번호는 4471030입니다. \'마이크로프로세서\'(4471018), \'시스템프로그래밍\'(4471020), \'임베디드시스템\'(4471033)은 같은 학기에 개설된 다른 교과목입니다.','컴퓨터공학과에서 2학년 2학기에 개설된 교과목 중 \'데이터베이스\'의 교과목 번호는 무엇인가?'),
+                                                                                                                              ('2025-10-05 19:06:55.770899',34,5,'2025-10-05 19:06:55.770899','운영체제','3학년 1학기에 개설된 전필(필수) 교과목은 \'운영체제\'(4471022)입니다. \'데이터통신\'(4471023), \'사물인터넷실습\'(4471024), \'신호처리\'(4471025)는 모두 해당 학기에 개설된 전선(선택) 과목입니다.','다음 중 3학년 1학기에 개설된 전필(필수) 교과목은 무엇인가?'),
+                                                                                                                              ('2025-10-05 19:06:55.785814',35,5,'2025-10-05 19:06:55.785814','3학점, 이론 0, 실습 6, 설계 0','4학년 1학기에 개설된 \'캡스톤디자인1\'(4471042)은 3학점이며, 이론 0, 실습 6, 설계 0의 시수로 구성됩니다.','컴퓨터공학과에서 \'캡스톤디자인1\'의 학점 및 시수는 어떻게 되는가?'),
+                                                                                                                              ('2025-10-05 19:06:55.799817',36,5,'2025-10-05 19:06:55.799817','컴퓨터그래픽스','\'SW개발도구및환경\'(4705008), \'SW국내단기현장실습\'(2220052), \'SW창업입문\'(2230030)은 \'타 학과 인정 교과목\' 목록에 포함되어 있습니다. \'컴퓨터그래픽스\'(4471026)는 컴퓨터공학과 자체 개설 과목입니다.','다음 중 \'타 학과 인정 교과목\'에 해당하는 교과목이 아닌 것은?'),
+                                                                                                                              ('2025-10-05 19:06:55.807866',37,5,'2025-10-05 19:06:55.807866','130학점','교양 영역의 총 이수 학점은 41학점이고, 전공 영역의 총 이수 학점은 42학점(최소전공 필수) + 47학점(전공 선택) = 89학점입니다. 따라서 총 이수 학점은 41 + 89 = 130학점입니다. \'졸업 학점(합계)\' 항목에 130으로 표기되어 있습니다.','컴퓨터공학과 졸업에 필요한 총 학점은 얼마인가? (단, 이수 구분별 최소 이수 학점 기준)'),
+                                                                                                                              ('2025-10-05 19:06:55.821501',38,5,'2025-10-05 19:06:55.821501','SW창업입문','\'SW국외단기현장실습(8주이내)\'(2220057), \'SW국내장기현장실습\'(2220054), \'SW국내단기현장실습\'(2220053)은 소프트웨어중심대학사업단에서 운영하는 현장실습 과목입니다. \'SW창업입문\'(2230030)은 현장실습 과목이 아닙니다.','4학년 2학기에 개설된 \'컴퓨터공학\' 관련 교과목 중 \'소프트웨어중심대학사업단\'에서 운영하는 현장실습 과목이 아닌 것은?'),
+                                                                                                                              ('2025-10-05 19:06:55.843281',39,5,'2025-10-05 19:06:55.843281','1개','2020학년도 편입생부터는 \'꿈-설계\' 교과목 중 1개 교과목 이상을 이수해야 합니다.','2020학년도 편입생부터 \'꿈-설계\' 교과목 중 몇 개 이상을 이수해야 하는가?'),
+                                                                                                                              ('2025-10-05 19:06:55.856583',40,5,'2025-10-05 19:06:55.856583','인공지능(전선)은 3학점, 이론 3, 실습 2, 설계 0이다.','3학년 2학기에 개설된 \'인공지능\'(4471032) 교과목은 3학점, 이론 3, 실습 0, 설계 0입니다. \'컴퓨터구조\'(4471029), \'데이터베이스\'(4471030), \'디지털영상처리\'(4471031)는 제시된 학점 및 시수가 맞습니다.','다음 중 3학년 2학기에 개설된 교과목에 대한 설명으로 옳지 않은 것은?');
+/*!40000 ALTER TABLE `question` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
-VALUES (2, 1000000002, 'alice@example.com', '앨리스', 'ACTIVE', NULL, NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
+LOCK TABLES `question_options` WRITE;
+/*!40000 ALTER TABLE `question_options` DISABLE KEYS */;
+INSERT INTO `question_options` (`question_id`, `options`) VALUES (1,'1개'),
+                                                                 (1,'2개'),
+                                                                 (1,'3개'),
+                                                                 (1,'4개'),
+                                                                 (2,'학점: 1, 이론: 1, 실습: 0, 설계: 0'),
+                                                                 (2,'학점: 3, 이론: 2, 실습: 2, 설계: 0'),
+                                                                 (2,'학점: 3, 이론: 3, 실습: 0, 설계: 0'),
+                                                                 (2,'학점: 2, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (3,'학점: 3, 이론: 2, 실습: 2, 설계: 0'),
+                                                                 (3,'학점: 3, 이론: 3, 실습: 0, 설계: 0'),
+                                                                 (3,'학점: 2, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (3,'학점: 3, 이론: 1, 실습: 2, 설계: 0'),
+                                                                 (4,'학점: 3, 이론: 3, 실습: 0, 설계: 0'),
+                                                                 (4,'학점: 3, 이론: 2, 실습: 2, 설계: 0'),
+                                                                 (4,'학점: 3, 이론: 1, 실습: 0, 설계: 0'),
+                                                                 (4,'학점: 2, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (5,'학점: 3, 이론: 3, 실습: 0, 설계: 0'),
+                                                                 (5,'학점: 3, 이론: 2, 실습: 2, 설계: 0'),
+                                                                 (5,'학점: 3, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (5,'학점: 2, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (6,'학점: 3, 이론: 0, 실습: 6, 설계: 0'),
+                                                                 (6,'학점: 3, 이론: 3, 실습: 0, 설계: 0'),
+                                                                 (6,'학점: 3, 이론: 2, 실습: 2, 설계: 0'),
+                                                                 (6,'학점: 3, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (7,'학점: 3, 이론: 2, 실습: 2, 설계: 0'),
+                                                                 (7,'학점: 3, 이론: 3, 실습: 0, 설계: 0'),
+                                                                 (7,'학점: 3, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (7,'학점: 2, 이론: 1, 실습: 1, 설계: 0'),
+                                                                 (8,'소프트웨어융합전공'),
+                                                                 (8,'컴퓨터공학과'),
+                                                                 (8,'인공지능학과'),
+                                                                 (8,'정보통신공학과'),
+                                                                 (9,'130학점'),
+                                                                 (9,'120학점'),
+                                                                 (9,'140학점'),
+                                                                 (9,'150학점'),
+                                                                 (10,'4과목(12학점)'),
+                                                                 (10,'3과목(9학점)'),
+                                                                 (10,'5과목(15학점)'),
+                                                                 (10,'4과목(16학점)'),
+                                                                 (11,'개발자 계정 정보가 잘못 기입되었을 때'),
+                                                                 (11,'내부 인력의 앱 검사 또는 개발자 가이드라인 미준수'),
+                                                                 (11,'앱 이름이 너무 길 때'),
+                                                                 (11,'앱 아이콘이 저해상도일 때'),
+                                                                 (12,'앱의 용량을 줄이고 각 기기에 최적화된 APK를 생성합니다.'),
+                                                                 (12,'앱 서명 키 관리를 단순화합니다.'),
+                                                                 (12,'앱 출시 후 즉시 업데이트가 가능하게 합니다.'),
+                                                                 (12,'플레이 스토어 등록 수수료를 면제받을 수 있습니다.'),
+                                                                 (13,'새로운 앱 서명 키를 발급받아 이전 키와 함께 사용합니다.'),
+                                                                 (13,'키 저장소를 복구할 수 있는 전문 업체에 의뢰합니다.'),
+                                                                 (13,'새로운 패키지 이름으로 새 앱을 게시해야 합니다.'),
+                                                                 (13,'플레이 콘솔에 앱 복구 요청서를 제출합니다.'),
+                                                                 (14,'호환되는 버그 수정이 포함된 경우'),
+                                                                 (14,'호환되지 않는 변경 사항이 포함된 경우'),
+                                                                 (14,'호환되는 기능 추가가 포함된 경우'),
+                                                                 (14,'기존 기능의 성능 개선이 이루어진 경우'),
+                                                                 (15,'앱 개발자의 연락처 정보'),
+                                                                 (15,'개인정보처리방침을 호스팅하는 URL'),
+                                                                 (15,'앱의 모든 기능에 대한 상세 설명'),
+                                                                 (15,'앱 테스트에 참여한 테스터 목록'),
+                                                                 (16,'앱의 실행 속도를 향상시키기 위해'),
+                                                                 (16,'앱의 용량을 줄이기 위해'),
+                                                                 (16,'앱의 소스 코드를 보호하여 역공학을 어렵게 만들기 위해'),
+                                                                 (16,'앱의 사용자 인터페이스를 개선하기 위해'),
+                                                                 (17,'결제 시스템 연동'),
+                                                                 (17,'미화 25달러의 등록 수수료 결제'),
+                                                                 (17,'과거 1년 동안 3개 이상의 앱 출시 경험'),
+                                                                 (17,'앱 개발 관련 자격증 보유'),
+                                                                 (18,'release는 난독화가 적용되고, debug는 적용되지 않습니다.'),
+                                                                 (18,'debug는 더 빠른 빌드 속도를 제공합니다.'),
+                                                                 (18,'release는 항상 최신 버전의 SDK를 사용합니다.'),
+                                                                 (18,'debug는 앱 아이콘이 자동으로 변경됩니다.'),
+                                                                 (19,'앱의 모든 사용자가 로그인해야 할 때'),
+                                                                 (19,'앱의 일부 또는 전체 기능이 로그인, 멤버십, 위치 인증 등에 의해 제한될 때'),
+                                                                 (19,'앱이 오프라인 상태에서도 작동할 때'),
+                                                                 (19,'앱이 푸시 알림을 보낼 때'),
+                                                                 (20,'앱의 이름과 아이콘'),
+                                                                 (20,'간단한 설명'),
+                                                                 (20,'자세한 설명'),
+                                                                 (20,'그래픽 이미지 및 스크린샷'),
+                                                                 (21,'최소 일주일 이상'),
+                                                                 (21,'최소 2-3일'),
+                                                                 (21,'최소 2-3주'),
+                                                                 (21,'최소 24시간'),
+                                                                 (22,'작은 다운로드 크기'),
+                                                                 (22,'온디맨드 앱 기능'),
+                                                                 (22,'에셋 전용 모듈'),
+                                                                 (22,'더 빠른 앱 출시 속도'),
+                                                                 (23,'Android App Bundle'),
+                                                                 (23,'APK'),
+                                                                 (23,'Build App Bundle(s) / APK(s)'),
+                                                                 (23,'Analyze APK...'),
+                                                                 (24,'앱 이름/아이콘'),
+                                                                 (24,'개발자 연락처'),
+                                                                 (24,'간단한 설명'),
+                                                                 (24,'그래픽 이미지'),
+                                                                 (25,'호환되지 않는 수준의 변경'),
+                                                                 (25,'호환되는 수준의 기능 추가'),
+                                                                 (25,'호환되는 버그 수정'),
+                                                                 (25,'새로운 빌드 타입 적용'),
+                                                                 (26,'true'),
+                                                                 (26,'false'),
+                                                                 (26,'null'),
+                                                                 (26,'0'),
+                                                                 (27,'앱 콘텐츠'),
+                                                                 (27,'테스트 정보'),
+                                                                 (27,'결제 정보'),
+                                                                 (27,'앱 통계'),
+                                                                 (28,'개인정보처리방침을 호스팅하는 URL'),
+                                                                 (28,'개인정보처리방침 문서 파일'),
+                                                                 (28,'개인정보처리방침 요약본'),
+                                                                 (28,'개인정보처리방침 관련 키워드'),
+                                                                 (29,'Build > Generate Signed Bundle / APK...'),
+                                                                 (29,'Run > Generate Signed Bundle / APK...'),
+                                                                 (29,'Tools > Generate Signed Bundle / APK...'),
+                                                                 (29,'File > Generate Signed Bundle / APK...'),
+                                                                 (30,'미화 25달러'),
+                                                                 (30,'미화 10달러'),
+                                                                 (30,'미화 50달러'),
+                                                                 (30,'무료'),
+                                                                 (31,'직업선택과 꿈-설계'),
+                                                                 (31,'진로탐색과 꿈-설계'),
+                                                                 (31,'기계학습'),
+                                                                 (31,'알고리즘'),
+                                                                 (32,'자료구조'),
+                                                                 (32,'이산수학'),
+                                                                 (32,'논리회로및실습'),
+                                                                 (32,'선형대수학'),
+                                                                 (33,'4471018'),
+                                                                 (33,'4471020'),
+                                                                 (33,'4471030'),
+                                                                 (33,'4471033'),
+                                                                 (34,'데이터통신'),
+                                                                 (34,'사물인터넷실습'),
+                                                                 (34,'운영체제'),
+                                                                 (34,'신호처리'),
+                                                                 (35,'3학점, 이론 3, 실습 0, 설계 0'),
+                                                                 (35,'3학점, 이론 2, 실습 2, 설계 0'),
+                                                                 (35,'3학점, 이론 0, 실습 6, 설계 0'),
+                                                                 (35,'3학점, 이론 3, 실습 3, 설계 0'),
+                                                                 (36,'SW개발도구및환경'),
+                                                                 (36,'SW국내단기현장실습(4주)'),
+                                                                 (36,'컴퓨터그래픽스'),
+                                                                 (36,'SW창업입문'),
+                                                                 (37,'130학점'),
+                                                                 (37,'140학점'),
+                                                                 (37,'128학점'),
+                                                                 (37,'42학점'),
+                                                                 (38,'SW국외단기현장실습(8주이내)'),
+                                                                 (38,'SW국내장기현장실습(15주)'),
+                                                                 (38,'SW국내단기현장실습(8주)'),
+                                                                 (38,'SW창업입문'),
+                                                                 (39,'2개'),
+                                                                 (39,'1개'),
+                                                                 (39,'3개'),
+                                                                 (39,'모두 이수'),
+                                                                 (40,'컴퓨터구조(전필)는 3학점, 이론 3, 실습 0, 설계 0이다.'),
+                                                                 (40,'데이터베이스(전선)는 3학점, 이론 3, 실습 0, 설계 0이다.'),
+                                                                 (40,'디지털영상처리(전선)는 3학점, 이론 3, 실습 0, 설계 0이다.'),
+                                                                 (40,'인공지능(전선)은 3학점, 이론 3, 실습 2, 설계 0이다.');
+/*!40000 ALTER TABLE `question_options` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
-VALUES (3, 1000000003, 'bob@example.com', '밥', 'ACTIVE', NULL, NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
+LOCK TABLES `question_set` WRITE;
+/*!40000 ALTER TABLE `question_set` DISABLE KEYS */;
+INSERT INTO `question_set` (`question_length`, `created_at`, `id`, `owner_id`, `updated_at`, `title`, `difficulty`, `status`, `type`) VALUES (10,'2025-10-05 18:58:44.989127',1,1,'2025-10-05 18:58:54.242372','2020학년도 학사과정 교육과정(컴퓨터공학과).pdf','EASY','COMPLETE','MULTIPLE_CHOICE'),
+                                                                                                                                             (10,'2025-10-05 18:59:02.668077',2,1,'2025-10-05 19:00:57.766558','241105_카카오테크_캠퍼스_앱_배포_특강.pdf','EASY','FAILED','MULTIPLE_CHOICE'),
+                                                                                                                                             (10,'2025-10-05 18:59:58.185574',3,1,'2025-10-05 19:00:05.767985','241105_카카오테크_캠퍼스_앱_배포_특강.pdf','EASY','COMPLETE','MULTIPLE_CHOICE'),
+                                                                                                                                             (10,'2025-10-05 19:01:25.070547',4,1,'2025-10-05 19:01:31.669714','241105_카카오테크_캠퍼스_앱_배포_특강.pdf','EASY','COMPLETE','MULTIPLE_CHOICE'),
+                                                                                                                                             (10,'2025-10-05 19:06:47.847829',5,1,'2025-10-05 19:06:55.860744','2020학년도 학사과정 교육과정(컴퓨터공학과).pdf','EASY','COMPLETE','MULTIPLE_CHOICE');
+/*!40000 ALTER TABLE `question_set` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
-VALUES (4, 1000000004, 'charlie@example.com', '찰리', 'INACTIVE', NULL, NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
+LOCK TABLES `question_set_source` WRITE;
+/*!40000 ALTER TABLE `question_set_source` DISABLE KEYS */;
+INSERT INTO `question_set_source` (`question_set_id`, `source_id`) VALUES (2,1),
+                                                                          (3,1),
+                                                                          (4,1),
+                                                                          (1,2),
+                                                                          (5,2);
+/*!40000 ALTER TABLE `question_set_source` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO members (id, kakao_id, email, name, status, refresh_token, created_at, updated_at)
-VALUES (5, 1000000005, 'david@example.com', '데이빗', 'ACTIVE', NULL, NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), updated_at=NOW();
+--
+-- Table structure for table `source`
+--
 
+LOCK TABLES `source` WRITE;
+/*!40000 ALTER TABLE `source` DISABLE KEYS */;
+INSERT INTO `source` (`page_count`, `created_at`, `file_size_bytes`, `id`, `member_id`, `source_folder_id`, `updated_at`, `content_type`, `file_path`, `original_name`, `status`) VALUES (NULL,'2025-10-05 18:58:23.883694',536842,1,1,1,'2025-10-05 18:58:23.883694','application/pdf','learning-sources/2025/10/05/member-1/f1753099-b8f0-47ed-b483-c2fbdb9a850f.pdf','241105_카카오테크_캠퍼스_앱_배포_특강.pdf','UPLOADED'),
+                                                                                                                                                                                         (NULL,'2025-10-05 18:58:40.204798',514428,2,1,1,'2025-10-05 18:58:40.204798','application/pdf','learning-sources/2025/10/05/member-1/b35e9b9c-bdda-4c74-ab4a-93e1bbfe3837.pdf','2020학년도 학사과정 교육과정(컴퓨터공학과).pdf','UPLOADED');
+/*!40000 ALTER TABLE `source` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- -----------------------------------------------------
--- Table `source_folder`
--- -----------------------------------------------------
-INSERT INTO source_folder (id, member_id, name, description, color, created_at, updated_at)
-VALUES (1, 1, '자바 스터디', '자바 기초부터 심화까지', '#4287f5', NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), updated_at=NOW();
+--
+-- Table structure for table `source_folder`
+--
 
-INSERT INTO source_folder (id, member_id, name, description, color, created_at, updated_at)
-VALUES (2, 2, '알고리즘 문제풀이', '코딩 테스트 대비', '#f5a442', NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), updated_at=NOW();
+LOCK TABLES `source_folder` WRITE;
+/*!40000 ALTER TABLE `source_folder` DISABLE KEYS */;
+INSERT INTO `source_folder` (`created_at`, `id`, `member_id`, `updated_at`, `color`, `description`, `name`) VALUES ('2025-10-05 18:58:23.880792',1,1,'2025-10-05 18:58:23.880792',NULL,NULL,'전체 폴더');
+/*!40000 ALTER TABLE `source_folder` ENABLE KEYS */;
+UNLOCK TABLES;
 
-INSERT INTO source_folder (id, member_id, name, description, color, created_at, updated_at)
-VALUES (3, 1, 'Spring Framework', 'Spring 심화 학습 자료', '#42f560', NOW(), NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), updated_at=NOW();
-
-
--- -----------------------------------------------------
--- Table `source`
--- -----------------------------------------------------
-INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (1, 1, 1, 'chapter1_variables.pdf', 'application/pdf', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 1048576, 'READY', NOW(), NOW())
-ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
-
-INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (2, 1, 1, 'chapter2_operators.pdf', 'application/pdf', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 2097152, 'READY', NOW(), NOW())
-ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
-
-INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (3, 2, 2, 'sorting_algorithms.pdf', 'application/pdf', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 3145728, 'READY', NOW(), NOW())
-ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
-
-INSERT INTO source (id, member_id, source_folder_id, original_name, content_type, file_path, file_size_bytes, status, created_at, updated_at)
-VALUES (4, 1, 3, 'spring_aop_deep_dive.txt', 'text/plain', 'learning-sources/2025/09/12/member-1/5b4af2d1-c803-4e82-bbe6-bcbeff2c21c1.pdf', 512000, 'READY', NOW(), NOW())
-ON DUPLICATE KEY UPDATE original_name=VALUES(original_name), updated_at=NOW();
-
-
--- -----------------------------------------------------
--- Table `question_set`
--- -----------------------------------------------------
-INSERT INTO question_set (id, owner_id, title, difficulty, type, question_length, created_at, updated_at)
-VALUES (1, 1, '자바 변수와 타입', 'EASY', 'MULTIPLE_CHOICE', 5, NOW(), NOW())
-ON DUPLICATE KEY UPDATE title=VALUES(title), question_length=VALUES(question_length), updated_at=NOW();
-
-INSERT INTO question_set (id, owner_id, title, difficulty, type, question_length, created_at, updated_at)
-VALUES (2, 2, '정렬 알고리즘 기초', 'HARD', 'SHORT_ANSWER', 5, NOW(), NOW())
-ON DUPLICATE KEY UPDATE title=VALUES(title), question_length=VALUES(question_length), updated_at=NOW();
-
-INSERT INTO question_set (id, owner_id, title, difficulty, type, question_length, created_at, updated_at)
-VALUES (3, 1, 'Spring AOP 핵심 개념', 'HARD', 'SUBJECTIVE', 5, NOW(), NOW())
-ON DUPLICATE KEY UPDATE title=VALUES(title), question_length=VALUES(question_length), updated_at=NOW();
-
-
--- -----------------------------------------------------
--- Table `question` (15 questions)
--- -----------------------------------------------------
--- Question Set 1 (Java Basics)
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (1, 1,  '다음 중 자바의 기본 타입(Primitive Type)이 아닌 것은?', 'String', 'String은 참조 타입(Reference Type)입니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (2, 1,  '변수를 선언할 때 사용하는 키워드는 무엇인가요?', 'int, long, double 등', '변수의 타입에 맞는 키워드를 사용해야 합니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (3, 1,  '자동 형변환(Promotion)에 대한 설명으로 옳은 것은?', '표현 범위가 좁은 타입에서 넓은 타입으로 변환될 때 발생한다.', '예: int -> long, float -> double', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (4, 1, '`final` 키워드가 변수에 사용될 때의 의미는 무엇인가요?', '한 번만 값을 할당할 수 있는 상수가 된다.', '초기화 이후에는 값을 변경할 수 없습니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (5, 1, '산술 연산자 `%`의 역할은 무엇인가요?', '나머지 연산', '두 수를 나눈 나머지를 구합니다. 예: 10 % 3 = 1', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
--- Question Set 2 (Algorithms)
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (6, 2, '버블 정렬(Bubble Sort)의 평균 시간 복잡도는 무엇인가요?', 'O(n^2)', '최선, 평균, 최악 모두 O(n^2)입니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (7, 2, '선택 정렬(Selection Sort)의 핵심 아이디어는 무엇인가요?', '배열에서 최소값(또는 최대값)을 찾아 정렬되지 않은 부분의 첫 요소와 교환한다.', '이 과정을 배열의 크기만큼 반복합니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (8, 2, '퀵 정렬(Quick Sort)에서 `피봇(pivot)`의 역할은 무엇인가요?', '분할의 기준이 되는 요소', '피봇보다 작은 요소는 왼쪽, 큰 요소는 오른쪽으로 이동시킵니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (9, 2, '병합 정렬(Merge Sort)이 다른 O(n log n) 정렬에 비해 가지는 주요 장점은 무엇인가요?', '안정 정렬(Stable Sort)이다.', '같은 값의 요소들의 상대적인 순서가 정렬 후에도 유지됩니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (10, 2, '삽입 정렬(Insertion Sort)이 가장 효율적인 경우는 어떤 데이터 상태일 때인가요?', '거의 정렬되어 있는 상태', '이 경우 O(n)에 가까운 시간 복잡도를 가집니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
--- Question Set 3 (Spring AOP)
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (11, 3, 'AOP(Aspect-Oriented Programming)의 주된 목적은 무엇인가요?', '관심사의 분리 (Separation of Concerns)', '로깅, 트랜잭션, 보안 등 여러 모듈에 흩어져 있는 공통 기능(횡단 관심사)을 분리하여 관리합니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (12, 3, 'AOP 용어 중 `조인 포인트(Join Point)`란 무엇을 의미하나요?', '어드바이스(Advice)가 적용될 수 있는 모든 위치', '메서드 실행, 예외 발생 등 애플리케이션 실행 흐름의 특정 지점을 의미합니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (13, 3, '다음 중 Spring AOP의 `어드바이스(Advice)` 종류가 아닌 것은?', '`@Around`, `@Before`, `@After`, `@AfterReturning`, `@AfterThrowing` 외의 것', '이 5가지가 Spring에서 지원하는 주요 어드바이스 타입입니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (14, 3, '`포인트컷(Pointcut)`의 역할은 무엇인가요?', '조인 포인트 중에서 어드바이스를 적용할 대상을 선별하는 표현식', '어디에 공통 기능을 적용할지 정밀하게 지정하는 역할을 합니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-INSERT INTO question (id, question_set_id,  question_text, answer, explanation, created_at, updated_at)
-VALUES (15, 3, 'Spring AOP가 기본적으로 프록시(Proxy)를 생성하는 방식은 무엇인가요?', 'JDK Dynamic Proxy 또는 CGLIB', '인터페이스가 있으면 JDK Dynamic Proxy, 없으면 CGLIB를 사용하여 프록시 객체를 생성합니다.', NOW(), NOW())
-ON DUPLICATE KEY UPDATE question_text=VALUES(question_text), updated_at=NOW();
-
-
--- -----------------------------------------------------
--- Table `question_set_source` (Many-to-Many relationship)
--- -----------------------------------------------------
-INSERT INTO question_set_source (question_set_id, source_id) VALUES (1, 1) ON DUPLICATE KEY UPDATE question_set_id=VALUES(question_set_id);
-INSERT INTO question_set_source (question_set_id, source_id) VALUES (1, 2) ON DUPLICATE KEY UPDATE question_set_id=VALUES(question_set_id);
-INSERT INTO question_set_source (question_set_id, source_id) VALUES (2, 3) ON DUPLICATE KEY UPDATE question_set_id=VALUES(question_set_id);
-INSERT INTO question_set_source (question_set_id, source_id) VALUES (3, 4) ON DUPLICATE KEY UPDATE question_set_id=VALUES(question_set_id);
+LOCK TABLES `wrong_answer` WRITE;
+/*!40000 ALTER TABLE `wrong_answer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wrong_answer` ENABLE KEYS */;
+UNLOCK TABLES;
