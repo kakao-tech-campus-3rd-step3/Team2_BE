@@ -1,8 +1,10 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
+import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
@@ -18,24 +20,27 @@ public class MarkingService implements MarkingPublicApi {
 
   @Override
   public void markQuestions(MarkingServiceRequest request) {
-    if (request == null || request.questionIds() == null || request.questionIds().isEmpty()) {
+    if (request == null
+        || request.markingRequests() == null
+        || request.markingRequests().isEmpty()) {
       throw new IllegalArgumentException("request or questionIds is null or empty");
     }
 
-    List<Long> questionIds = request.questionIds();
-    for (Long questionId : request.questionIds()) {
-      QuestionResponse questionResponse = questionPublicApi.getQuestionById(questionId);
+    List<Long> questionIds = new ArrayList<>();
+    for (MarkingRequest markingRequest : request.markingRequests()) {
+      QuestionResponse questionResponse =
+          questionPublicApi.getQuestionById(markingRequest.questionId());
       final String correctAnswer = questionResponse.answer();
 
-      if (isTargetAnswer(request.answer(), correctAnswer, request.isReviewing())) {
-        questionIds.add(questionId);
+      if (isTargetAnswer(markingRequest.answer(), correctAnswer, request.isReviewing())) {
+        questionIds.add(markingRequest.questionId());
       }
     }
 
     if (Boolean.TRUE.equals(request.isReviewing())) {
-      wrongAnswerPublicApi.markAsCorrectAnswers(request.memberId(), request.questionIds());
+      wrongAnswerPublicApi.markAsCorrectAnswers(request.memberId(), questionIds);
     } else {
-      wrongAnswerPublicApi.markAsWrongAnswers(request.memberId(), request.questionIds());
+      wrongAnswerPublicApi.markAsWrongAnswers(request.memberId(), questionIds);
     }
   }
 
