@@ -1,10 +1,10 @@
 package kr.it.pullit.modules.notification.service;
 
+import kr.it.pullit.modules.notification.domain.NotificationChannel;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import kr.it.pullit.modules.notification.domain.NotificationChannel;
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

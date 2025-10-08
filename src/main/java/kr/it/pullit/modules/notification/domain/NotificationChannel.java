@@ -1,25 +1,25 @@
 package kr.it.pullit.modules.notification.domain;
 
 import java.io.IOException;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import kr.it.pullit.modules.notification.domain.events.NotificationChannelClosedEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
-public record NotificationChannel(Long memberId, SseEmitter emitter,
-    ApplicationEventPublisher eventPublisher) {
+public record NotificationChannel(
+    Long memberId, SseEmitter emitter, ApplicationEventPublisher eventPublisher) {
 
-  public NotificationChannel(Long memberId, SseEmitter emitter,
-      ApplicationEventPublisher eventPublisher) {
+  public NotificationChannel(
+      Long memberId, SseEmitter emitter, ApplicationEventPublisher eventPublisher) {
     this.memberId = memberId;
     this.emitter = emitter;
     this.eventPublisher = eventPublisher;
     setupCallbacks();
   }
 
-  public static NotificationChannel create(Long userId, SseEmitter emitter,
-      ApplicationEventPublisher eventPublisher) {
+  public static NotificationChannel create(
+      Long userId, SseEmitter emitter, ApplicationEventPublisher eventPublisher) {
     return new NotificationChannel(userId, emitter, eventPublisher);
   }
 
@@ -31,7 +31,9 @@ public record NotificationChannel(Long memberId, SseEmitter emitter,
   }
 
   public void completeWithError(Throwable throwable) {
-    log.error("SSE connection error for user {}: {}. Completing emitter.", memberId,
+    log.error(
+        "SSE connection error for user {}: {}. Completing emitter.",
+        memberId,
         throwable.getMessage());
     emitter.completeWithError(throwable);
   }
@@ -46,8 +48,11 @@ public record NotificationChannel(Long memberId, SseEmitter emitter,
       sendAction.execute();
       logOnSuccess(event);
     } catch (IOException | IllegalStateException e) {
-      log.warn("Failed to send SSE event '{}' to user {}. Completing emitter. Error: {}",
-          event.name(), memberId, e.getMessage());
+      log.warn(
+          "Failed to send SSE event '{}' to user {}. Completing emitter. Error: {}",
+          event.name(),
+          memberId,
+          e.getMessage());
       emitter.completeWithError(e);
     }
   }
@@ -69,8 +74,8 @@ public record NotificationChannel(Long memberId, SseEmitter emitter,
   }
 
   private void publishClosedEvent() {
-    log.info("SSE emitter for user {} is closing (completed or timed out). Publishing event.",
-        memberId);
+    log.info(
+        "SSE emitter for user {} is closing (completed or timed out). Publishing event.", memberId);
     eventPublisher.publishEvent(NotificationChannelClosedEvent.of(memberId));
   }
 

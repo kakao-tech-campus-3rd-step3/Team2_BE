@@ -2,9 +2,6 @@ package kr.it.pullit.modules.notification.service;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.notification.domain.EventData;
 import kr.it.pullit.modules.notification.domain.NotificationChannel;
@@ -14,10 +11,11 @@ import kr.it.pullit.modules.notification.repository.SseEventCache;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-/**
- * 알림을 생성하고 채널을 통해 전송하는 서비스
- */
+/** 알림을 생성하고 채널을 통해 전송하는 서비스 */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,8 +34,8 @@ public class NotificationService implements NotificationPublicApi {
   }
 
   @Override
-  public void publishQuestionSetCreationComplete(Long userId,
-      QuestionSetCreationCompleteResponse data) {
+  public void publishQuestionSetCreationComplete(
+      Long userId, QuestionSetCreationCompleteResponse data) {
     if (data == null) {
       return;
     }
@@ -69,7 +67,9 @@ public class NotificationService implements NotificationPublicApi {
   private void handleInitialConnection(NotificationChannel channel, String lastEventId) {
     try {
       replayMissedEventsIfNecessary(channel.memberId(), lastEventId);
-      sendInstantEvent(channel.memberId(), SseEventType.HAND_SHAKE_COMPLETE,
+      sendInstantEvent(
+          channel.memberId(),
+          SseEventType.HAND_SHAKE_COMPLETE,
           "EventStream Created. userId: " + channel.memberId());
     } catch (Exception e) {
       channel.completeWithError(e);
@@ -126,14 +126,16 @@ public class NotificationService implements NotificationPublicApi {
 
   private void logAndSendMissedEvents(Long userId, List<EventData> missedEvents) {
     log.info("Replaying {} missed events for user {}", missedEvents.size(), userId);
-    notificationChannelRepository.findById(userId)
+    notificationChannelRepository
+        .findById(userId)
         .ifPresent(channel -> sendAllEventsToChannel(channel, missedEvents));
   }
 
   private void sendAllEventsToChannel(NotificationChannel channel, List<EventData> events) {
-    events.forEach(event -> {
-      channel.send(event);
-      log.debug("Replayed event ID {} for user {}", event.id(), channel.memberId());
-    });
+    events.forEach(
+        event -> {
+          channel.send(event);
+          log.debug("Replayed event ID {} for user {}", event.id(), channel.memberId());
+        });
   }
 }
