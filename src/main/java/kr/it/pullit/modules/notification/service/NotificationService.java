@@ -2,7 +2,9 @@ package kr.it.pullit.modules.notification.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.notification.domain.EventData;
 import kr.it.pullit.modules.notification.domain.NotificationChannel;
@@ -12,10 +14,6 @@ import kr.it.pullit.modules.notification.repository.SseEventCache;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 알림을 생성하고 채널을 통해 전송하는 서비스
@@ -24,13 +22,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Service
 @RequiredArgsConstructor
 public class NotificationService implements NotificationPublicApi {
-  private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 30; // 30분
   private static final long HEARTBEAT_INTERVAL_MS = 3_000L; // 3초
 
   private final NotificationChannelRepository notificationChannelRepository;
   private final SseEventCache sseEventCache;
-  private final ApplicationEventPublisher eventPublisher;
-  private final AtomicLong eventIdGenerator = new AtomicLong(System.currentTimeMillis());
+  private final NotificationChannelFactory notificationChannelFactory;
 
   @Override
   public SseEmitter subscribe(Long userId, String lastEventId) {
@@ -51,19 +47,20 @@ public class NotificationService implements NotificationPublicApi {
   @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS)
   public void sendHeartbeat() {
     Map<Long, NotificationChannel> channels = notificationChannelRepository.findAll();
-    if (channels.isEmpty()) {
+    if (isChannelsEmpty(channels)) {
       return;
     }
     log.debug("Sending heartbeat to {} connected SSE clients", channels.size());
-    EventData heartbeatEvent =
-        new EventData(-1L, "heartbeat", "heartbeat " + System.currentTimeMillis());
-
+    EventData heartbeatEvent = EventData.of("heartbeat", "heartbeat " + System.currentTimeMillis());
     channels.values().forEach(channel -> channel.send(heartbeatEvent));
   }
 
+  private static boolean isChannelsEmpty(Map<Long, NotificationChannel> channels) {
+    return channels.isEmpty();
+  }
+
   private NotificationChannel createAndRegisterChannel(Long userId) {
-    SseEmitter sseEmitter = new SseEmitter(DEFAULT_TIMEOUT);
-    NotificationChannel channel = NotificationChannel.create(userId, sseEmitter, eventPublisher);
+    NotificationChannel channel = notificationChannelFactory.create(userId);
     notificationChannelRepository.save(channel);
     log.info("New notification channel created for user {}: {}", userId, channel);
     return channel;
@@ -80,41 +77,63 @@ public class NotificationService implements NotificationPublicApi {
   }
 
   private void publishAndSend(Long userId, SseEventType eventType, Object data) {
-    long eventId = eventIdGenerator.getAndIncrement();
-    EventData eventData = new EventData(eventId, eventType.code(), data);
-
+    EventData eventData = EventData.of(eventType.code(), data);
     sseEventCache.put(userId, eventData);
-
     notificationChannelRepository.findById(userId).ifPresent(channel -> channel.send(eventData));
   }
 
   private void sendInstantEvent(Long userId, SseEventType eventType, Object data) {
-    long eventId = eventIdGenerator.getAndIncrement();
-    EventData eventData = new EventData(eventId, eventType.code(), data);
-
+    EventData eventData = EventData.of(eventType.code(), data);
     notificationChannelRepository.findById(userId).ifPresent(channel -> channel.send(eventData));
   }
 
   private void replayMissedEventsIfNecessary(Long userId, String lastEventId) {
-    if (lastEventId == null || lastEventId.isEmpty()) {
+    if (isFirstConnection(lastEventId)) {
       return;
     }
+    handleReconnection(userId, lastEventId);
+  }
 
+  private static boolean isFirstConnection(String lastEventId) {
+    return lastEventId == null || lastEventId.isEmpty();
+  }
+
+  private void handleReconnection(Long userId, String lastEventId) {
     log.info("Reconnecting user {} with lastEventId: {}", userId, lastEventId);
+    doReplayMissedEvents(userId, lastEventId);
+  }
+
+  private void doReplayMissedEvents(Long userId, String lastEventId) {
     try {
       long lastId = Long.parseLong(lastEventId);
       List<EventData> missedEvents = sseEventCache.findAllByUserIdAfter(userId, lastId);
-
-      if (!missedEvents.isEmpty()) {
-        log.info("Replaying {} missed events for user {}", missedEvents.size(), userId);
-        notificationChannelRepository.findById(userId)
-            .ifPresent(channel -> missedEvents.forEach(event -> {
-              channel.send(event);
-              log.debug("Replayed event ID {} for user {}", event.id(), userId);
-            }));
-      }
+      replayFoundEvents(userId, missedEvents);
     } catch (NumberFormatException e) {
       log.warn("Invalid lastEventId format: {} for user {}", lastEventId, userId);
     }
+  }
+
+  private void replayFoundEvents(Long userId, List<EventData> missedEvents) {
+    if (isMissedEventsEmpty(missedEvents)) {
+      return;
+    }
+    logAndSendMissedEvents(userId, missedEvents);
+  }
+
+  private static boolean isMissedEventsEmpty(List<EventData> missedEvents) {
+    return missedEvents.isEmpty();
+  }
+
+  private void logAndSendMissedEvents(Long userId, List<EventData> missedEvents) {
+    log.info("Replaying {} missed events for user {}", missedEvents.size(), userId);
+    notificationChannelRepository.findById(userId)
+        .ifPresent(channel -> sendAllEventsToChannel(channel, missedEvents));
+  }
+
+  private void sendAllEventsToChannel(NotificationChannel channel, List<EventData> events) {
+    events.forEach(event -> {
+      channel.send(event);
+      log.debug("Replayed event ID {} for user {}", event.id(), channel.memberId());
+    });
   }
 }
