@@ -32,11 +32,13 @@ public class QuestionSetResponse {
     this.questionLength = questionSet.getQuestionLength();
     this.createTime = questionSet.getCreatedAt();
     this.updateTime = questionSet.getUpdatedAt();
-    this.questions =
-        questionSet.getQuestions().stream()
-            .map(QuestionResponse::from)
-            .collect(Collectors.toList());
+    this.questions = questionSet.getQuestions().stream().map(QuestionResponse::from)
+        .collect(Collectors.toList());
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
+  }
+
+  public static QuestionSetResponse from(QuestionSet questionSet) {
+    return new QuestionSetResponse(questionSet);
   }
 }
