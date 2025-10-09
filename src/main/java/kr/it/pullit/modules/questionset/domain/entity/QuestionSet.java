@@ -1,9 +1,5 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +13,10 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.member.domain.entity.Member;
@@ -47,7 +47,9 @@ public class QuestionSet extends BaseEntity {
   private Member owner;
 
   @ManyToMany
-  @JoinTable(name = "question_set_source", joinColumns = @JoinColumn(name = "question_set_id"),
+  @JoinTable(
+      name = "question_set_source",
+      joinColumns = @JoinColumn(name = "question_set_id"),
       inverseJoinColumns = @JoinColumn(name = "source_id"))
   private Set<Source> sources = new HashSet<>();
 
@@ -60,15 +62,19 @@ public class QuestionSet extends BaseEntity {
   private QuestionType type;
 
   /* 문제 수 */
-  @Setter
-  private Integer questionLength;
+  @Setter private Integer questionLength;
 
   @Enumerated(EnumType.STRING)
   private QuestionSetStatus status;
 
   @Builder
-  public QuestionSet(Member owner, Set<Source> sources, String title, DifficultyType difficulty,
-      QuestionType type, Integer questionLength) {
+  public QuestionSet(
+      Member owner,
+      Set<Source> sources,
+      String title,
+      DifficultyType difficulty,
+      QuestionType type,
+      Integer questionLength) {
     this.owner = owner;
     this.sources = sources != null ? sources : new HashSet<>();
     this.title = title;
@@ -78,16 +84,21 @@ public class QuestionSet extends BaseEntity {
     this.status = QuestionSetStatus.PENDING;
   }
 
-  public static QuestionSet create(Member owner, List<Source> sources,
-      QuestionSetCreateRequestDto request) {
+  public static QuestionSet create(
+      Member owner, List<Source> sources, QuestionSetCreateRequestDto request) {
     validateSources(sources);
 
     String title = sources.getFirst().getOriginalName();
     Set<Source> sourceSet = new HashSet<>(sources);
 
-    return QuestionSet.builder().owner(owner).sources(sourceSet).title(title)
-        .difficulty(request.difficulty()).type(request.type())
-        .questionLength(request.questionCount()).build();
+    return QuestionSet.builder()
+        .owner(owner)
+        .sources(sourceSet)
+        .title(title)
+        .difficulty(request.difficulty())
+        .type(request.type())
+        .questionLength(request.questionCount())
+        .build();
   }
 
   private static void validateSources(List<Source> sources) {

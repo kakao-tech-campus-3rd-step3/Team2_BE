@@ -2,9 +2,6 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
 import java.util.Optional;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
@@ -24,6 +21,9 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
 import kr.it.pullit.shared.error.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional(readOnly = true)
   public QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
-    return questionSetRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+    return questionSetRepository
+        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
         .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
   }
 
@@ -52,20 +53,25 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private QuestionSetResponse getQuestionSetForFirstSolving(Long id, Long memberId) {
     QuestionSet questionSet =
-        questionSetRepository.findByIdWithQuestionsForFirstSolving(id, memberId)
+        questionSetRepository
+            .findByIdWithQuestionsForFirstSolving(id, memberId)
             .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
 
     return QuestionSetResponse.from(questionSet);
   }
 
   private QuestionSetResponse getQuestionSetForReviewing(Long id, Long memberId) {
-    return questionSetRepository.findQuestionSetForReviewing(id, memberId)
-        .map(QuestionSetResponse::from).orElseThrow(() -> handleReviewSetNotFound(id, memberId));
+    return questionSetRepository
+        .findQuestionSetForReviewing(id, memberId)
+        .map(QuestionSetResponse::from)
+        .orElseThrow(() -> handleReviewSetNotFound(id, memberId));
   }
 
   private RuntimeException handleReviewSetNotFound(Long id, Long memberId) {
-    QuestionSet qs = questionSetRepository.findByIdAndMemberId(id, memberId)
-        .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
+    QuestionSet qs =
+        questionSetRepository
+            .findByIdAndMemberId(id, memberId)
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
 
     if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
       return handleQuestionSetStatusException(qs);
@@ -75,8 +81,10 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   private RuntimeException handleQuestionSetNotFound(Long id, Long memberId) {
-    return questionSetRepository.findByIdAndMemberId(id, memberId)
-        .map(this::handleQuestionSetStatusException).orElse(QuestionSetNotFoundException.byId(id));
+    return questionSetRepository
+        .findByIdAndMemberId(id, memberId)
+        .map(this::handleQuestionSetStatusException)
+        .orElse(QuestionSetNotFoundException.byId(id));
   }
 
   private BusinessException handleQuestionSetStatusException(QuestionSet qs) {
@@ -131,7 +139,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
-    return questionSetRepository.findById(questionSetId)
+    return questionSetRepository
+        .findById(questionSetId)
         .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
   }
 }
