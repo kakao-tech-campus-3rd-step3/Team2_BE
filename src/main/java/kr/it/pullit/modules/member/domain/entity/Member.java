@@ -1,5 +1,8 @@
 package kr.it.pullit.modules.member.domain.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.util.Assert;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,8 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -20,7 +21,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.util.Assert;
 
 @Entity
 @Getter
@@ -50,7 +50,8 @@ public class Member extends BaseEntity {
   @Column(nullable = false, unique = true)
   private String email;
 
-  @Column private String name;
+  @Column
+  private String name;
 
   @Column(length = 512)
   private String refreshToken;
@@ -71,11 +72,7 @@ public class Member extends BaseEntity {
   }
 
   public static Member create(Long kakaoId, String email, String name) {
-    return Member.builder()
-        .kakaoId(kakaoId)
-        .email(email)
-        .name(name)
-        .status(MemberStatus.ACTIVE)
+    return Member.builder().kakaoId(kakaoId).email(email).name(name).status(MemberStatus.ACTIVE)
         .build();
   }
 

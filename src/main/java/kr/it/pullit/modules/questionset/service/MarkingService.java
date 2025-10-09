@@ -2,15 +2,16 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Service;
 import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
+import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -21,40 +22,31 @@ public class MarkingService implements MarkingPublicApi {
 
   @Override
   public MarkQuestionsResponse markQuestions(MarkingServiceRequest request) {
-    if (request == null
-        || request.markingRequests() == null
+    if (request == null || request.markingRequests() == null
         || request.markingRequests().isEmpty()) {
       throw new IllegalArgumentException("request or questionIds is null or empty");
     }
 
-    List<Long> questionIds = new ArrayList<>();
+    List<Long> targetQuestionIds = new ArrayList<>();
     for (MarkingRequest markingRequest : request.markingRequests()) {
-      QuestionResponse questionResponse =
-          questionPublicApi.getQuestionById(markingRequest.questionId());
-      final String correctAnswer = questionResponse.answer();
+      Question question = questionPublicApi.findEntityById(markingRequest.questionId())
+          .orElseThrow(() -> QuestionNotFoundException.byId(markingRequest.questionId()));
 
-      if (isTargetAnswer(markingRequest.answer(), correctAnswer, request.isReviewing())) {
-        questionIds.add(markingRequest.questionId());
+      if (isTargetAnswer(question.isCorrect(markingRequest.answer()), request.isReviewing())) {
+        targetQuestionIds.add(markingRequest.questionId());
       }
     }
 
     if (Boolean.TRUE.equals(request.isReviewing())) {
-      wrongAnswerPublicApi.markAsCorrectAnswers(request.memberId(), questionIds);
+      wrongAnswerPublicApi.markAsCorrectAnswers(request.memberId(), targetQuestionIds);
     } else {
-      wrongAnswerPublicApi.markAsWrongAnswers(request.memberId(), questionIds);
+      wrongAnswerPublicApi.markAsWrongAnswers(request.memberId(), targetQuestionIds);
     }
 
-    return new MarkQuestionsResponse(questionIds.size());
+    return new MarkQuestionsResponse(targetQuestionIds.size());
   }
 
-  private boolean isTargetAnswer(String userAnswer, String correctAnswer, Boolean isReviewing) {
-    return isCorrectAnswer(userAnswer, correctAnswer) == isReviewing;
-  }
-
-  private boolean isCorrectAnswer(String userAnswer, String correctAnswer) {
-    if (userAnswer == null || correctAnswer == null) {
-      return false;
-    }
-    return userAnswer.trim().equalsIgnoreCase(correctAnswer.trim());
+  private boolean isTargetAnswer(boolean isCorrect, Boolean isReviewing) {
+    return isCorrect == isReviewing;
   }
 }

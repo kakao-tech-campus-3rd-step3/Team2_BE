@@ -41,8 +41,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional(readOnly = true)
   public QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
-    return questionSetRepository
-        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+    return questionSetRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
         .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
   }
 
@@ -57,37 +56,29 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private QuestionSetResponse getQuestionSetForFirstSolving(Long id, Long memberId) {
     QuestionSet questionSet =
-        questionSetRepository
-            .findByIdWithQuestionsForFirstSolving(id, memberId)
+        questionSetRepository.findByIdWithQuestionsForFirstSolving(id, memberId)
             .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
 
     return new QuestionSetResponse(questionSet);
   }
 
   private QuestionSetResponse getQuestionSetForReviewing(Long id, Long memberId) {
-    return questionSetRepository
-        .findQuestionSetForReviewing(id, memberId)
-        .map(QuestionSetResponse::new)
-        .orElseThrow(
-            () -> {
-              QuestionSet qs =
-                  questionSetRepository
-                      .findByIdAndMemberId(id, memberId)
-                      .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
+    return questionSetRepository.findQuestionSetForReviewing(id, memberId)
+        .map(QuestionSetResponse::new).orElseThrow(() -> {
+          QuestionSet qs = questionSetRepository.findByIdAndMemberId(id, memberId)
+              .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
 
-              if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
-                return handleQuestionSetStatusException(qs);
-              }
+          if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
+            return handleQuestionSetStatusException(qs);
+          }
 
-              return WrongAnswerNotFoundException.withMessage("복습할 오답이 없습니다.");
-            });
+          return WrongAnswerNotFoundException.withMessage("복습할 오답이 없습니다.");
+        });
   }
 
   private RuntimeException handleQuestionSetNotFound(Long id, Long memberId) {
-    return questionSetRepository
-        .findByIdAndMemberId(id, memberId)
-        .map(this::handleQuestionSetStatusException)
-        .orElse(QuestionSetNotFoundException.byId(id));
+    return questionSetRepository.findByIdAndMemberId(id, memberId)
+        .map(this::handleQuestionSetStatusException).orElse(QuestionSetNotFoundException.byId(id));
   }
 
   private BusinessException handleQuestionSetStatusException(QuestionSet qs) {
@@ -112,9 +103,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
     Set<Source> sourceSet = new HashSet<>(sources);
     String title = sources.getFirst().getOriginalName();
 
-    QuestionSet questionSet =
-        new QuestionSet(
-            owner, sourceSet, title, request.difficulty(), request.type(), request.questionCount());
+    QuestionSet questionSet = new QuestionSet(owner, sourceSet, title, request.difficulty(),
+        request.type(), request.questionCount());
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
@@ -135,17 +125,11 @@ public class QuestionSetService implements QuestionSetPublicApi {
       List<Long> sourceIds = questionSet.getSources().stream().map(Source::getId).toList();
       List<String> sourceNames =
           questionSet.getSources().stream().map(Source::getOriginalName).toList();
-      MyQuestionSetsResponse response =
-          MyQuestionSetsResponse.builder()
-              .questionSetId(questionSet.getId())
-              .title(questionSet.getTitle())
-              .sourceIds(sourceIds)
-              .sourceNames(sourceNames)
-              .questionCount(questionSet.getQuestionLength())
-              .difficultyType(questionSet.getDifficulty())
-              .questionType(questionSet.getType())
-              .createdAt(questionSet.getCreatedAt())
-              .build();
+      MyQuestionSetsResponse response = MyQuestionSetsResponse.builder()
+          .questionSetId(questionSet.getId()).title(questionSet.getTitle()).sourceIds(sourceIds)
+          .sourceNames(sourceNames).questionCount(questionSet.getQuestionLength())
+          .difficultyType(questionSet.getDifficulty()).questionType(questionSet.getType())
+          .createdAt(questionSet.getCreatedAt()).build();
       myQuestionSetsResponses.add(response);
     }
 
@@ -154,12 +138,18 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
-  public void updateStatus(Long questionSetId, QuestionSetStatus status) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
-    questionSet.updateStatus(status);
+  public void markAsComplete(Long questionSetId) {
+    QuestionSet questionSet = questionSetRepository.findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    questionSet.completeProcessing();
+  }
+
+  @Override
+  @Transactional
+  public void markAsFailed(Long questionSetId) {
+    QuestionSet questionSet = questionSetRepository.findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    questionSet.failProcessing();
   }
 
   @Override
