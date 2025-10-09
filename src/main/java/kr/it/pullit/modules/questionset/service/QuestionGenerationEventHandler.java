@@ -1,12 +1,6 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import kr.it.pullit.modules.learningsource.source.event.SourceExtractionCompleteEvent;
 import kr.it.pullit.modules.learningsource.source.event.SourceExtractionStartEvent;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
@@ -23,6 +17,12 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationComp
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
@@ -50,18 +50,24 @@ public class QuestionGenerationEventHandler {
   @TransactionalEventListener
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void handleSourceExtractionStart(final SourceExtractionStartEvent event) {
-    sourceRepository.findById(event.sourceId()).ifPresent(source -> {
-      source.startProcessing();
-      log.info("Source[id={}] status updated to PROCESSING.", source.getId());
-    });
+    sourceRepository
+        .findById(event.sourceId())
+        .ifPresent(
+            source -> {
+              source.startProcessing();
+              log.info("Source[id={}] status updated to PROCESSING.", source.getId());
+            });
   }
 
   @TransactionalEventListener
   public void handleSourceExtractionComplete(final SourceExtractionCompleteEvent event) {
-    sourceRepository.findById(event.sourceId()).ifPresent(source -> {
-      source.markAsReady();
-      log.info("Source[id={}] status updated to READY.", source.getId());
-    });
+    sourceRepository
+        .findById(event.sourceId())
+        .ifPresent(
+            source -> {
+              source.markAsReady();
+              log.info("Source[id={}] status updated to READY.", source.getId());
+            });
   }
 
   private void processQuestionGeneration(QuestionSetCreatedEvent event) {
@@ -75,8 +81,8 @@ public class QuestionGenerationEventHandler {
     QuestionSetResponse questionSetResponse =
         fetchQuestionSetMetadata(event.questionSetId(), event.ownerId());
     QuestionGenerationSpecification specification = createSpecificationFrom(questionSetResponse);
-    return new QuestionGenerationRequest(event.ownerId(), event.questionSetId(),
-        questionSetResponse.getSourceIds(), specification);
+    return new QuestionGenerationRequest(
+        event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
   }
 
   private QuestionSetResponse fetchQuestionSetMetadata(Long questionSetId, Long ownerId) {
@@ -85,32 +91,40 @@ public class QuestionGenerationEventHandler {
 
   private QuestionGenerationSpecification createSpecificationFrom(
       QuestionSetResponse questionSetResponse) {
-    return new QuestionGenerationSpecification(questionSetResponse.getDifficulty(),
-        questionSetResponse.getType(), questionSetResponse.getQuestionLength());
+    return new QuestionGenerationSpecification(
+        questionSetResponse.getDifficulty(),
+        questionSetResponse.getType(),
+        questionSetResponse.getQuestionLength());
   }
 
-  private void saveQuestions(Long questionSetId, Long memberId,
-      List<LlmGeneratedQuestionResponse> questionDtos) {
+  private void saveQuestions(
+      Long questionSetId, Long memberId, List<LlmGeneratedQuestionResponse> questionDtos) {
     QuestionSet questionSet = findQuestionSetById(questionSetId, memberId);
     questionDtos.forEach(dto -> saveSingleQuestion(questionSet, dto));
   }
 
-  private void saveSingleQuestion(QuestionSet questionSet,
-      LlmGeneratedQuestionResponse questionDto) {
+  private void saveSingleQuestion(
+      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
     log.info("Generated Question: {}", questionDto.questionText());
     Question question = createQuestion(questionSet, questionDto);
     questionPublicApi.saveQuestion(question);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId, Long memberId) {
-    return questionSetPublicApi.findEntityByIdAndMemberId(questionSetId, memberId).orElseThrow(
-        () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
+    return questionSetPublicApi
+        .findEntityByIdAndMemberId(questionSetId, memberId)
+        .orElseThrow(
+            () -> new IllegalArgumentException("QuestionSet not found with id: " + questionSetId));
   }
 
-  private Question createQuestion(QuestionSet questionSet,
-      LlmGeneratedQuestionResponse questionDto) {
-    return new Question(questionSet, questionDto.questionText(), questionDto.options(),
-        questionDto.answer(), questionDto.explanation());
+  private Question createQuestion(
+      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
+    return new Question(
+        questionSet,
+        questionDto.questionText(),
+        questionDto.options(),
+        questionDto.answer(),
+        questionDto.explanation());
   }
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
@@ -120,13 +134,14 @@ public class QuestionGenerationEventHandler {
   }
 
   private QuestionSetCreationCompleteResponse createSuccessResponse(QuestionSetCreatedEvent event) {
-    QuestionSetResponse questionSetResponse = questionSetPublicApi
-        .getQuestionSetForSolving(event.questionSetId(), event.ownerId(), false);
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.getQuestionSetForSolving(
+            event.questionSetId(), event.ownerId(), false);
     return new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
   }
 
-  private void publishSuccessNotification(Long ownerId,
-      QuestionSetCreationCompleteResponse responseDto) {
+  private void publishSuccessNotification(
+      Long ownerId, QuestionSetCreationCompleteResponse responseDto) {
     notificationPublicApi.publishQuestionSetCreationComplete(ownerId, responseDto);
   }
 

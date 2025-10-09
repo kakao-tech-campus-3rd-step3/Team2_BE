@@ -1,6 +1,5 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
-import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -11,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import java.util.List;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Builder;
@@ -34,8 +34,7 @@ public class Question extends BaseEntity {
   @Column(columnDefinition = "TEXT")
   private String questionText;
 
-  @ElementCollection
-  private List<String> options;
+  @ElementCollection private List<String> options;
 
   private String answer;
 
@@ -55,7 +54,11 @@ public class Question extends BaseEntity {
    * @param explanation 해설
    */
   @Builder
-  public Question(QuestionSet questionSet, String questionText, List<String> options, String answer,
+  public Question(
+      QuestionSet questionSet,
+      String questionText,
+      List<String> options,
+      String answer,
       String explanation) {
     this.questionSet = questionSet;
     this.questionText = questionText;

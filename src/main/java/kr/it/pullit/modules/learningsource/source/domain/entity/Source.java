@@ -1,8 +1,5 @@
 package kr.it.pullit.modules.learningsource.source.domain.entity;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.member.domain.entity.Member;
@@ -64,8 +64,14 @@ public class Source extends BaseEntity {
 
   @SuppressWarnings("unused")
   @Builder(access = AccessLevel.PRIVATE)
-  private Source(Member member, SourceFolder sourceFolder, String originalName, String contentType,
-      String filePath, Long fileSizeBytes, SourceStatus status) {
+  private Source(
+      Member member,
+      SourceFolder sourceFolder,
+      String originalName,
+      String contentType,
+      String filePath,
+      Long fileSizeBytes,
+      SourceStatus status) {
     this.member = member;
     this.sourceFolder = sourceFolder;
     this.originalName = originalName;
@@ -76,14 +82,21 @@ public class Source extends BaseEntity {
   }
 
   public static Source create(SourceCreationParam param, Member member, SourceFolder sourceFolder) {
-    return Source.builder().member(member).sourceFolder(sourceFolder)
-        .originalName(param.originalName()).filePath(param.filePath())
-        .contentType(param.contentType()).fileSizeBytes(param.fileSizeBytes())
-        .status(SourceStatus.UPLOADED).build();
+    return Source.builder()
+        .member(member)
+        .sourceFolder(sourceFolder)
+        .originalName(param.originalName())
+        .filePath(param.filePath())
+        .contentType(param.contentType())
+        .fileSizeBytes(param.fileSizeBytes())
+        .status(SourceStatus.UPLOADED)
+        .build();
   }
 
   public LocalDateTime getRecentQuestionGeneratedAt() {
-    return questionSets.stream().map(QuestionSet::getCreatedAt).max(LocalDateTime::compareTo)
+    return questionSets.stream()
+        .map(QuestionSet::getCreatedAt)
+        .max(LocalDateTime::compareTo)
         .orElse(null);
   }
 
