@@ -7,7 +7,7 @@ import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
-import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
 import kr.it.pullit.modules.questionset.domain.entity.LlmPrompt;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
@@ -37,7 +37,7 @@ public class QuestionService implements QuestionPublicApi {
   private final LlmClient llmClient;
 
   @Override
-  public List<LlmGeneratedQuestionResponse> generateQuestions(QuestionGenerationRequest request) {
+  public LlmGeneratedQuestionSetResponse generateQuestions(QuestionGenerationRequest request) {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
@@ -110,7 +110,7 @@ public class QuestionService implements QuestionPublicApi {
         .toList();
   }
 
-  private List<LlmGeneratedQuestionResponse> callLlmClient(
+  private LlmGeneratedQuestionSetResponse callLlmClient(
       Long questionSetId,
       LlmPrompt llmPrompt,
       List<byte[]> sourceFileDataBytes,

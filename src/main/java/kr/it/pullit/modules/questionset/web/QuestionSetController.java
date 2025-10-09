@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
@@ -44,7 +45,7 @@ public class QuestionSetController {
   @PostMapping
   public ResponseEntity<Void> createQuestionSet(
       @AuthenticationPrincipal Long memberId,
-      @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
+      @Valid @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
     QuestionSetResponse questionSetResponse =
         questionSetPublicApi.create(questionSetCreateRequestDto, memberId);
 

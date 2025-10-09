@@ -8,6 +8,7 @@ import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
@@ -72,8 +73,11 @@ public class QuestionGenerationEventHandler {
 
   private void processQuestionGeneration(QuestionSetCreatedEvent event) {
     QuestionGenerationRequest request = createGenerationRequest(event);
-    List<LlmGeneratedQuestionResponse> questionDtos = questionPublicApi.generateQuestions(request);
-    saveQuestions(event.questionSetId(), event.ownerId(), questionDtos);
+    LlmGeneratedQuestionSetResponse response = questionPublicApi.generateQuestions(request);
+
+    questionSetPublicApi.updateTitle(event.questionSetId(), response.title());
+    saveQuestions(event.questionSetId(), event.ownerId(), response.questions());
+
     questionSetPublicApi.markAsComplete(event.questionSetId());
   }
 

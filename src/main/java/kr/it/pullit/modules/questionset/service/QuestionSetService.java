@@ -138,6 +138,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSetRepository.findByIdWithoutQuestions(id, memberId);
   }
 
+  @Override
+  @Transactional
+  public void updateTitle(Long questionSetId, String title) {
+    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
+    questionSet.updateTitle(title);
+  }
+
   private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
     return questionSetRepository
         .findById(questionSetId)
