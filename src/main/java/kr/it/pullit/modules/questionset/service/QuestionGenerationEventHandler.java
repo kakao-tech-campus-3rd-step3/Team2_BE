@@ -13,6 +13,7 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
@@ -123,10 +124,15 @@ public class QuestionGenerationEventHandler {
 
   private Question createQuestion(
       QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
+    List<String> options = questionDto.options();
+    if (questionSet.getType() == QuestionType.TRUE_FALSE
+        || questionSet.getType() == QuestionType.SHORT_ANSWER) {
+      options = null;
+    }
     return new Question(
         questionSet,
         questionDto.questionText(),
-        questionDto.options(),
+        options,
         questionDto.answer(),
         questionDto.explanation());
   }
