@@ -21,11 +21,9 @@ public class MemberController {
 
   @GetMapping("/me")
   public ResponseEntity<MemberInfoResponse> getMyInfo(@AuthenticationPrincipal Long memberId) {
-    MemberInfoResponse memberInfoResponse =
+    return ResponseEntity.ok(
         memberPublicApi
             .getMemberInfo(memberId)
-            .orElseThrow(() -> MemberNotFoundException.byId(memberId));
-
-    return ResponseEntity.ok(memberInfoResponse);
+            .orElseThrow(() -> MemberNotFoundException.byId(memberId)));
   }
 }

@@ -20,6 +20,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Entity
 @Getter
@@ -58,8 +59,11 @@ public class Member extends BaseEntity {
   @Column
   private MemberStatus status;
 
-  @Builder
+  @Builder(access = AccessLevel.PRIVATE)
   public Member(Long kakaoId, String email, String name, MemberStatus status) {
+    Assert.hasText(email, "email은 비어있을 수 없습니다.");
+    Assert.hasText(name, "name은 비어있을 수 없습니다.");
+
     this.kakaoId = kakaoId;
     this.email = email;
     this.name = name;
@@ -84,10 +88,10 @@ public class Member extends BaseEntity {
   }
 
   public void updateMemberInfo(String email, String name) {
-    if (email != null && !email.isEmpty()) {
+    if (email != null && !email.isBlank()) {
       this.email = email;
     }
-    if (name != null && !name.isEmpty()) {
+    if (name != null && !name.isBlank()) {
       this.name = name;
     }
   }
