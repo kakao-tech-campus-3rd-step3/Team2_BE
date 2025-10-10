@@ -1,6 +1,5 @@
 package kr.it.pullit.modules.questionset.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
@@ -9,6 +8,7 @@ import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
-import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
 import kr.it.pullit.modules.questionset.client.exception.LlmException;
 import kr.it.pullit.modules.questionset.client.exception.LlmResponseParseException;
 import lombok.extern.slf4j.Slf4j;
@@ -37,50 +37,17 @@ public class GeminiClient implements LlmClient {
     this.configBuilder = configBuilder;
   }
 
-  private List<Part> getByteParts(List<byte[]> fileDataList) {
-    List<Part> parts = new ArrayList<>();
-    // TODO: 여러 파일 지원
-    for (byte[] fileData : fileDataList) {
-      parts.add(Part.fromBytes(fileData, "application/pdf"));
-    }
-
-    return parts;
-  }
-
-  private Content getGeminiContent(List<byte[]> fileDataList, String prompt) {
-    List<Part> byteParts = this.getByteParts(fileDataList);
-    byteParts.add(Part.fromText(prompt));
-    return Content.fromParts(
-        Part.fromBytes(fileDataList.getFirst(), "application/pdf"), Part.fromText(prompt));
-  }
-
-  private void handleResponseFinishReason(GenerateContentResponse response) {
-    switch (response.finishReason().knownEnum()) {
-      case BLOCKLIST -> throw new RuntimeException("Content was filtered");
-      case FINISH_REASON_UNSPECIFIED -> throw new RuntimeException("Finish reason unspecified");
-      case IMAGE_SAFETY -> throw new RuntimeException("Image safety triggered");
-      case LANGUAGE -> throw new RuntimeException("Not allowed language");
-      case MALFORMED_FUNCTION_CALL -> throw new RuntimeException("Malformed function call");
-      case MAX_TOKENS -> throw new RuntimeException("Max tokens exceeded");
-      case OTHER -> throw new RuntimeException("Other finish reason");
-      case PROHIBITED_CONTENT -> throw new RuntimeException("Prohibited content");
-      case RECITATION -> throw new RuntimeException("Recitation");
-      case SAFETY -> throw new RuntimeException("Safety triggered");
-      case SPII -> throw new RuntimeException("Spii triggered");
-      case UNEXPECTED_TOOL_CALL -> throw new RuntimeException("Unexpected tool call");
-      default -> throw new RuntimeException("Unknown finish reason: " + response.finishReason());
-    }
-  }
-
   @Override
-  public List<LlmGeneratedQuestionResponse> getLlmGeneratedQuestionContent(
+  public LlmGeneratedQuestionSetResponse getLlmGeneratedQuestionContent(
       LlmGeneratedQuestionRequest request) {
 
     validateRequest(request);
 
     String model = determineModel(request.model());
     Content content = buildContent(request);
-    GenerateContentConfig config = configBuilder.build(request.questionCount());
+    GenerateContentConfig config =
+        configBuilder.build(
+            request.specification().questionCount(), request.specification().questionType());
 
     logRequestDetails(model, request);
 
@@ -90,9 +57,9 @@ public class GeminiClient implements LlmClient {
       return parseResponse(response);
 
     } catch (IOException e) {
-      throw new LlmResponseParseException(e.getMessage(), e);
+      throw LlmResponseParseException.create(e);
     } catch (Exception e) {
-      throw new LlmException("LLM 콘텐츠 생성 실패", e);
+      throw LlmException.withCause(e);
     }
   }
 
@@ -111,9 +78,21 @@ public class GeminiClient implements LlmClient {
     return getGeminiContent(request.fileDataList(), request.prompt());
   }
 
-  private GenerateContentResponse callGeminiApi(
-      String model, Content content, GenerateContentConfig config) {
-    return client.models.generateContent(model, content, config);
+  private Content getGeminiContent(List<byte[]> fileDataList, String prompt) {
+    List<Part> parts = getByteParts(fileDataList);
+    parts.add(Part.fromText(prompt));
+    Part[] partArray = parts.toArray(new Part[0]);
+    return Content.fromParts(partArray);
+  }
+
+  private List<Part> getByteParts(List<byte[]> fileDataList) {
+    List<Part> parts = new ArrayList<>();
+    // TODO: 여러 파일 지원
+    for (byte[] fileData : fileDataList) {
+      parts.add(Part.fromBytes(fileData, "application/pdf"));
+    }
+
+    return parts;
   }
 
   private void validateResponse(GenerateContentResponse response) {
@@ -122,17 +101,39 @@ public class GeminiClient implements LlmClient {
     }
   }
 
-  private List<LlmGeneratedQuestionResponse> parseResponse(GenerateContentResponse response)
-      throws IOException {
-    return mapper.readValue(response.text(), new TypeReference<>() {});
+  private void handleResponseFinishReason(GenerateContentResponse response) {
+    switch (response.finishReason().knownEnum()) {
+      case BLOCKLIST -> throw LlmException.generationFailed("Content was filtered");
+      case FINISH_REASON_UNSPECIFIED ->
+          throw LlmException.generationFailed("Finish reason unspecified");
+      case IMAGE_SAFETY -> throw LlmException.generationFailed("Image safety triggered");
+      case LANGUAGE -> throw LlmException.generationFailed("Not allowed language");
+      case MALFORMED_FUNCTION_CALL ->
+          throw LlmException.generationFailed("Malformed function call");
+      case MAX_TOKENS -> throw LlmException.generationFailed("Max tokens exceeded");
+      case OTHER -> throw LlmException.generationFailed("Other finish reason");
+      case PROHIBITED_CONTENT -> throw LlmException.generationFailed("Prohibited content");
+      case RECITATION -> throw LlmException.generationFailed("Recitation");
+      case SAFETY -> throw LlmException.generationFailed("Safety triggered");
+      case SPII -> throw LlmException.generationFailed("Spii triggered");
+      case UNEXPECTED_TOOL_CALL -> throw LlmException.generationFailed("Unexpected tool call");
+      default ->
+          throw LlmException.generationFailed("Unknown finish reason: " + response.finishReason());
+    }
   }
 
   private void logRequestDetails(String model, LlmGeneratedQuestionRequest request) {
     log.info(
-        "\n--- Gemini API Request Parameters ---\n[Model Name] : {}\n[Question Count] : {}\n"
-            + "[Prompt Length] : {} characters\n[File Count] : {}{}\n--- End of Parameters ---",
+        """
+
+            --- Gemini API Request Parameters ---
+            [Model Name] : {}
+            [Question Count] : {}
+            [Prompt Length] : {} characters
+            [File Count] : {}{}
+            --- End of Parameters ---""",
         model,
-        request.questionCount(),
+        request.specification().questionCount(),
         request.prompt() != null ? request.prompt().length() : "null",
         request.fileDataList() != null ? request.fileDataList().size() : "null",
         request.fileDataList() != null && !request.fileDataList().isEmpty()
@@ -148,24 +149,37 @@ public class GeminiClient implements LlmClient {
             : "");
   }
 
+  private GenerateContentResponse callGeminiApi(
+      String model, Content content, GenerateContentConfig config) {
+    return client.models.generateContent(model, content, config);
+  }
+
+  private LlmGeneratedQuestionSetResponse parseResponse(GenerateContentResponse response)
+      throws IOException {
+    return mapper.readValue(response.text(), LlmGeneratedQuestionSetResponse.class);
+  }
+
   private String calculateSha256(byte[] data) {
     if (data == null) {
       return "null";
     }
+    return toHexString(generateSha256(data));
+  }
+
+  private byte[] generateSha256(byte[] data) {
     try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(data);
-      StringBuilder hexString = new StringBuilder();
-      for (byte b : hash) {
-        String hex = Integer.toHexString(0xff & b);
-        if (hex.length() == 1) {
-          hexString.append('0');
-        }
-        hexString.append(hex);
-      }
-      return hexString.toString();
+      return MessageDigest.getInstance("SHA-256").digest(data);
     } catch (NoSuchAlgorithmException e) {
-      return "Hashing failed";
+      throw new IllegalStateException("SHA-256 algorithm not found", e);
     }
+  }
+
+  private String toHexString(byte[] hash) {
+    StringBuilder hex = new StringBuilder(new BigInteger(1, hash).toString(16));
+    // BigInteger가 앞쪽의 0을 생략할 수 있으므로, 64자리(256비트)를 채우도록 패딩
+    while (hex.length() < 64) {
+      hex.insert(0, "0");
+    }
+    return hex.toString();
   }
 }

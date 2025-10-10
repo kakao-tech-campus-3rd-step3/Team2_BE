@@ -26,4 +26,6 @@ public interface QuestionSetPublicApi {
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
 
   QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
+
+  void updateTitle(Long questionSetId, String title);
 }

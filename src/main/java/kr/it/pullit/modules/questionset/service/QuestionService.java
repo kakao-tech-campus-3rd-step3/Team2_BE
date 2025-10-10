@@ -7,12 +7,16 @@ import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
-import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
+import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
+import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
 import kr.it.pullit.modules.questionset.domain.entity.LlmPrompt;
+import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.domain.entity.ShortAnswerQuestion;
+import kr.it.pullit.modules.questionset.domain.entity.TrueFalseQuestion;
 import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
@@ -37,17 +41,14 @@ public class QuestionService implements QuestionPublicApi {
   private final LlmClient llmClient;
 
   @Override
-  public List<LlmGeneratedQuestionResponse> generateQuestions(QuestionGenerationRequest request) {
+  public LlmGeneratedQuestionSetResponse generateQuestions(QuestionGenerationRequest request) {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
     List<byte[]> sourceFileDataBytes = getSourceFileBytes(request.sourceIds(), request.ownerId());
 
     return callLlmClient(
-        request.questionSetId(),
-        llmPrompt,
-        sourceFileDataBytes,
-        request.specification().questionCount());
+        request.questionSetId(), llmPrompt, sourceFileDataBytes, request.specification());
   }
 
   @Override
@@ -110,14 +111,14 @@ public class QuestionService implements QuestionPublicApi {
         .toList();
   }
 
-  private List<LlmGeneratedQuestionResponse> callLlmClient(
+  private LlmGeneratedQuestionSetResponse callLlmClient(
       Long questionSetId,
       LlmPrompt llmPrompt,
       List<byte[]> sourceFileDataBytes,
-      Integer questionCount) {
+      QuestionGenerationSpecification spec) {
     logLlmCall(questionSetId, DEFAULT_MODEL_NAME);
     LlmGeneratedQuestionRequest request =
-        createLlmRequest(llmPrompt, sourceFileDataBytes, questionCount, DEFAULT_MODEL_NAME);
+        createLlmRequest(llmPrompt, sourceFileDataBytes, spec, DEFAULT_MODEL_NAME);
     return llmClient.getLlmGeneratedQuestionContent(request);
   }
 
@@ -128,10 +129,9 @@ public class QuestionService implements QuestionPublicApi {
   private LlmGeneratedQuestionRequest createLlmRequest(
       LlmPrompt llmPrompt,
       List<byte[]> sourceFileDataBytes,
-      Integer questionCount,
+      QuestionGenerationSpecification spec,
       String modelName) {
-    return new LlmGeneratedQuestionRequest(
-        llmPrompt.value(), sourceFileDataBytes, questionCount, modelName);
+    return new LlmGeneratedQuestionRequest(llmPrompt.value(), sourceFileDataBytes, modelName, spec);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId) {
@@ -142,12 +142,33 @@ public class QuestionService implements QuestionPublicApi {
 
   private Question buildQuestionFromRequest(
       QuestionSet questionSet, QuestionCreateRequest requestDto) {
-    return new Question(
-        questionSet,
-        requestDto.questionText(),
-        requestDto.options(),
-        requestDto.answer(),
-        requestDto.explanation());
+    return switch (requestDto.questionType()) {
+      case MULTIPLE_CHOICE ->
+          MultipleChoiceQuestion.builder()
+              .questionSet(questionSet)
+              .questionText(requestDto.questionText())
+              .options(requestDto.options())
+              .answer(requestDto.answer())
+              .explanation(requestDto.explanation())
+              .build();
+      case TRUE_FALSE ->
+          TrueFalseQuestion.builder()
+              .questionSet(questionSet)
+              .questionText(requestDto.questionText())
+              .answer(Boolean.parseBoolean(requestDto.answer()))
+              .explanation(requestDto.explanation())
+              .build();
+      case SHORT_ANSWER ->
+          ShortAnswerQuestion.builder()
+              .questionSet(questionSet)
+              .questionText(requestDto.questionText())
+              .answer(requestDto.answer())
+              .explanation(requestDto.explanation())
+              .build();
+      default ->
+          throw new IllegalStateException(
+              "Unsupported question type: " + requestDto.questionType());
+    };
   }
 
   private Question findQuestionById(Long questionId) {
@@ -157,11 +178,13 @@ public class QuestionService implements QuestionPublicApi {
   }
 
   private void updateQuestionDetails(Question question, QuestionUpdateRequestDto requestDto) {
-    question.update(
-        requestDto.questionText(),
-        requestDto.options(),
-        requestDto.answer(),
-        requestDto.explanation());
+    QuestionUpdateParam param =
+        new QuestionUpdateParam(
+            requestDto.questionText(),
+            requestDto.explanation(),
+            requestDto.options(),
+            requestDto.answer());
+    question.update(param);
   }
 
   private void validateQuestionExists(Long questionId) {
