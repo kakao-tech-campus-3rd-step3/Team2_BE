@@ -85,4 +85,11 @@ public class Question extends BaseEntity {
     this.answer = answer;
     this.explanation = explanation;
   }
+
+  public boolean isCorrect(String userAnswer) {
+    if (userAnswer == null || this.answer == null) {
+      return false;
+    }
+    return userAnswer.trim().equalsIgnoreCase(this.answer.trim());
+  }
 }

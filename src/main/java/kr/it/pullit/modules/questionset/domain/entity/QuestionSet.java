@@ -102,8 +102,12 @@ public class QuestionSet extends BaseEntity {
     source.getQuestionSets().remove(this);
   }
 
-  public void updateStatus(QuestionSetStatus status) {
-    this.status = status;
+  public void completeProcessing() {
+    this.status = QuestionSetStatus.COMPLETE;
+  }
+
+  public void failProcessing() {
+    this.status = QuestionSetStatus.FAILED;
   }
 
   public void updateTitle(String title) {

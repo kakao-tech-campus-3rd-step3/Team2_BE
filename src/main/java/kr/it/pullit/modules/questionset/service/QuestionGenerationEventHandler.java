@@ -12,7 +12,6 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
@@ -48,37 +47,67 @@ public class QuestionGenerationEventHandler {
     }
   }
 
+  @TransactionalEventListener
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void handleSourceExtractionStart(final SourceExtractionStartEvent event) {
+    sourceRepository
+        .findById(event.sourceId())
+        .ifPresent(
+            source -> {
+              source.startProcessing();
+              log.info("Source[id={}] status updated to PROCESSING.", source.getId());
+            });
+  }
+
+  @TransactionalEventListener
+  public void handleSourceExtractionComplete(final SourceExtractionCompleteEvent event) {
+    sourceRepository
+        .findById(event.sourceId())
+        .ifPresent(
+            source -> {
+              source.markAsReady();
+              log.info("Source[id={}] status updated to READY.", source.getId());
+            });
+  }
+
   private void processQuestionGeneration(QuestionSetCreatedEvent event) {
     QuestionGenerationRequest request = createGenerationRequest(event);
     List<LlmGeneratedQuestionResponse> questionDtos = questionPublicApi.generateQuestions(request);
     saveQuestions(event.questionSetId(), event.ownerId(), questionDtos);
-    questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.COMPLETE);
+    questionSetPublicApi.markAsComplete(event.questionSetId());
   }
 
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSetWhenHaveNoQuestionsYet(
-            event.questionSetId(), event.ownerId());
-
-    QuestionGenerationSpecification specification =
-        new QuestionGenerationSpecification(
-            questionSetResponse.getDifficulty(),
-            questionSetResponse.getType(),
-            questionSetResponse.getQuestionLength());
-
+        fetchQuestionSetMetadata(event.questionSetId(), event.ownerId());
+    QuestionGenerationSpecification specification = createSpecificationFrom(questionSetResponse);
     return new QuestionGenerationRequest(
         event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
+  }
+
+  private QuestionSetResponse fetchQuestionSetMetadata(Long questionSetId, Long ownerId) {
+    return questionSetPublicApi.getQuestionSetWhenHaveNoQuestionsYet(questionSetId, ownerId);
+  }
+
+  private QuestionGenerationSpecification createSpecificationFrom(
+      QuestionSetResponse questionSetResponse) {
+    return new QuestionGenerationSpecification(
+        questionSetResponse.getDifficulty(),
+        questionSetResponse.getType(),
+        questionSetResponse.getQuestionLength());
   }
 
   private void saveQuestions(
       Long questionSetId, Long memberId, List<LlmGeneratedQuestionResponse> questionDtos) {
     QuestionSet questionSet = findQuestionSetById(questionSetId, memberId);
+    questionDtos.forEach(dto -> saveSingleQuestion(questionSet, dto));
+  }
 
-    for (LlmGeneratedQuestionResponse questionDto : questionDtos) {
-      log.info("Generated Question: {}", questionDto.questionText());
-      Question question = createQuestion(questionSet, questionDto);
-      questionPublicApi.saveQuestion(question);
-    }
+  private void saveSingleQuestion(
+      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
+    log.info("Generated Question: {}", questionDto.questionText());
+    Question question = createQuestion(questionSet, questionDto);
+    questionPublicApi.saveQuestion(question);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId, Long memberId) {
@@ -99,35 +128,29 @@ public class QuestionGenerationEventHandler {
   }
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
+    QuestionSetCreationCompleteResponse responseDto = createSuccessResponse(event);
+    publishSuccessNotification(event.ownerId(), responseDto);
+    logSuccess(event.questionSetId());
+  }
+
+  private QuestionSetCreationCompleteResponse createSuccessResponse(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
         questionSetPublicApi.getQuestionSetForSolving(
             event.questionSetId(), event.ownerId(), false);
-    QuestionSetCreationCompleteResponse responseDto =
-        new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
+    return new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
+  }
 
-    notificationPublicApi.publishQuestionSetCreationComplete(event.ownerId(), responseDto);
-    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", event.questionSetId());
+  private void publishSuccessNotification(
+      Long ownerId, QuestionSetCreationCompleteResponse responseDto) {
+    notificationPublicApi.publishQuestionSetCreationComplete(ownerId, responseDto);
+  }
+
+  private void logSuccess(Long questionSetId) {
+    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", questionSetId);
   }
 
   private void handleFailure(QuestionSetCreatedEvent event, Exception e) {
     log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
-    questionSetPublicApi.updateStatus(event.questionSetId(), QuestionSetStatus.FAILED);
-  }
-
-  @TransactionalEventListener
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void handleSourceExtractionStart(final SourceExtractionStartEvent event) {
-    sourceRepository
-        .findById(event.sourceId())
-        .ifPresent(
-            source -> {
-              // TODO: Source 상태 업데이트 로직 구현 필요
-              log.info("Source extraction started for source ID: {}", event.sourceId());
-            });
-  }
-
-  @TransactionalEventListener
-  public void handleSourceExtractionComplete(final SourceExtractionCompleteEvent event) {
-    // ...
+    questionSetPublicApi.markAsFailed(event.questionSetId());
   }
 }
