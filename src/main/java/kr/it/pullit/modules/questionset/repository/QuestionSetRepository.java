@@ -19,6 +19,8 @@ public interface QuestionSetRepository {
 
   QuestionSet save(QuestionSet questionSet);
 
+  void delete(QuestionSet questionSet);
+
   Optional<QuestionSet> findQuestionSetForReviewing(Long questionSetId, Long memberId);
 
   Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);

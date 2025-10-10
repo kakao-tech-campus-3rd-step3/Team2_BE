@@ -18,6 +18,7 @@ import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
@@ -160,6 +161,36 @@ public class QuestionSetService implements QuestionSetPublicApi {
             .findById(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
     questionSet.updateStatus(status);
+  }
+
+  @Override
+  @Transactional
+  public void updateTitle(Long questionSetId, String title, Long memberId) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+
+    if (!questionSet.getOwner().getId().equals(memberId)) {
+      throw QuestionSetUnauthorizedException.byId(questionSetId);
+    }
+
+    questionSet.updateTitle(title);
+  }
+
+  @Override
+  @Transactional
+  public void delete(Long questionSetId, Long memberId) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+
+    if (!questionSet.getOwner().getId().equals(memberId)) {
+      throw QuestionSetUnauthorizedException.byId(questionSetId);
+    }
+
+    questionSetRepository.delete(questionSet);
   }
 
   @Override

@@ -16,6 +16,10 @@ public interface QuestionSetPublicApi {
 
   void updateStatus(Long questionSetId, QuestionSetStatus status);
 
+  void updateTitle(Long questionSetId, String title, Long memberId);
+
+  void delete(Long questionSetId, Long memberId);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);

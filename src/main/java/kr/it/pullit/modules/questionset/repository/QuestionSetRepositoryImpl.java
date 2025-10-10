@@ -57,4 +57,9 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   public List<QuestionSet> findByMemberId(Long memberId) {
     return questionSetJpaRepository.findByMemberId(memberId);
   }
+
+  @Override
+  public void delete(QuestionSet questionSet) {
+    questionSetJpaRepository.delete(questionSet);
+  }
 }
