@@ -138,4 +138,8 @@ public class QuestionSet extends BaseEntity {
   public void updateTitle(String title) {
     this.title = title;
   }
+
+  public void updateTitle(String title) {
+    this.title = title;
+  }
 }
