@@ -17,6 +17,8 @@ public interface QuestionSetPublicApi {
 
   void markAsFailed(Long questionSetId);
 
+  void updateTitle(Long questionSetId, String title);
+
   void updateTitle(Long questionSetId, String title, Long memberId);
 
   void delete(Long questionSetId, Long memberId);
@@ -26,6 +28,4 @@ public interface QuestionSetPublicApi {
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
 
   QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
-
-  void updateTitle(Long questionSetId, String title);
 }

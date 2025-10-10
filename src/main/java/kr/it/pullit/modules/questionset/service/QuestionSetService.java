@@ -138,6 +138,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  public void updateTitle(Long questionSetId, String title) {
+    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
+    questionSet.updateTitle(title);
+  }
+
+  @Override
+  @Transactional
   public void updateTitle(Long questionSetId, String title, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
@@ -170,13 +177,6 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Transactional(readOnly = true)
   public Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId) {
     return questionSetRepository.findByIdWithoutQuestions(id, memberId);
-  }
-
-  @Override
-  @Transactional
-  public void updateTitle(Long questionSetId, String title) {
-    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
-    questionSet.updateTitle(title);
   }
 
   private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
