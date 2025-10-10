@@ -18,8 +18,8 @@ class MemberRepositoryTest extends TestContainerTest {
   @Test
   void save_and_find_by_email() {
     // given
-    Member frodo = Member.builder().email("hyeonjun@example.com").name("현준").build();
-    Member sam = Member.builder().email("flareseek@example.com").name("지환").build();
+    Member frodo = Member.create(null, "hyeonjun@example.com", "현준");
+    Member sam = Member.create(null, "flareseek@example.com", "지환");
     memberRepository.save(frodo);
     memberRepository.save(sam);
 
@@ -30,5 +30,7 @@ class MemberRepositoryTest extends TestContainerTest {
     // then
     assertThat(foundFrodo).isPresent();
     assertThat(foundSam).isPresent();
+    assertThat(foundFrodo.get().getName()).isEqualTo("현준");
+    assertThat(foundSam.get().getName()).isEqualTo("지환");
   }
 }
