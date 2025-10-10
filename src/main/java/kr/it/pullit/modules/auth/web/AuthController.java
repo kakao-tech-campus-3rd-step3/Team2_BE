@@ -1,9 +1,10 @@
 package kr.it.pullit.modules.auth.web;
 
-import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.it.pullit.modules.auth.service.AuthService;
 import kr.it.pullit.modules.auth.web.dto.AccessTokenResponse;
+import kr.it.pullit.platform.web.cookie.CookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
   private final AuthService authService;
+  private final CookieManager cookieManager;
 
   @PostMapping("/refresh")
   public ResponseEntity<AccessTokenResponse> refresh(
@@ -28,14 +30,11 @@ public class AuthController {
 
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(
-      @AuthenticationPrincipal Long memberId, HttpServletResponse response) {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @AuthenticationPrincipal Long memberId) {
     authService.logout(memberId);
-
-    Cookie cookie = new Cookie("refresh_token", null);
-    cookie.setMaxAge(0);
-    cookie.setPath("/");
-    response.addCookie(cookie);
-
+    cookieManager.removeRefreshTokenCookie(request, response);
     return ResponseEntity.noContent().build();
   }
 }

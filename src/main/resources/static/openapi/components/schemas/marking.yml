@@ -1,0 +1,19 @@
+MarkingRequest:
+  type: object
+  required:
+    - questionId
+    - isCorrect
+  properties:
+    questionId:
+      type: integer
+      format: int64
+      description: 채점할 문제의 ID
+      example: 1
+    isCorrect:
+      type: boolean
+      description:
+        문제의 정답 여부 (true:
+          정답, false: 오답)
+      example: true
+  description: 문제 채점 요청 정보
+

@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "cors")
 public class WebCorsProps {
 
-  private List<String> allowedOrigins = new ArrayList<>(List.of("http://localhost:5173"));
+  private List<String> allowedOrigins = new ArrayList<>(List.of());
 
   // CORS 캐시 시간 (초 단위) - 기본값 1시간
   private int maxAgeSeconds = 3600;

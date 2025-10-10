@@ -81,6 +81,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1'
 
     // AI SDK
     implementation 'com.google.genai:google-genai:1.15.0'
@@ -136,6 +137,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
+    testImplementation 'com.squareup.okhttp3:okhttp-sse'
 }
 
 // 의존성 버전 관리 (BOM 사용)
@@ -149,4 +151,5 @@ dependencyManagement {
 // 테스트 실행 설정 (JUnit 5 사용)
 tasks.named('test') {
     useJUnitPlatform()
+    environment 'AWS_REGION', 'ap-northeast-2'
 }
