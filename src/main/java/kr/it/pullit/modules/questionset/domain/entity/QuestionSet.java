@@ -134,4 +134,8 @@ public class QuestionSet extends BaseEntity {
   public void failProcessing() {
     this.status = QuestionSetStatus.FAILED;
   }
+
+  public void updateTitle(String title) {
+    this.title = title;
+  }
 }

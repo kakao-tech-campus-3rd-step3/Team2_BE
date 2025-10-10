@@ -17,6 +17,10 @@ public interface QuestionSetPublicApi {
 
   void markAsFailed(Long questionSetId);
 
+  void updateTitle(Long questionSetId, String title, Long memberId);
+
+  void delete(Long questionSetId, Long memberId);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);

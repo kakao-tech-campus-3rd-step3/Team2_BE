@@ -14,6 +14,7 @@ import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
@@ -133,9 +134,46 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
+  @Transactional
+  public void updateTitle(Long questionSetId, String title, Long memberId) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+
+    if (!questionSet.getOwner().getId().equals(memberId)) {
+      throw QuestionSetUnauthorizedException.byId(questionSetId);
+    }
+
+    questionSet.updateTitle(title);
+  }
+
+  @Override
+  @Transactional
+  public void delete(Long questionSetId, Long memberId) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+
+    if (!questionSet.getOwner().getId().equals(memberId)) {
+      throw QuestionSetUnauthorizedException.byId(questionSetId);
+    }
+
+    questionSetRepository.delete(questionSet);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId) {
     return questionSetRepository.findByIdWithoutQuestions(id, memberId);
+  }
+
+  @Override
+  @Transactional
+  public void updateTitle(Long questionSetId, String title) {
+    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
+    questionSet.updateTitle(title);
   }
 
   private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
