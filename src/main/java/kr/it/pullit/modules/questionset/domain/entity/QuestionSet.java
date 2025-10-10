@@ -20,10 +20,10 @@ import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
-import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -85,7 +85,7 @@ public class QuestionSet extends BaseEntity {
   }
 
   public static QuestionSet create(
-      Member owner, List<Source> sources, QuestionSetCreateRequestDto request) {
+      Member owner, List<Source> sources, QuestionSetCreateParam param) {
     validateSources(sources);
 
     String title = sources.getFirst().getOriginalName();
@@ -95,9 +95,9 @@ public class QuestionSet extends BaseEntity {
         .owner(owner)
         .sources(sourceSet)
         .title(title)
-        .difficulty(request.difficulty())
-        .type(request.type())
-        .questionLength(request.questionCount())
+        .difficulty(param.difficulty())
+        .type(param.type())
+        .questionLength(param.questionCount())
         .build();
   }
 
