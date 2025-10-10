@@ -125,7 +125,7 @@ public class GeminiClient implements LlmClient {
   private void logRequestDetails(String model, LlmGeneratedQuestionRequest request) {
     log.info(
         """
-            
+
             --- Gemini API Request Parameters ---
             [Model Name] : {}
             [Question Count] : {}
