@@ -2,6 +2,7 @@ package kr.it.pullit.modules.auth.kakaoauth.service;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
@@ -37,8 +38,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     String email = (String) kakaoAccount.get("email");
     String name = (String) profile.get("nickname");
 
+    if (email == null) {
+      String randomId = UUID.randomUUID().toString().substring(0, 8);
+      log.warn("카카오 계정에 이메일 정보가 없어 가상 이메일을 생성합니다. randomId={}", randomId);
+      email = randomId + "@kakao.pullit";
+    }
+
     Member member =
-        memberPublicApi.findOrCreateMember(SocialLoginCommand.kakao(kakaoId, email, name));
+        memberPublicApi
+            .findOrCreateMember(SocialLoginCommand.kakao(kakaoId, email, name))
+            .orElseThrow(
+                () -> new IllegalArgumentException("Cannot find member by kakaoId: " + kakaoId));
     log.info("멤버 생성 또는 조회 완료: {}", member.getId());
 
     return new DefaultOAuth2User(

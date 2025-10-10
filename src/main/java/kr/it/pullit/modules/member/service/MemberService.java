@@ -3,10 +3,9 @@ package kr.it.pullit.modules.member.service;
 import java.util.Optional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.domain.entity.MemberStatus;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
-import kr.it.pullit.modules.member.web.dto.SignUpRequest;
+import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,39 +28,31 @@ public class MemberService implements MemberPublicApi {
     return memberRepository.findByKakaoId(kakaoId);
   }
 
-  // TODO: REMOVE THIS METHOD.
-  @Override
-  public Member create(Member member) {
-    return memberRepository.save(member);
-  }
-
-  // TODO: REMOVE THIS METHOD.
-  @Transactional
-  public Member signup(SignUpRequest request) {
-    Member newMember =
-        Member.builder()
-            .kakaoId(request.kakaoId())
-            .email(request.email())
-            .name(request.name())
-            .status(MemberStatus.ACTIVE)
-            .build();
-    return memberRepository.save(newMember);
-  }
-
+  /** 카카오 앱이 변경되더라도 기존 멤버 정보를 그대로 사용할 수 있기 위해 조회 후 생성을 진행한다. */
   @Override
   @Transactional
-  public Member findOrCreateMember(SocialLoginCommand command) {
-    return memberRepository
-        .findByKakaoId(command.kakaoId())
-        .orElseGet(
-            () ->
-                memberRepository.save(
-                    Member.builder()
-                        .kakaoId(command.kakaoId())
-                        .email(command.email())
-                        .name(command.name())
-                        .status(MemberStatus.ACTIVE)
-                        .build()));
+  public Optional<Member> findOrCreateMember(SocialLoginCommand command) {
+    Optional<Member> memberByKakao = memberRepository.findByKakaoId(command.kakaoId());
+    if (memberByKakao.isPresent()) {
+      return memberByKakao;
+    }
+
+    Member memberToReturn =
+        memberRepository
+            .findByEmail(command.email())
+            .map(
+                existing -> {
+                  existing.linkKakaoId(command.kakaoId());
+                  return memberRepository.save(existing);
+                })
+            .orElseGet(
+                () -> {
+                  Member newMember =
+                      Member.create(command.kakaoId(), command.email(), command.name());
+                  return memberRepository.save(newMember);
+                });
+
+    return Optional.of(memberToReturn);
   }
 
   @Override
@@ -72,5 +63,10 @@ public class MemberService implements MemberPublicApi {
   @Override
   public Member save(Member member) {
     return memberRepository.save(member);
+  }
+
+  @Override
+  public Optional<MemberInfoResponse> getMemberInfo(Long memberId) {
+    return memberRepository.findById(memberId).map(MemberInfoResponse::from);
   }
 }

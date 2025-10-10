@@ -55,9 +55,8 @@ jobs:
             export S3_ACCESS_KEY='${{ secrets.S3_ACCESS_KEY }}' && \
             export S3_SECRET_KEY='${{ secrets.S3_SECRET_KEY }}' && \
             export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}' && \
-            export SCHEME='${{ secrets.SCHEME }}' && \
-            export BASE_URI='${{ secrets.BASE_URI }}' && \
-            export ACCESS_CONTROL_ALLOWED_ORIGINS='${{ secrets.ACCESS_CONTROL_ALLOWED_ORIGINS }}' && \
+            export JWT_REDIRECT_URL='${{ secrets.JWT_REDIRECT_URL }}' && \
+            export JWT_COOKIE_DOMAIN='${{ secrets.JWT_COOKIE_DOMAIN }}' && \
             export AWS_REGION='ap-northeast-2' && \
             cd /home/ubuntu/app && \
             docker compose -f docker-compose.qa.yml down --remove-orphans && \

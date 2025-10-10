@@ -1,7 +1,11 @@
 spring:
+  profiles:
+    active: local
   application:
     name: pullit
   mvc:
+    problem details:
+      enabled: true
     async:
       request-timeout: 30m
   datasource:
@@ -18,7 +22,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+        show_sql: false
 
   sql:
     init:
@@ -67,11 +71,18 @@ spring:
   # llm generator 설정
   async:
     executor:
-      llm-generator:
+      application-task-executor:
         core-pool-size: 5
         max-pool-size: 10
         queue-capacity: 100
-        prefix: LLM-GEN-
+        prefix: TASK-
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+#      if you want to write in the spy.log file. this might be used in qa or product profile
+#      logging: file
 
 jwt:
   secret: ${JWT_SECRET_KEY:Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=}
@@ -79,7 +90,14 @@ jwt:
   audience: ${JWT_AUDIENCE:pullit-client}
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:30m}
   refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:7d}
-  redirect-url: ${JWT_REDIRECT_URL:http://local.pull.it.kr:5173/}
+  authorized-redirect-uris:
+    - ${JWT_REDIRECT_URL_1:https://pull.it.kr/login-success}
+    - ${JWT_REDIRECT_URL_2:https://localhost:5173/login-success}
+    - ${JWT_REDIRECT_URL_3:https://www.pull.it.kr/login-success}
+  authorized-cookie-domains:
+    - ${JWT_COOKIE_DOMAIN_1:pull.it.kr}
+    - ${JWT_COOKIE_DOMAIN_2:localhost}
+
 
 server:
   error:
@@ -88,6 +106,11 @@ server:
     include-exception: true
     # TODO : 운영에서 전체 트레이스 포함할지
     include-stacktrace: ALWAYS
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
 
 info:
   app:
@@ -97,10 +120,14 @@ info:
 logging:
   level:
     ROOT: INFO
+    kr.it.pullit: DEBUG
+    org.springframework.security: DEBUG
     java.lang.ProcessBuilder: INFO
     sun.rmi.loader: WARN
     sun.rmi.transport.tcp: WARN
     javax.management.remote.rmi: WARN
+    # org.hibernate.orm.jdbc.bind: TRACE
+    p6spy: INFO
 
 # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
@@ -119,13 +146,11 @@ management:
 
 cors:
   allowed-origins:
-    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:http://local.pull.it.kr:5173}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:https://localhost:5173, https://local.pull.it.kr:5173, https://pull.it.kr, https://www.pull.it.kr}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
 app:
-  scheme: ${SCHEME:http}
-  base-uri: ${BASE_URI:localhost:8080}
   gemini:
     api-key: ${GEMINI_API_KEY:test}
   storage:

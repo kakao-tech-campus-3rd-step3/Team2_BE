@@ -19,26 +19,25 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
   @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return path.startsWith("/api/notifications/subscribe") || path.startsWith("/actuator");
+  }
+
+  @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
 
     ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
-    filterChain.doFilter(wrappedRequest, response);
 
     logRequestDetails(wrappedRequest);
+    filterChain.doFilter(wrappedRequest, response);
   }
 
   private void logRequestDetails(ContentCachingRequestWrapper request) {
-    // 요청 본문이 없는 GET, DELETE 등의 메서드는 간단히 로깅
-    if (!"POST".equalsIgnoreCase(request.getMethod())
-        && !"PUT".equalsIgnoreCase(request.getMethod())) {
-      log.info("INCOMING REQUEST: {} {}", request.getMethod(), request.getRequestURI());
-      return;
-    }
-
     StringBuilder logMessage = new StringBuilder();
-    logMessage.append("\n--- INCOMING REQUEST ---\n");
+    logMessage.append("\n🦁 --- INCOMING REQUEST --- 🦁\n");
     logMessage.append(String.format("URI         : %s\n", request.getRequestURI()));
     logMessage.append(String.format("Method      : %s\n", request.getMethod()));
     logMessage.append("Headers     :\n");
@@ -64,7 +63,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       }
     }
 
-    logMessage.append("--- END REQUEST ---");
+    logMessage.append("🦁 --- END REQUEST --- 🦁");
     log.info(logMessage.toString());
   }
 }

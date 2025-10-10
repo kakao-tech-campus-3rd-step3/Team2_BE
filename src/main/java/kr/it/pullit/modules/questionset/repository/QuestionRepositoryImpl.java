@@ -21,4 +21,9 @@ public class QuestionRepositoryImpl implements QuestionRepository {
   public Question save(Question question) {
     return questionJpaRepository.save(question);
   }
+
+  @Override
+  public void deleteById(Long id) {
+    questionJpaRepository.deleteById(id);
+  }
 }

@@ -26,11 +26,11 @@ spring:
             user-name-attribute: id
   async:
     executor:
-      llm-generator:
+      application-task-executor:
         core-pool-size: 5
         max-pool-size: 10
         queue-capacity: 100
-        prefix: LLM-GEN-
+        prefix: TASK-
 
 jwt:
   secret: mockYn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=
@@ -38,8 +38,8 @@ jwt:
   audience: pullit-client
   access-token-expiration-minutes: 30
   refresh-token-expiration-days: 7
-  redirect-url: http://local.pull.it.kr:5173/
-
+  redirect-url: https://local.pull.it.kr:5173/
+  cookie-domain: local.pull.it.kr
 
 app:
   scheme: http

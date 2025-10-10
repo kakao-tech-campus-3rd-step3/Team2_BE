@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import java.util.List;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
@@ -38,6 +39,9 @@ public class Question extends BaseEntity {
   @Column(columnDefinition = "TEXT")
   private String explanation;
 
+  @OneToOne(mappedBy = "question")
+  private IncorrectAnswerQuestion incorrectAnswerQuestion;
+
   /**
    * Question 생성자
    *
@@ -62,5 +66,20 @@ public class Question extends BaseEntity {
 
   void setQuestionSet(QuestionSet questionSet) {
     this.questionSet = questionSet;
+  }
+
+  /**
+   * Question 수정
+   *
+   * @param questionText 문제 제목
+   * @param options 선지 목록
+   * @param answer 정답
+   * @param explanation 해설
+   */
+  public void update(String questionText, List<String> options, String answer, String explanation) {
+    this.questionText = questionText;
+    this.options = options;
+    this.answer = answer;
+    this.explanation = explanation;
   }
 }
