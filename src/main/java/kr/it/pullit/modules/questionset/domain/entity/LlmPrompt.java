@@ -13,6 +13,9 @@ public record LlmPrompt(String value) {
   }
 
   public static LlmPrompt compose(DifficultyType difficulty, QuestionType questionType) {
+    String shortAnswerInstruction =
+        questionType == QuestionType.SHORT_ANSWER ? "- 단답형 문제의 정답은 반드시 20자 이내로 생성해주세요.\n" : "";
+
     String composed =
         String.format(
             """
@@ -22,7 +25,7 @@ public record LlmPrompt(String value) {
         [지시사항]:
         - 난이도: %s
         - 문제유형: %s
-        - Think step by step
+        %s- Think step by step
         - 오답은 모호하면 안됩니다. 확실하게 오답이어야 합니다.
         - 학생들이 어려워 하거나, 중요하다고 생각되는 부분을 문제로 출제해야 합니다.
         - 자기검증: 최종 정보에 대해서, 스스로 검증한 후 대답해야 합니다.
@@ -33,7 +36,10 @@ public record LlmPrompt(String value) {
         [예시]:
         %s
         """,
-            difficulty.getPrompt(), questionType.getType(), questionType.getExample());
+            difficulty.getPrompt(),
+            questionType.getType(),
+            shortAnswerInstruction,
+            questionType.getExample());
 
     return new LlmPrompt(composed);
   }

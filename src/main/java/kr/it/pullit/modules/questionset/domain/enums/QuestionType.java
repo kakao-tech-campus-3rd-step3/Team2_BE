@@ -33,8 +33,8 @@ public enum QuestionType {
   private static String createTrueFalseTemplate() {
     return """
         문제번호: 문제번호 (예시: 1)
-        문제: 참 또는 거짓으로 판별할 수 있는 서술문 (예시: "OSI 7계층에서 전송 계층은 데이터의 암호화와 압축을 담당한다.")
-        정답: '참' 또는 '거짓' 중 하나만 작성 (예시: "거짓")
+        문제: TRUE 또는 FALSE로 판별할 수 있는 서술문 (예시: "OSI 7계층에서 전송 계층은 데이터의 암호화와 압축을 담당한다.")
+        정답: true 또는 false 중 하나만 작성 (예시: false)
         해설: 정답에 대한 상세 설명 (예시: "데이터의 암호화와 압축은 표현 계층(Presentation Layer)의 역할입니다. 전송 계층은 종단 간의 신뢰성 있는 데이터 전송을 담당합니다.")
         """;
   }

@@ -8,6 +8,7 @@ import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -44,7 +45,9 @@ public class GeminiClient implements LlmClient {
 
     String model = determineModel(request.model());
     Content content = buildContent(request);
-    GenerateContentConfig config = configBuilder.build(request.questionCount());
+    GenerateContentConfig config =
+        configBuilder.build(
+            request.specification().questionCount(), request.specification().questionType());
 
     logRequestDetails(model, request);
 
@@ -121,10 +124,16 @@ public class GeminiClient implements LlmClient {
 
   private void logRequestDetails(String model, LlmGeneratedQuestionRequest request) {
     log.info(
-        "\n--- Gemini API Request Parameters ---\n[Model Name] : {}\n[Question Count] : {}\n"
-            + "[Prompt Length] : {} characters\n[File Count] : {}{}\n--- End of Parameters ---",
+        """
+            
+            --- Gemini API Request Parameters ---
+            [Model Name] : {}
+            [Question Count] : {}
+            [Prompt Length] : {} characters
+            [File Count] : {}{}
+            --- End of Parameters ---""",
         model,
-        request.questionCount(),
+        request.specification().questionCount(),
         request.prompt() != null ? request.prompt().length() : "null",
         request.fileDataList() != null ? request.fileDataList().size() : "null",
         request.fileDataList() != null && !request.fileDataList().isEmpty()
@@ -166,11 +175,11 @@ public class GeminiClient implements LlmClient {
   }
 
   private String toHexString(byte[] hash) {
-    String hex = new java.math.BigInteger(1, hash).toString(16);
+    StringBuilder hex = new StringBuilder(new BigInteger(1, hash).toString(16));
     // BigInteger가 앞쪽의 0을 생략할 수 있으므로, 64자리(256비트)를 채우도록 패딩
     while (hex.length() < 64) {
-      hex = "0" + hex;
+      hex.insert(0, "0");
     }
-    return hex;
+    return hex.toString();
   }
 }

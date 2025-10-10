@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.genai.types.GenerateContentConfig;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,6 +43,7 @@ public class GeminiConfigBuilder {
   private static final String OBJECT = "object";
   private static final String INTEGER = "integer";
   private static final String STRING = "string";
+  private static final String BOOLEAN = "boolean";
   private static final String MIN_ITEMS = "minItems";
   private static final String MAX_ITEMS = "maxItems";
   private static final String ITEMS = "items";
@@ -55,8 +57,8 @@ public class GeminiConfigBuilder {
   @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:MemberName"})
   final int MAX_OPTION_COUNT = 4;
 
-  public GenerateContentConfig build(int questionCount) {
-    ImmutableMap<String, Object> schema = buildRootSchema(questionCount);
+  public GenerateContentConfig build(int questionCount, QuestionType questionType) {
+    ImmutableMap<String, Object> schema = buildRootSchema(questionCount, questionType);
 
     return GenerateContentConfig.builder()
         .responseMimeType("application/json")
@@ -65,7 +67,8 @@ public class GeminiConfigBuilder {
         .build();
   }
 
-  private ImmutableMap<String, Object> buildRootSchema(int questionCount) {
+  private ImmutableMap<String, Object> buildRootSchema(
+      int questionCount, QuestionType questionType) {
     return ImmutableMap.<String, Object>builder()
         .put(TYPE, OBJECT)
         .put(
@@ -74,7 +77,7 @@ public class GeminiConfigBuilder {
                 LlmGeneratedQuestionSetResponse.Fields.title,
                 buildTitleSchema(),
                 LlmGeneratedQuestionSetResponse.Fields.questions,
-                buildQuestionsSchema(questionCount)))
+                buildQuestionsSchema(questionCount, questionType)))
         .put(
             REQUIRED,
             ImmutableList.of(
@@ -83,12 +86,13 @@ public class GeminiConfigBuilder {
         .build();
   }
 
-  private ImmutableMap<String, Object> buildQuestionsSchema(int questionCount) {
+  private ImmutableMap<String, Object> buildQuestionsSchema(
+      int questionCount, QuestionType questionType) {
     return ImmutableMap.<String, Object>builder()
         .put(TYPE, ARRAY)
         .put(MIN_ITEMS, questionCount)
         .put(MAX_ITEMS, questionCount)
-        .put(ITEMS, buildQuestionSchema())
+        .put(ITEMS, buildQuestionSchema(questionType))
         .build();
   }
 
@@ -96,37 +100,94 @@ public class GeminiConfigBuilder {
     return ImmutableMap.of(TYPE, STRING);
   }
 
-  private ImmutableMap<String, Object> buildQuestionSchema() {
+  private ImmutableMap<String, Object> buildQuestionSchema(QuestionType questionType) {
     return ImmutableMap.of(
-        TYPE, OBJECT, PROPERTIES, buildPropertiesMap(), REQUIRED, buildRequiredList());
+        TYPE,
+        OBJECT,
+        PROPERTIES,
+        buildPropertiesMap(questionType),
+        REQUIRED,
+        buildRequiredList(questionType));
   }
 
-  private ImmutableMap<String, Object> buildPropertiesMap() {
-    return ImmutableMap.<String, Object>builder()
-        .put(LlmGeneratedQuestionResponse.Fields.id, ImmutableMap.of(TYPE, INTEGER))
-        .put(LlmGeneratedQuestionResponse.Fields.questionText, ImmutableMap.of(TYPE, STRING))
-        .put(
-            LlmGeneratedQuestionResponse.Fields.options,
-            ImmutableMap.of(
-                TYPE,
-                ARRAY,
-                ITEMS,
-                ImmutableMap.of(TYPE, STRING),
-                MIN_ITEMS,
-                MIN_OPTION_COUNT,
-                MAX_ITEMS,
-                MAX_OPTION_COUNT))
-        .put(LlmGeneratedQuestionResponse.Fields.answer, ImmutableMap.of(TYPE, STRING))
+  private ImmutableMap<String, Object> buildPropertiesMap(QuestionType questionType) {
+    ImmutableMap.Builder<String, Object> builder =
+        ImmutableMap.<String, Object>builder()
+            .put(LlmGeneratedQuestionResponse.Fields.id, ImmutableMap.of(TYPE, INTEGER))
+            .put(LlmGeneratedQuestionResponse.Fields.questionText, ImmutableMap.of(TYPE, STRING));
+
+    addOptionsIfMultipleChoice(builder, questionType);
+    addAnswerProperty(builder, questionType);
+
+    return builder
         .put(LlmGeneratedQuestionResponse.Fields.explanation, ImmutableMap.of(TYPE, STRING))
         .build();
   }
 
-  private ImmutableList<String> buildRequiredList() {
-    return ImmutableList.of(
-        LlmGeneratedQuestionResponse.Fields.id,
-        LlmGeneratedQuestionResponse.Fields.questionText,
+  private void addOptionsIfMultipleChoice(
+      ImmutableMap.Builder<String, Object> builder, QuestionType questionType) {
+    if (questionType != QuestionType.MULTIPLE_CHOICE) {
+      return;
+    }
+    builder.put(
         LlmGeneratedQuestionResponse.Fields.options,
-        LlmGeneratedQuestionResponse.Fields.answer,
-        LlmGeneratedQuestionResponse.Fields.explanation);
+        ImmutableMap.of(
+            TYPE,
+            ARRAY,
+            ITEMS,
+            ImmutableMap.of(TYPE, STRING),
+            MIN_ITEMS,
+            MIN_OPTION_COUNT,
+            MAX_ITEMS,
+            MAX_OPTION_COUNT));
+  }
+
+  private void addAnswerProperty(
+      ImmutableMap.Builder<String, Object> builder, QuestionType questionType) {
+    if (questionType == QuestionType.TRUE_FALSE) {
+      addBooleanAnswer(builder);
+      return;
+    }
+    if (questionType == QuestionType.SHORT_ANSWER) {
+      addShortAnswer(builder);
+      return;
+    }
+    addStringAnswer(builder);
+  }
+
+  private void addBooleanAnswer(ImmutableMap.Builder<String, Object> builder) {
+    builder.put(LlmGeneratedQuestionResponse.Fields.answer, ImmutableMap.of(TYPE, BOOLEAN));
+  }
+
+  private void addShortAnswer(ImmutableMap.Builder<String, Object> builder) {
+    builder.put(LlmGeneratedQuestionResponse.Fields.answer, ImmutableMap.of(TYPE, STRING));
+  }
+
+  private void addStringAnswer(ImmutableMap.Builder<String, Object> builder) {
+    builder.put(LlmGeneratedQuestionResponse.Fields.answer, ImmutableMap.of(TYPE, STRING));
+  }
+
+  private ImmutableList<String> buildRequiredList(QuestionType questionType) {
+    ImmutableList.Builder<String> builder =
+        ImmutableList.<String>builder()
+            .add(
+                LlmGeneratedQuestionResponse.Fields.id,
+                LlmGeneratedQuestionResponse.Fields.questionText);
+
+    addOptionsToRequiredIfMultipleChoice(builder, questionType);
+
+    return builder
+        .add(
+            LlmGeneratedQuestionResponse.Fields.answer,
+            LlmGeneratedQuestionResponse.Fields.explanation)
+        .build();
+  }
+
+  private void addOptionsToRequiredIfMultipleChoice(
+      ImmutableList.Builder<String> builder, QuestionType questionType) {
+    if (questionType != QuestionType.MULTIPLE_CHOICE) {
+      return;
+    }
+    builder.add(LlmGeneratedQuestionResponse.Fields.options);
   }
 }

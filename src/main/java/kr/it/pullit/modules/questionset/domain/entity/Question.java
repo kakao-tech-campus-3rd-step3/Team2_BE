@@ -1,30 +1,31 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
-import java.util.List;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
-import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
-import kr.it.pullit.modules.questionset.exception.QuestionErrorCode;
+import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.shared.jpa.BaseEntity;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-/** */
-@Entity
+@Entity(name = "question")
 @Getter
 @NoArgsConstructor
-public class Question extends BaseEntity {
+@SuperBuilder
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn
+public abstract class Question extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,104 +38,29 @@ public class Question extends BaseEntity {
   @Column(columnDefinition = "TEXT")
   private String questionText;
 
-  @ElementCollection private List<String> options;
-
-  private String answer;
-
   @Column(columnDefinition = "TEXT")
   private String explanation;
 
   @OneToOne(mappedBy = "question")
   private WrongAnswer wrongAnswer;
 
-  /**
-   * Question 생성자
-   *
-   * @param questionSet 문제집
-   * @param questionText 문제 제목
-   * @param options 선지 목록 (오답만)
-   * @param answer 정답
-   * @param explanation 해설
-   */
-  @Builder
-  public Question(
-      QuestionSet questionSet,
-      String questionText,
-      List<String> options,
-      String answer,
-      String explanation) {
-    this.questionSet = questionSet;
-    this.questionText = questionText;
-    this.options = options;
-    this.answer = answer;
-    this.explanation = explanation;
-    validateQuestionType();
-  }
+  // 생성자는 SuperBuilder가 처리하므로 비워둡니다.
 
   void setQuestionSet(QuestionSet questionSet) {
     this.questionSet = questionSet;
   }
 
-  /**
-   * Question 수정
-   *
-   * @param questionText 문제 제목
-   * @param options 선지 목록
-   * @param answer 정답
-   * @param explanation 해설
-   */
-  public void update(String questionText, List<String> options, String answer, String explanation) {
+  // 자식 클래스에서 필드를 수정할 수 있도록 protected setter 제공
+  protected void setQuestionText(String questionText) {
     this.questionText = questionText;
-    this.options = options;
-    this.answer = answer;
+  }
+
+  protected void setExplanation(String explanation) {
     this.explanation = explanation;
-    validateQuestionType();
   }
 
-  public boolean isCorrect(String userAnswer) {
-    if (userAnswer == null || this.answer == null) {
-      return false;
-    }
-    return userAnswer.trim().equalsIgnoreCase(this.answer.trim());
-  }
+  // update 로직은 각 자식 클래스에서 구현해야 합니다.
+  public abstract void update(QuestionUpdateParam param);
 
-  private void validateQuestionType() {
-    QuestionType type = this.questionSet.getType();
-    if (type == null) {
-      throw new InvalidQuestionException(QuestionErrorCode.QUESTION_TYPE_REQUIRED);
-    }
-
-    switch (type) {
-      case MULTIPLE_CHOICE -> validateMultipleChoiceQuestion();
-      case TRUE_FALSE -> validateTrueFalseQuestion();
-      case SHORT_ANSWER -> validateShortAnswerQuestion();
-      case SUBJECTIVE -> validateSubjectiveQuestion();
-      default -> throw new IllegalStateException("Unexpected value: " + type);
-    }
-  }
-
-  private void validateMultipleChoiceQuestion() {
-    if (this.options == null || this.options.isEmpty()) {
-      throw new InvalidQuestionException(QuestionErrorCode.MULTIPLE_CHOICE_OPTIONS_REQUIRED);
-    }
-  }
-
-  private void validateTrueFalseQuestion() {
-    if (this.options != null && !this.options.isEmpty()) {
-      throw new InvalidQuestionException(QuestionErrorCode.TRUE_FALSE_NO_OPTIONS);
-    }
-    if (!"참".equals(this.answer) && !"거짓".equals(this.answer)) {
-      throw new InvalidQuestionException(QuestionErrorCode.TRUE_FALSE_INVALID_ANSWER);
-    }
-  }
-
-  private void validateShortAnswerQuestion() {
-    if (this.options != null && !this.options.isEmpty()) {
-      throw new InvalidQuestionException(QuestionErrorCode.SHORT_ANSWER_NO_OPTIONS);
-    }
-  }
-
-  private void validateSubjectiveQuestion() {
-    // 주관식 문제는 현재 구현하지 않음
-  }
+  public abstract boolean isCorrect(String userAnswer);
 }

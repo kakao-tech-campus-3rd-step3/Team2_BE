@@ -8,6 +8,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
@@ -101,7 +102,9 @@ public class QuestionSetService implements QuestionSetPublicApi {
         memberPublicApi.findById(ownerId).orElseThrow(() -> MemberNotFoundException.byId(ownerId));
     List<Source> sources = sourcePublicApi.findByIdIn(request.sourceIds());
 
-    QuestionSet questionSet = QuestionSet.create(owner, sources, request);
+    QuestionSetCreateParam createParam = QuestionSetCreateParam.from(request);
+
+    QuestionSet questionSet = QuestionSet.create(owner, sources, createParam);
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
