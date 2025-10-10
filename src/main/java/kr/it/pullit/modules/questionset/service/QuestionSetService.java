@@ -155,12 +155,22 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
-  public void updateStatus(Long questionSetId, QuestionSetStatus status) {
+  public void markAsComplete(Long questionSetId) {
     QuestionSet questionSet =
         questionSetRepository
             .findById(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
-    questionSet.updateStatus(status);
+    questionSet.completeProcessing();
+  }
+
+  @Override
+  @Transactional
+  public void markAsFailed(Long questionSetId) {
+    QuestionSet questionSet =
+        questionSetRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    questionSet.failProcessing();
   }
 
   @Override

@@ -106,4 +106,16 @@ public class Source extends BaseEntity {
     this.fileSizeBytes = fileSizeBytes;
     this.status = SourceStatus.UPLOADED;
   }
+
+  public void startProcessing() {
+    this.status = SourceStatus.PROCESSING;
+  }
+
+  public void markAsReady() {
+    this.status = SourceStatus.READY;
+  }
+
+  public void markAsFailed() {
+    this.status = SourceStatus.FAILED;
+  }
 }
