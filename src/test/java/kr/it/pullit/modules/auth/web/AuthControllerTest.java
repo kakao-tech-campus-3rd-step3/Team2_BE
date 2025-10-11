@@ -7,6 +7,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import jakarta.servlet.http.Cookie;
+import kr.it.pullit.modules.auth.service.AuthService;
+import kr.it.pullit.platform.security.exception.InvalidRefreshTokenException;
+import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.web.cookie.CookieManager;
+import kr.it.pullit.shared.error.ErrorCode;
+import kr.it.pullit.testconfig.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,30 +25,19 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import jakarta.servlet.http.Cookie;
-import kr.it.pullit.modules.auth.service.AuthService;
-import kr.it.pullit.platform.security.exception.InvalidRefreshTokenException;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
-import kr.it.pullit.platform.web.cookie.CookieManager;
-import kr.it.pullit.shared.error.ErrorCode;
-import kr.it.pullit.testconfig.TestSecurityConfig;
 
 @WebMvcTest(AuthController.class)
 @Import(TestSecurityConfig.class)
 @WithMockUser
 class AuthControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @MockitoBean
-  private AuthService authService;
+  @MockitoBean private AuthService authService;
 
-  @MockitoBean
-  private JwtTokenPort jwtTokenPort;
+  @MockitoBean private JwtTokenPort jwtTokenPort;
 
-  @MockitoBean
-  private CookieManager cookieManager;
+  @MockitoBean private CookieManager cookieManager;
 
   @Nested
   @DisplayName("토큰 재발급 API [/auth/refresh]")
