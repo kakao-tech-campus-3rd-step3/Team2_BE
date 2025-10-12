@@ -22,6 +22,7 @@ services:
       - AWS_REGION=${AWS_REGION}
       - JWT_REDIRECT_URL=${JWT_REDIRECT_URL}
       - JWT_COOKIE_DOMAIN=${JWT_COOKIE_DOMAIN}
+      - SENTRY_DSN=${SENTRY_DSN}
       # JVM 옵션 (메모리 최적화)
       - JAVA_OPTS=-Xmx512m -Xms256m
     depends_on:
