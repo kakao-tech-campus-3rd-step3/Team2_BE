@@ -22,8 +22,8 @@ import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
 import kr.it.pullit.shared.error.BusinessException;
+import kr.it.pullit.shared.event.EventPublisher;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +34,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private final QuestionSetRepository questionSetRepository;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
-  private final ApplicationEventPublisher eventPublisher;
+  private final EventPublisher eventPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -109,7 +109,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
-    eventPublisher.publishEvent(QuestionSetCreatedEvent.from(savedQuestionSet));
+    eventPublisher.publish(QuestionSetCreatedEvent.from(savedQuestionSet));
 
     return QuestionSetResponse.from(savedQuestionSet);
   }
