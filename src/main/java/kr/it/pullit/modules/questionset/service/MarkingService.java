@@ -29,7 +29,7 @@ public class MarkingService implements MarkingPublicApi {
 
     for (var markingRequest : request.markingRequests()) {
       Question question = findQuestionById(markingRequest.questionId());
-      boolean isCorrect = question.isCorrect(markingRequest.answer());
+      boolean isCorrect = question.isCorrect(markingRequest.memberAnswer());
       results.add(MarkingResult.of(question.getId(), isCorrect));
     }
 
