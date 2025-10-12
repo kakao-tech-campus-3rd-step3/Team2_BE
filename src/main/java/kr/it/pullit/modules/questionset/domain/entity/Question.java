@@ -63,7 +63,7 @@ public abstract class Question extends BaseEntity {
   // update 로직은 각 자식 클래스에서 구현해야 합니다.
   public abstract void update(QuestionUpdateParam param);
 
-  public abstract boolean isCorrect(String userAnswer);
+  public abstract boolean isCorrect(Object userAnswer);
 
   @Override
   public boolean equals(Object o) {
