@@ -2,16 +2,15 @@ package kr.it.pullit.modules.notification.domain;
 
 import java.io.IOException;
 import kr.it.pullit.modules.notification.domain.events.NotificationChannelClosedEvent;
+import kr.it.pullit.shared.event.EventPublisher;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Slf4j
 public record NotificationChannel(
-    Long memberId, SseEmitter emitter, ApplicationEventPublisher eventPublisher) {
+    Long memberId, SseEmitter emitter, EventPublisher eventPublisher) {
 
-  public NotificationChannel(
-      Long memberId, SseEmitter emitter, ApplicationEventPublisher eventPublisher) {
+  public NotificationChannel(Long memberId, SseEmitter emitter, EventPublisher eventPublisher) {
     this.memberId = memberId;
     this.emitter = emitter;
     this.eventPublisher = eventPublisher;
@@ -19,7 +18,7 @@ public record NotificationChannel(
   }
 
   public static NotificationChannel create(
-      Long userId, SseEmitter emitter, ApplicationEventPublisher eventPublisher) {
+      Long userId, SseEmitter emitter, EventPublisher eventPublisher) {
     return new NotificationChannel(userId, emitter, eventPublisher);
   }
 
@@ -76,11 +75,11 @@ public record NotificationChannel(
   private void publishClosedEvent() {
     log.info(
         "SSE emitter for user {} is closing (completed or timed out). Publishing event.", memberId);
-    eventPublisher.publishEvent(NotificationChannelClosedEvent.of(memberId));
+    eventPublisher.publish(NotificationChannelClosedEvent.of(memberId));
   }
 
   private void publishErrorEvent(Throwable e) {
     log.warn("SSE emitter error for user {}: {}. Publishing event.", memberId, e.getMessage());
-    eventPublisher.publishEvent(NotificationChannelClosedEvent.of(memberId));
+    eventPublisher.publish(NotificationChannelClosedEvent.of(memberId));
   }
 }

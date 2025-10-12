@@ -1,14 +1,16 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
-import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
+import kr.it.pullit.modules.questionset.service.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
-import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.shared.event.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,18 +18,27 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MarkingService implements MarkingPublicApi {
 
-  private final WrongAnswerPublicApi wrongAnswerPublicApi;
   private final QuestionPublicApi questionPublicApi;
+  private final EventPublisher eventPublisher;
 
   @Override
   public MarkQuestionsResponse markQuestions(MarkingServiceRequest request) {
     validateRequest(request);
 
-    List<Long> targetQuestionIds = getTargetQuestionIds(request);
+    List<MarkingResult> results = new ArrayList<>();
 
-    processMarking(request.memberId(), targetQuestionIds, request.isReviewing());
+    for (var markingRequest : request.markingRequests()) {
+      Question question = findQuestionById(markingRequest.questionId());
+      boolean isCorrect = question.isCorrect(markingRequest.answer());
+      results.add(MarkingResult.of(question.getId(), isCorrect));
+    }
 
-    return new MarkQuestionsResponse(targetQuestionIds.size());
+    eventPublisher.publish(
+        new MarkingCompletedEvent(request.memberId(), results, request.isReviewing()));
+
+    long correctCount = results.stream().filter(MarkingResult::isCorrect).count();
+
+    return MarkQuestionsResponse.of(results, results.size(), (int) correctCount);
   }
 
   private void validateRequest(MarkingServiceRequest request) {
@@ -38,33 +49,9 @@ public class MarkingService implements MarkingPublicApi {
     }
   }
 
-  private List<Long> getTargetQuestionIds(MarkingServiceRequest request) {
-    return request.markingRequests().stream()
-        .filter(markingRequest -> isTargetAnswerForMarking(markingRequest, request.isReviewing()))
-        .map(MarkingRequest::questionId)
-        .toList();
-  }
-
-  private boolean isTargetAnswerForMarking(MarkingRequest markingRequest, Boolean isReviewing) {
-    Question question = findQuestionById(markingRequest.questionId());
-    return isTargetAnswer(question.isCorrect(markingRequest.answer()), isReviewing);
-  }
-
   private Question findQuestionById(Long questionId) {
     return questionPublicApi
         .findEntityById(questionId)
         .orElseThrow(() -> QuestionNotFoundException.byId(questionId));
-  }
-
-  private boolean isTargetAnswer(boolean isCorrect, Boolean isReviewing) {
-    return isCorrect == isReviewing;
-  }
-
-  private void processMarking(Long memberId, List<Long> targetQuestionIds, Boolean isReviewing) {
-    if (Boolean.TRUE.equals(isReviewing)) {
-      wrongAnswerPublicApi.markAsCorrectAnswers(memberId, targetQuestionIds);
-    } else {
-      wrongAnswerPublicApi.markAsWrongAnswers(memberId, targetQuestionIds);
-    }
   }
 }
