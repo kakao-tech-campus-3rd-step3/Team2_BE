@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
@@ -41,7 +42,7 @@ public abstract class Question extends BaseEntity {
   @Column(columnDefinition = "TEXT")
   private String explanation;
 
-  @OneToOne(mappedBy = "question")
+  @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
   private WrongAnswer wrongAnswer;
 
   // 생성자는 SuperBuilder가 처리하므로 비워둡니다.
@@ -63,4 +64,20 @@ public abstract class Question extends BaseEntity {
   public abstract void update(QuestionUpdateParam param);
 
   public abstract boolean isCorrect(String userAnswer);
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Question question)) {
+      return false;
+    }
+    return id != null && id.equals(question.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }
