@@ -45,16 +45,12 @@ public class NotificationService implements NotificationPublicApi {
   @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS)
   public void sendHeartbeat() {
     Map<Long, NotificationChannel> channels = notificationChannelRepository.findAll();
-    if (isChannelsEmpty(channels)) {
+    if (channels.isEmpty()) {
       return;
     }
     log.debug("Sending heartbeat to {} connected SSE clients", channels.size());
     EventData heartbeatEvent = EventData.of("heartbeat", "heartbeat " + System.currentTimeMillis());
     channels.values().forEach(channel -> channel.send(heartbeatEvent));
-  }
-
-  private static boolean isChannelsEmpty(Map<Long, NotificationChannel> channels) {
-    return channels.isEmpty();
   }
 
   private NotificationChannel createAndRegisterChannel(Long userId) {
@@ -88,17 +84,9 @@ public class NotificationService implements NotificationPublicApi {
   }
 
   private void replayMissedEventsIfNecessary(Long userId, String lastEventId) {
-    if (isFirstConnection(lastEventId)) {
+    if (lastEventId == null || lastEventId.isEmpty()) {
       return;
     }
-    handleReconnection(userId, lastEventId);
-  }
-
-  private static boolean isFirstConnection(String lastEventId) {
-    return lastEventId == null || lastEventId.isEmpty();
-  }
-
-  private void handleReconnection(Long userId, String lastEventId) {
     log.info("Reconnecting user {} with lastEventId: {}", userId, lastEventId);
     doReplayMissedEvents(userId, lastEventId);
   }
@@ -114,17 +102,9 @@ public class NotificationService implements NotificationPublicApi {
   }
 
   private void replayFoundEvents(Long userId, List<EventData> missedEvents) {
-    if (isMissedEventsEmpty(missedEvents)) {
+    if (missedEvents.isEmpty()) {
       return;
     }
-    logAndSendMissedEvents(userId, missedEvents);
-  }
-
-  private static boolean isMissedEventsEmpty(List<EventData> missedEvents) {
-    return missedEvents.isEmpty();
-  }
-
-  private void logAndSendMissedEvents(Long userId, List<EventData> missedEvents) {
     log.info("Replaying {} missed events for user {}", missedEvents.size(), userId);
     notificationChannelRepository
         .findById(userId)

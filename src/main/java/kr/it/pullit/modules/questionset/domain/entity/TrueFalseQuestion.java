@@ -26,11 +26,11 @@ public class TrueFalseQuestion extends Question {
   }
 
   @Override
-  public boolean isCorrect(String userAnswer) {
+  public boolean isCorrect(Object userAnswer) {
     if (userAnswer == null) {
       return false;
     }
-    boolean parsedUserAnswer = Boolean.parseBoolean(userAnswer.trim());
+    boolean parsedUserAnswer = Boolean.parseBoolean(userAnswer.toString().trim());
     return this.answer == parsedUserAnswer;
   }
 

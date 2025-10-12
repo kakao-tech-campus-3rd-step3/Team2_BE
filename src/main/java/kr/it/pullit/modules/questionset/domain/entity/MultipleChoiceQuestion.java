@@ -39,11 +39,11 @@ public class MultipleChoiceQuestion extends Question {
   }
 
   @Override
-  public boolean isCorrect(String userAnswer) {
+  public boolean isCorrect(Object userAnswer) {
     if (userAnswer == null || this.answer == null) {
       return false;
     }
-    return userAnswer.trim().equalsIgnoreCase(this.answer.trim());
+    return userAnswer.toString().trim().equalsIgnoreCase(this.answer.trim());
   }
 
   private void validate() {
