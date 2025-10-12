@@ -26,12 +26,12 @@ public class ShortAnswerQuestion extends Question {
   }
 
   @Override
-  public boolean isCorrect(String userAnswer) {
+  public boolean isCorrect(Object userAnswer) {
     if (userAnswer == null || this.answer == null) {
       return false;
     }
     String processedAnswer = this.answer.replaceAll("\\s+", "").toLowerCase();
-    String processedUserAnswer = userAnswer.replaceAll("\\s+", "").toLowerCase();
+    String processedUserAnswer = userAnswer.toString().replaceAll("\\s+", "").toLowerCase();
     return processedUserAnswer.equals(processedAnswer);
   }
 
