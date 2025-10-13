@@ -10,9 +10,11 @@ import java.util.Optional;
 import kr.it.pullit.modules.auth.service.AuthService;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.platform.security.jwt.JwtProps;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.web.cookie.CookieManager;
+import kr.it.pullit.shared.error.exception.InvalidConfigurationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -49,17 +51,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     Member member =
         memberPublicApi
             .findByKakaoId(kakaoId)
-            .orElseThrow(
-                () ->
-                    new IllegalStateException(
-                        "OAuth2 user not found in DB by kakaoId: " + kakaoId));
+            .orElseThrow(() -> MemberNotFoundException.byKakaoId(kakaoId));
 
     AuthTokens authTokens = authService.issueAndSaveTokens(member.getId());
 
     String targetUrl = determineTargetUrl(request, authTokens.accessToken());
     String cookieDomain = determineBackendCookieDomain(request);
 
-    cookieManager.addRefreshTokenCookie(request, response, authTokens.refreshToken(), cookieDomain);
+    cookieManager.addRefreshTokenCookie(response, authTokens.refreshToken(), cookieDomain);
 
     log.info("모든 `Set-Cookie` 헤더: {}", response.getHeaders("Set-Cookie"));
     log.info("리다이렉션 주소: {}", targetUrl);
@@ -73,7 +72,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     String validatedUri =
         Optional.ofNullable(redirectUri)
-            .filter(uri -> isAuthorizedRedirectUri(uri))
+            .filter(this::isAuthorizedRedirectUri)
             .orElseGet(
                 () -> {
                   log.warn("세션에 유효한 리다이렉션 URI가 없습니다. 기본 URI로 대체합니다.");
@@ -99,7 +98,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
   }
 
   private String getDefaultRedirectUri() {
-    return jwtProps.authorizedRedirectUris().get(0);
+    return jwtProps.authorizedRedirectUris().getFirst();
   }
 
   private String determineBackendCookieDomain(HttpServletRequest request) {
@@ -131,9 +130,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
   private String getDefaultCookieDomain() {
     List<String> domains = jwtProps.authorizedCookieDomains();
     if (domains == null || domains.isEmpty()) {
-      log.error("설정된 쿠키 도메인이 없습니다.");
-      throw new IllegalStateException("No authorized cookie domains configured");
+      throw InvalidConfigurationException.withMessage(
+          "누락된 환경변수 : authorized-cookie-domains, 설정된 쿠키 도메인 :" + domains);
     }
-    return domains.get(0);
+    return domains.getFirst();
   }
 }

@@ -5,6 +5,19 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version "7.2.1"
     id 'checkstyle'
+    id "io.sentry.jvm.gradle" version "5.12.0"
+}
+
+sentry {
+    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+    // This enables source context, allowing you to see your source
+    // code as part of your stack traces in Sentry.
+    // '-PsentryEnabled=true' Gradle 프로퍼티가 있을 때만 소스 컨텍스트를 포함하도록 설정
+    includeSourceContext = project.hasProperty('sentryEnabled') && project.property('sentryEnabled').toBoolean()
+
+    org = "pullit"
+    projectName = "java-spring-boot"
+    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 // 프로젝트 기본 정보
@@ -122,7 +135,8 @@ dependencies {
 
     // JWT 라이브라리
     implementation 'com.auth0:java-jwt:4.4.0'
-
+    implementation 'io.sentry:sentry-log4j2:8.22.0'
+    implementation 'io.sentry:sentry-logback:8.22.0'
 
     // 테스트 의존성
     testCompileOnly 'org.projectlombok:lombok'

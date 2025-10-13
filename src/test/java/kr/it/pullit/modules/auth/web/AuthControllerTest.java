@@ -9,11 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.http.Cookie;
+
+import kr.it.pullit.modules.auth.exception.AuthErrorCode;
+import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.modules.auth.service.AuthService;
-import kr.it.pullit.platform.security.exception.InvalidRefreshTokenException;
 import kr.it.pullit.platform.security.jwt.JwtTokenPort;
 import kr.it.pullit.platform.web.cookie.CookieManager;
-import kr.it.pullit.shared.error.ErrorCode;
 import kr.it.pullit.testconfig.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,7 +50,7 @@ class AuthControllerTest {
       // given
       String invalidRefreshToken = "invalid-token";
       when(authService.reissueAccessToken(anyString()))
-          .thenThrow(new InvalidRefreshTokenException());
+          .thenThrow(InvalidRefreshTokenException.by());
 
       // when & then
       mockMvc
@@ -59,8 +60,8 @@ class AuthControllerTest {
           .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
           .andExpect(jsonPath("$.status").value(401))
           .andExpect(jsonPath("$.title").value("Unauthorized"))
-          .andExpect(jsonPath("$.detail").value(ErrorCode.INVALID_REFRESH_TOKEN.getMessage()))
-          .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_REFRESH_TOKEN.getCode()))
+          .andExpect(jsonPath("$.detail").value(AuthErrorCode.INVALID_REFRESH_TOKEN.getMessage()))
+          .andExpect(jsonPath("$.code").value(AuthErrorCode.INVALID_REFRESH_TOKEN.getCode()))
           .andExpect(jsonPath("$.instance").value("/auth/refresh"));
     }
   }

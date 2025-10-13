@@ -18,11 +18,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.shared.jpa.BaseEntity;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -64,6 +67,7 @@ public class QuestionSet extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private QuestionSetStatus status;
 
+  @Builder
   public QuestionSet(
       Member owner,
       Set<Source> sources,
@@ -78,6 +82,29 @@ public class QuestionSet extends BaseEntity {
     this.type = type;
     this.questionLength = questionLength;
     this.status = QuestionSetStatus.PENDING;
+  }
+
+  public static QuestionSet create(
+      Member owner, List<Source> sources, QuestionSetCreateParam param) {
+    validateSources(sources);
+
+    String title = sources.getFirst().getOriginalName();
+    Set<Source> sourceSet = new HashSet<>(sources);
+
+    return QuestionSet.builder()
+        .owner(owner)
+        .sources(sourceSet)
+        .title(title)
+        .difficulty(param.difficulty())
+        .type(param.type())
+        .questionLength(param.questionCount())
+        .build();
+  }
+
+  private static void validateSources(List<Source> sources) {
+    if (sources == null || sources.isEmpty()) {
+      throw SourceNotFoundException.withMessage("소스가 존재하지 않습니다.");
+    }
   }
 
   public void addQuestion(Question question) {
@@ -100,7 +127,15 @@ public class QuestionSet extends BaseEntity {
     source.getQuestionSets().remove(this);
   }
 
-  public void updateStatus(QuestionSetStatus status) {
-    this.status = status;
+  public void completeProcessing() {
+    this.status = QuestionSetStatus.COMPLETE;
+  }
+
+  public void failProcessing() {
+    this.status = QuestionSetStatus.FAILED;
+  }
+
+  public void updateTitle(String title) {
+    this.title = title;
   }
 }

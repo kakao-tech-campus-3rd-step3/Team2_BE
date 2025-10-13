@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew codeCheck
 
       - name: Build
-        run: ./gradlew build --stacktrace --info --no-daemon --continue
+        run: ./gradlew build -PsentryEnabled=true --stacktrace --info --no-daemon --continue
         env:
           # Build(Test) 단계에서 필요한 secrets를 환경변수로 주입
           AWS_REGION: ap-northeast-2
@@ -52,6 +52,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           JWT_REDIRECT_URL: ${{ secrets.JWT_REDIRECT_URL }}
           JWT_COOKIE_DOMAIN: ${{ secrets.JWT_COOKIE_DOMAIN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Build and push image with tags (latest and sha)
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'

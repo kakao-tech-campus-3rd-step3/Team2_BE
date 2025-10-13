@@ -9,6 +9,10 @@ spring:
       ddl-auto: update  # QA 환경에서는 데이터를 보존하기 위함.
     show-sql: false
 
+  sql:
+    init:
+      mode: never # QA 환경에서는 data.sql을 실행하지 않도록 설정
+
   # QA 환경에서는 DevTools 비활성화
   devtools:
     restart:
@@ -85,3 +89,9 @@ cors:
     - "https://local.pull.it.kr:5173"
 
 # 나머지 외부 연동 설정(S3, Google, Kakao 키 등)은 application.yml의 정의를 상속
+
+sentry:
+  dsn: ${SENTRY_DSN}
+  # Add data like request headers and IP for users,
+  # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
+  send-default-pii: true

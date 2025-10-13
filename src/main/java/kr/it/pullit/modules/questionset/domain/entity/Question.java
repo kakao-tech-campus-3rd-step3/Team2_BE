@@ -1,25 +1,32 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
-import java.util.List;
+import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
+import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-/** */
-@Entity
+@Entity(name = "question")
 @Getter
 @NoArgsConstructor
-public class Question extends BaseEntity {
+@SuperBuilder
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn
+public abstract class Question extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,54 +39,45 @@ public class Question extends BaseEntity {
   @Column(columnDefinition = "TEXT")
   private String questionText;
 
-  @ElementCollection private List<String> options;
-
-  private String answer;
-
   @Column(columnDefinition = "TEXT")
   private String explanation;
 
-  @OneToOne(mappedBy = "question")
-  private IncorrectAnswerQuestion incorrectAnswerQuestion;
+  @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+  private WrongAnswer wrongAnswer;
 
-  /**
-   * Question 생성자
-   *
-   * @param questionSet 문제집
-   * @param questionText 문제 제목
-   * @param options 선지 목록 (오답만)
-   * @param answer 정답
-   * @param explanation 해설
-   */
-  public Question(
-      QuestionSet questionSet,
-      String questionText,
-      List<String> options,
-      String answer,
-      String explanation) {
-    this.questionSet = questionSet;
-    this.questionText = questionText;
-    this.options = options;
-    this.answer = answer;
-    this.explanation = explanation;
-  }
+  // 생성자는 SuperBuilder가 처리하므로 비워둡니다.
 
   void setQuestionSet(QuestionSet questionSet) {
     this.questionSet = questionSet;
   }
 
-  /**
-   * Question 수정
-   *
-   * @param questionText 문제 제목
-   * @param options 선지 목록
-   * @param answer 정답
-   * @param explanation 해설
-   */
-  public void update(String questionText, List<String> options, String answer, String explanation) {
+  // 자식 클래스에서 필드를 수정할 수 있도록 protected setter 제공
+  protected void setQuestionText(String questionText) {
     this.questionText = questionText;
-    this.options = options;
-    this.answer = answer;
+  }
+
+  protected void setExplanation(String explanation) {
     this.explanation = explanation;
+  }
+
+  // update 로직은 각 자식 클래스에서 구현해야 합니다.
+  public abstract void update(QuestionUpdateParam param);
+
+  public abstract boolean isCorrect(Object userAnswer);
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Question question)) {
+      return false;
+    }
+    return id != null && id.equals(question.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
   }
 }

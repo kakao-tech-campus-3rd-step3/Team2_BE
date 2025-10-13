@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
-import kr.it.pullit.modules.notification.repository.EmitterRepository;
+import kr.it.pullit.modules.notification.repository.NotificationChannelRepositoryImpl;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.support.TestContainerTest;
 import lombok.Getter;
@@ -30,7 +30,7 @@ class SseReconnectionTest extends TestContainerTest {
 
   @Autowired private NotificationPublicApi notificationPublicApi;
 
-  @Autowired private EmitterRepository emitterRepository;
+  @Autowired private NotificationChannelRepositoryImpl emitterRepository;
 
   @LocalServerPort private int port;
 

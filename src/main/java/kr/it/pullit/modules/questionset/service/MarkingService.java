@@ -2,46 +2,56 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.repository.MemberRepository;
-import kr.it.pullit.modules.questionset.domain.entity.IncorrectAnswerQuestion;
+import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
+import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
-import kr.it.pullit.modules.questionset.repository.IncorrectAnswerQuestionRepository;
-import kr.it.pullit.modules.questionset.repository.QuestionRepository;
+import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
+import kr.it.pullit.modules.questionset.service.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.shared.event.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class MarkingService {
-  private final IncorrectAnswerQuestionRepository incorrectAnswerQuestionRepository;
-  private final QuestionRepository questionRepository;
-  private final MemberRepository memberRepository;
+public class MarkingService implements MarkingPublicApi {
 
-  public void markQuestionAsIncorrect(List<MarkingServiceRequest> request) {
-    Objects.requireNonNull(request, "questionId must not be null");
+  private final QuestionPublicApi questionPublicApi;
+  private final EventPublisher eventPublisher;
 
-    List<IncorrectAnswerQuestion> inCorrectAnswers = new ArrayList<>();
+  @Override
+  public MarkQuestionsResponse markQuestions(MarkingServiceRequest request) {
+    validateRequest(request);
 
-    for (MarkingServiceRequest req : request) {
-      if (req.isCorrect()) {
-        continue;
-      }
+    List<MarkingResult> results = new ArrayList<>();
 
-      Member member =
-          memberRepository
-              .findById(req.userId())
-              .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-      Question question =
-          questionRepository
-              .findById(req.questionId())
-              .orElseThrow(() -> new IllegalArgumentException("Question not found"));
-
-      inCorrectAnswers.add(new IncorrectAnswerQuestion(member, question));
+    for (var markingRequest : request.markingRequests()) {
+      Question question = findQuestionById(markingRequest.questionId());
+      boolean isCorrect = question.isCorrect(markingRequest.memberAnswer());
+      results.add(MarkingResult.of(question.getId(), isCorrect));
     }
 
-    incorrectAnswerQuestionRepository.saveAll(inCorrectAnswers);
+    eventPublisher.publish(
+        new MarkingCompletedEvent(request.memberId(), results, request.isReviewing()));
+
+    long correctCount = results.stream().filter(MarkingResult::isCorrect).count();
+
+    return MarkQuestionsResponse.of(results, results.size(), (int) correctCount);
+  }
+
+  private void validateRequest(MarkingServiceRequest request) {
+    if (request == null
+        || request.markingRequests() == null
+        || request.markingRequests().isEmpty()) {
+      throw new IllegalArgumentException("request or questionIds is null or empty");
+    }
+  }
+
+  private Question findQuestionById(Long questionId) {
+    return questionPublicApi
+        .findEntityById(questionId)
+        .orElseThrow(() -> QuestionNotFoundException.byId(questionId));
   }
 }
