@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.http.Cookie;
-
 import kr.it.pullit.modules.auth.exception.AuthErrorCode;
 import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.modules.auth.service.AuthService;
