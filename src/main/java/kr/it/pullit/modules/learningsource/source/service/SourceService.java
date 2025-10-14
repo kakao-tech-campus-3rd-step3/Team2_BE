@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -42,6 +43,7 @@ public class SourceService implements SourcePublicApi {
   }
 
   /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */
+  // TODO: 리팩토링 대상.
   @Override
   public void processUploadComplete(SourceUploadCompleteRequest request, Long memberId) {
     if (!s3PublicApi.fileExists(request.getFilePath())) {
@@ -87,13 +89,13 @@ public class SourceService implements SourcePublicApi {
   }
 
   @Override
-  public byte[] getContentBytes(Long sourceId, Long memberId) {
+  public InputStream getContentStream(Long sourceId, Long memberId) {
     Source source =
         sourceRepository
             .findByIdAndMemberId(sourceId, memberId)
             .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
 
-    return s3PublicApi.downloadFileAsBytes(source.getFilePath());
+    return s3PublicApi.downloadFileAsStream(source.getFilePath());
   }
 
   @Override

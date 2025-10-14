@@ -1,22 +1,28 @@
-package kr.it.pullit.integration.testcontainers.modules.learningsource.source.web;
+package kr.it.pullit.integration.modules.learningsource.source.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
-import kr.it.pullit.support.TestContainerTest;
+import kr.it.pullit.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-public class SourceControllerTest extends TestContainerTest {
+@ActiveProfiles({"mock-auth", "real-env"})
+@IntegrationTest
+public class SourceControllerTest {
 
   @Autowired private TestRestTemplate restTemplate;
+
+  @Autowired private SourceRepository sourceRepository;
 
   @MockitoBean private SourcePublicApi sourcePublicApi;
 

@@ -51,7 +51,7 @@ public class QuestionSetController {
    * 회원의 모든 문제집을 조회하는 API
    *
    * @param memberId 회원 ID
-   * @return
+   * @return 회원의 모든 문제집 응답
    */
   @GetMapping
   public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets(
@@ -95,7 +95,7 @@ public class QuestionSetController {
   public ResponseEntity<Void> updateQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
-      @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
+      @Valid @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
     questionSetPublicApi.updateTitle(id, questionSetUpdateRequestDto.title(), memberId);
     return ResponseEntity.ok().build();
   }

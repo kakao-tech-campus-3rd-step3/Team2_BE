@@ -1,4 +1,4 @@
-package kr.it.pullit.integration.testcontainers.modules.learningsource.source.service;
+package kr.it.pullit.integration.modules.learningsource.source.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,13 +8,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
-import kr.it.pullit.support.TestContainerTest;
-import org.junit.jupiter.api.Disabled;
+import kr.it.pullit.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
-@Disabled("CI/CD 환경에서 실제 S3와 연동 테스트는 LocalStack 도입 후 재활성화 예정")
-public class SourceServiceIntegrationTest extends TestContainerTest {
+@ActiveProfiles({"mock-auth", "real-env"})
+@IntegrationTest
+public class SourceServiceIntegrationTest {
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
@@ -26,7 +27,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "study-material.pdf";
     String contentType = "application/pdf";
     Long fileSize = 1024L;
-    Long memberId = 12345L;
+    Long memberId = 1L;
 
     // when
     SourceUploadResponse result =
@@ -47,7 +48,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "diagram.png";
     String contentType = "image/png";
     Long fileSize = 512L;
-    Long memberId = 67890L;
+    Long memberId = 1L;
 
     // when & then
     assertThatThrownBy(
@@ -62,7 +63,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "large-document.pdf";
     String contentType = "application/pdf";
     Long fileSize = 50 * 1024 * 1024L; // 50MB
-    Long memberId = 11111L;
+    Long memberId = 1L;
 
     // when
     SourceUploadResponse result =
@@ -80,8 +81,8 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "test.pdf";
     String contentType = "application/pdf";
     Long fileSize = 1024L;
-    Long memberId1 = 100L;
-    Long memberId2 = 200L;
+    Long memberId1 = 1L;
+    Long memberId2 = 1L;
 
     // when
     SourceUploadResponse result1 =
@@ -100,7 +101,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "duplicate.pdf";
     String contentType = "application/pdf";
     Long fileSize = 1024L;
-    Long memberId = 300L;
+    Long memberId = 1L;
 
     // when
     SourceUploadResponse result1 =
@@ -119,7 +120,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "zero-size.pdf";
     String contentType = "application/pdf";
     Long fileSize = 0L;
-    Long memberId = 999L;
+    Long memberId = 1L;
 
     // when & then
     assertThatThrownBy(
@@ -134,7 +135,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "too-large.pdf";
     String contentType = "application/pdf";
     Long fileSize = 51 * 1024 * 1024L; // 51MB (50MB 초과)
-    Long memberId = 999L;
+    Long memberId = 1L;
 
     // when & then
     assertThatThrownBy(
@@ -149,7 +150,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "validation-test.pdf";
     String contentType = "application/pdf";
     Long fileSize = 2048L;
-    Long memberId = 999L;
+    Long memberId = 1L;
 
     // when
     SourceUploadResponse result =
@@ -172,7 +173,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String fileName = "path-policy-test.pdf";
     String contentType = "application/pdf";
     Long fileSize = 1024L;
-    Long memberId = 777L;
+    Long memberId = 1L;
 
     // when
     SourceUploadResponse result =
@@ -192,7 +193,7 @@ public class SourceServiceIntegrationTest extends TestContainerTest {
     String contentType = "application/pdf";
     byte[] testFileContent = "PDF 테스트 파일 내용입니다.".getBytes();
     Long fileSize = (long) testFileContent.length;
-    Long memberId = 888L;
+    Long memberId = 1L;
 
     // when: Presigned URL 생성
     SourceUploadResponse result =

@@ -6,15 +6,14 @@ import com.google.genai.types.Content;
 import com.google.genai.types.FinishReason;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
+import com.google.genai.types.HttpOptions;
 import com.google.genai.types.Part;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
@@ -27,16 +26,22 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class GeminiClient implements LlmClient {
 
+  private static final int GEMINI_API_TIMEOUT_MINUTES = 2;
   private final Client client;
   private final ObjectMapper mapper = new ObjectMapper();
-
   private final GeminiConfigBuilder configBuilder;
 
   public GeminiClient(GeminiProperties geminiProperties, GeminiConfigBuilder configBuilder) {
-    this.client = new Client.Builder().apiKey(geminiProperties.getApiKey()).build();
+    HttpOptions httpOptions =
+        HttpOptions.builder()
+            .timeout((int) Duration.ofMinutes(GEMINI_API_TIMEOUT_MINUTES).toMillis())
+            .build();
+    this.client =
+        Client.builder().apiKey(geminiProperties.getApiKey()).httpOptions(httpOptions).build();
     this.configBuilder = configBuilder;
   }
 
+  // TODO: 리팩토링 대상.
   @Override
   public LlmGeneratedQuestionSetResponse getLlmGeneratedQuestionContent(
       LlmGeneratedQuestionRequest request) {
@@ -78,18 +83,22 @@ public class GeminiClient implements LlmClient {
     return getGeminiContent(request.fileDataList(), request.prompt());
   }
 
-  private Content getGeminiContent(List<byte[]> fileDataList, String prompt) {
+  private Content getGeminiContent(List<InputStream> fileDataList, String prompt) {
     List<Part> parts = getByteParts(fileDataList);
     parts.add(Part.fromText(prompt));
     Part[] partArray = parts.toArray(new Part[0]);
     return Content.fromParts(partArray);
   }
 
-  private List<Part> getByteParts(List<byte[]> fileDataList) {
+  private List<Part> getByteParts(List<InputStream> fileDataList) {
     List<Part> parts = new ArrayList<>();
     // TODO: 여러 파일 지원
-    for (byte[] fileData : fileDataList) {
-      parts.add(Part.fromBytes(fileData, "application/pdf"));
+    for (InputStream fileData : fileDataList) {
+      try {
+        parts.add(Part.fromBytes(fileData.readAllBytes(), "application/pdf"));
+      } catch (IOException e) {
+        throw LlmException.withCause(e);
+      }
     }
 
     return parts;
@@ -97,28 +106,8 @@ public class GeminiClient implements LlmClient {
 
   private void validateResponse(GenerateContentResponse response) {
     if (response.finishReason().knownEnum() != FinishReason.Known.STOP) {
-      handleResponseFinishReason(response);
-    }
-  }
-
-  private void handleResponseFinishReason(GenerateContentResponse response) {
-    switch (response.finishReason().knownEnum()) {
-      case BLOCKLIST -> throw LlmException.generationFailed("Content was filtered");
-      case FINISH_REASON_UNSPECIFIED ->
-          throw LlmException.generationFailed("Finish reason unspecified");
-      case IMAGE_SAFETY -> throw LlmException.generationFailed("Image safety triggered");
-      case LANGUAGE -> throw LlmException.generationFailed("Not allowed language");
-      case MALFORMED_FUNCTION_CALL ->
-          throw LlmException.generationFailed("Malformed function call");
-      case MAX_TOKENS -> throw LlmException.generationFailed("Max tokens exceeded");
-      case OTHER -> throw LlmException.generationFailed("Other finish reason");
-      case PROHIBITED_CONTENT -> throw LlmException.generationFailed("Prohibited content");
-      case RECITATION -> throw LlmException.generationFailed("Recitation");
-      case SAFETY -> throw LlmException.generationFailed("Safety triggered");
-      case SPII -> throw LlmException.generationFailed("Spii triggered");
-      case UNEXPECTED_TOOL_CALL -> throw LlmException.generationFailed("Unexpected tool call");
-      default ->
-          throw LlmException.generationFailed("Unknown finish reason: " + response.finishReason());
+      throw LlmException.generationFailed(
+          "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
     }
   }
 
@@ -126,26 +115,18 @@ public class GeminiClient implements LlmClient {
     log.info(
         """
 
-            --- Gemini API Request Parameters ---
-            [Model Name] : {}
-            [Question Count] : {}
-            [Prompt Length] : {} characters
-            [File Count] : {}{}
-            --- End of Parameters ---""",
+        --- Gemini API Request Parameters ---
+        [Model Name] : {}
+        [Question Count] : {}
+        [Prompt Length] : {} characters
+        [File Count] : {}{}
+        --- End of Parameters ---""",
         model,
         request.specification().questionCount(),
         request.prompt() != null ? request.prompt().length() : "null",
         request.fileDataList() != null ? request.fileDataList().size() : "null",
         request.fileDataList() != null && !request.fileDataList().isEmpty()
-            ? "\n[File Details] : \n"
-                + request.fileDataList().stream()
-                    .map(
-                        data ->
-                            "  - Size: "
-                                + (data != null ? data.length : "null")
-                                + " bytes, SHA-256: "
-                                + calculateSha256(data))
-                    .collect(Collectors.joining("\n"))
+            ? "\n[File Details] : " + "Streaming input, size and hash not calculated."
             : "");
   }
 
@@ -157,29 +138,5 @@ public class GeminiClient implements LlmClient {
   private LlmGeneratedQuestionSetResponse parseResponse(GenerateContentResponse response)
       throws IOException {
     return mapper.readValue(response.text(), LlmGeneratedQuestionSetResponse.class);
-  }
-
-  private String calculateSha256(byte[] data) {
-    if (data == null) {
-      return "null";
-    }
-    return toHexString(generateSha256(data));
-  }
-
-  private byte[] generateSha256(byte[] data) {
-    try {
-      return MessageDigest.getInstance("SHA-256").digest(data);
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 algorithm not found", e);
-    }
-  }
-
-  private String toHexString(byte[] hash) {
-    StringBuilder hex = new StringBuilder(new BigInteger(1, hash).toString(16));
-    // BigInteger가 앞쪽의 0을 생략할 수 있으므로, 64자리(256비트)를 채우도록 패딩
-    while (hex.length() < 64) {
-      hex.insert(0, "0");
-    }
-    return hex.toString();
   }
 }

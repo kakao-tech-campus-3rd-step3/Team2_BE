@@ -1,17 +1,16 @@
 package kr.it.pullit.platform.storage.s3.client;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import kr.it.pullit.platform.storage.core.S3StorageProps;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -78,12 +77,10 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   }
 
   @Override
-  public byte[] downloadFileAsBytes(String filePath) {
+  public InputStream downloadFileAsStream(String filePath) {
     GetObjectRequest getObjectRequest =
         GetObjectRequest.builder().bucket(s3StorageProps.getBucketName()).key(filePath).build();
-
-    ResponseBytes<GetObjectResponse> responseBytes = s3Client.getObjectAsBytes(getObjectRequest);
-    return responseBytes.asByteArray();
+    return s3Client.getObject(getObjectRequest);
   }
 
   private S3Client createS3Client() {

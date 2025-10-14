@@ -1,20 +1,25 @@
-package kr.it.pullit.integration.testcontainers.modules.member.web;
+package kr.it.pullit.integration.modules.member.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
-import kr.it.pullit.support.TestContainerTest;
+import kr.it.pullit.support.IntegrationTest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
-public class MemberControllerTest extends TestContainerTest {
+@ActiveProfiles({"mock-auth", "real-env"})
+@IntegrationTest
+public class MemberControllerTest {
 
+  @LocalServerPort private int port;
   @Autowired private MemberRepository memberRepository;
   @Autowired private TestRestTemplate restTemplate;
 

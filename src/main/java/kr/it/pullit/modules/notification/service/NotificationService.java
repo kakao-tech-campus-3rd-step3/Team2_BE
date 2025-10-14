@@ -36,10 +36,10 @@ public class NotificationService implements NotificationPublicApi {
   @Override
   public void publishQuestionSetCreationComplete(
       Long userId, QuestionSetCreationCompleteResponse data) {
-    if (data == null) {
-      return;
-    }
-    publishAndSend(userId, SseEventType.QUESTION_SET_CREATION_COMPLETE, data);
+    String eventName = SseEventType.QUESTION_SET_CREATION_COMPLETE.code();
+    EventData eventData = EventData.of(userId, eventName, data);
+    sseEventCache.put(eventData);
+    publishAndSend(userId, SseEventType.QUESTION_SET_CREATION_COMPLETE, eventData);
   }
 
   @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS)
@@ -49,8 +49,15 @@ public class NotificationService implements NotificationPublicApi {
       return;
     }
     log.debug("Sending heartbeat to {} connected SSE clients", channels.size());
-    EventData heartbeatEvent = EventData.of("heartbeat", "heartbeat " + System.currentTimeMillis());
-    channels.values().forEach(channel -> channel.send(heartbeatEvent));
+    String heartbeatMessage = "heartbeat " + System.currentTimeMillis();
+    channels
+        .values()
+        .forEach(
+            channel -> {
+              EventData heartbeatEvent =
+                  EventData.of(channel.memberId(), "heartbeat", heartbeatMessage);
+              channel.send(heartbeatEvent);
+            });
   }
 
   private NotificationChannel createAndRegisterChannel(Long userId) {
@@ -73,13 +80,13 @@ public class NotificationService implements NotificationPublicApi {
   }
 
   private void publishAndSend(Long userId, SseEventType eventType, Object data) {
-    EventData eventData = EventData.of(eventType.code(), data);
-    sseEventCache.put(userId, eventData);
+    EventData eventData = EventData.of(userId, eventType.code(), data);
+    sseEventCache.put(eventData);
     notificationChannelRepository.findById(userId).ifPresent(channel -> channel.send(eventData));
   }
 
   private void sendInstantEvent(Long userId, SseEventType eventType, Object data) {
-    EventData eventData = EventData.of(eventType.code(), data);
+    EventData eventData = EventData.of(userId, eventType.code(), data);
     notificationChannelRepository.findById(userId).ifPresent(channel -> channel.send(eventData));
   }
 

@@ -1,6 +1,9 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
+import static kr.it.pullit.modules.questionset.domain.QuestionSetConstants.TITLE_MAX_LENGTH;
+
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -53,6 +56,7 @@ public class QuestionSet extends BaseEntity {
       inverseJoinColumns = @JoinColumn(name = "source_id"))
   private Set<Source> sources = new HashSet<>();
 
+  @Column(length = TITLE_MAX_LENGTH)
   private String title;
 
   @Enumerated(EnumType.STRING)

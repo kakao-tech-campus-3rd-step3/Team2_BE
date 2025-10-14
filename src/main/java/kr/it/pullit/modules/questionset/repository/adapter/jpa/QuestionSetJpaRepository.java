@@ -45,7 +45,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         SELECT DISTINCT qs
         FROM QuestionSet qs
         LEFT JOIN FETCH qs.questions q
-        LEFT JOIN q.wrongAnswer wa
+        JOIN q.wrongAnswer wa
         WHERE qs.id = :id
         AND wa.member.id = :memberId
         AND wa.isReviewed = false
