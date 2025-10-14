@@ -123,8 +123,8 @@ public class SourceService implements SourcePublicApi {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 소스가 아니므로 삭제할 수 없습니다.");
     }
 
-    s3PublicApi.deleteFile(source.getFilePath());
-
     sourceRepository.delete(source);
+
+    s3PublicApi.deleteFile(source.getFilePath());
   }
 }
