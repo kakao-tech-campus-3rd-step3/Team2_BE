@@ -1,43 +1,75 @@
 package kr.it.pullit.integration.modules.member.web;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.repository.MemberRepository;
-import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
-import kr.it.pullit.support.IntegrationTest;
-import org.junit.jupiter.api.Disabled;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
+import kr.it.pullit.modules.member.api.MemberPublicApi;
+import kr.it.pullit.modules.member.web.MemberController;
+import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
+import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
+import kr.it.pullit.platform.security.jwt.JwtAuthenticationFilter;
+import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
+import kr.it.pullit.platform.web.cookie.CookieManager;
+import kr.it.pullit.support.test.security.WithMockMember;
 
-@ActiveProfiles({"mock-auth", "real-env"})
-@IntegrationTest
-public class MemberControllerTest {
+@WebMvcTest(controllers = MemberController.class)
+@AutoConfigureMockMvc
+@ActiveProfiles("auth")
+@DisplayName("MemberController 통합 테스트")
+class MemberControllerTest {
 
-  @LocalServerPort private int port;
-  @Autowired private MemberRepository memberRepository;
-  @Autowired private TestRestTemplate restTemplate;
+  @Autowired
+  private MockMvc mockMvc;
 
-  // TODO: later fix.
-  @Disabled("later fix")
+  @MockitoBean
+  private MemberPublicApi memberPublicApi;
+
+  @MockitoBean
+  private JwtTokenPort jwtTokenPort;
+
+  @MockitoBean
+  private CookieManager cookieManager;
+
   @Test
-  void getMemberById() {
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 자신의 정보를 성공적으로 조회한다")
+  void shouldSuccessfullyRetrieveMyInfoWhenLoggedIn() throws Exception {
     // given
-    Member frodo = Member.create(1L, "hyeonjun@example.com", "현준");
-    Member sam = Member.create(2L, "flareseek@example.com", "지환");
-    memberRepository.save(frodo);
-    memberRepository.save(sam);
+    var memberInfo = new MemberInfoResponse(1L, "테스터");
+    given(memberPublicApi.getMemberInfo(1L)).willReturn(Optional.of(memberInfo));
 
-    ResponseEntity<MemberInfoResponse> response =
-        restTemplate.getForEntity("/api/members/{id}", MemberInfoResponse.class, 1L);
+    // when & then
+    mockMvc.perform(get("/api/members/me")).andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L)).andExpect(jsonPath("$.name").value("테스터"));
+  }
 
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().id()).isEqualTo(1L);
+  @Test
+  @WithMockMember(memberId = 999L)
+  @DisplayName("존재하지 않는 사용자의 정보를 조회하면 404를 반환한다")
+  void shouldReturn404WhenMemberInfoDoesNotExist() throws Exception {
+    // given
+    given(memberPublicApi.getMemberInfo(999L)).willReturn(Optional.empty());
+
+    // when & then
+    mockMvc.perform(get("/api/members/me")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  @DisplayName("인증되지 않은 사용자는 401을 반환한다")
+  void shouldReturn401WhenNotAuthenticated() throws Exception {
+    // when & then
+    mockMvc.perform(get("/api/members/me")).andExpect(status().isUnauthorized());
   }
 }
