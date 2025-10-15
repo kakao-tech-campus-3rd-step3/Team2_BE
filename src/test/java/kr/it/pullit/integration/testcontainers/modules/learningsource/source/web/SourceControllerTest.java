@@ -18,8 +18,6 @@ public class SourceControllerTest extends TestContainerTest {
 
   @Autowired private TestRestTemplate restTemplate;
 
-  //  @MockitoBean
-  //  private SourcePublicApi sourcePublicApi;
   @MockitoBean private SourceService sourceService;
 
   @Test
