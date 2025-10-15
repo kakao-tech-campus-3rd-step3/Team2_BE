@@ -98,6 +98,11 @@ public class QuestionService implements QuestionPublicApi {
     return questionRepository.findById(questionId);
   }
 
+  @Override
+  public List<Question> findEntitiesByIds(List<Long> questionIds) {
+    return questionRepository.findAllById(questionIds);
+  }
+
   private void validateQuestionSetExists(Long questionSetId, Long ownerId) {
     questionSetRepository
         .findByIdAndMemberId(questionSetId, ownerId)
@@ -147,32 +152,44 @@ public class QuestionService implements QuestionPublicApi {
   private Question buildQuestionFromRequest(
       QuestionSet questionSet, QuestionCreateRequest requestDto) {
     return switch (requestDto.questionType()) {
-      case MULTIPLE_CHOICE ->
-          MultipleChoiceQuestion.builder()
-              .questionSet(questionSet)
-              .questionText(requestDto.questionText())
-              .options(requestDto.options())
-              .answer(requestDto.answer())
-              .explanation(requestDto.explanation())
-              .build();
-      case TRUE_FALSE ->
-          TrueFalseQuestion.builder()
-              .questionSet(questionSet)
-              .questionText(requestDto.questionText())
-              .answer(Boolean.parseBoolean(requestDto.answer()))
-              .explanation(requestDto.explanation())
-              .build();
-      case SHORT_ANSWER ->
-          ShortAnswerQuestion.builder()
-              .questionSet(questionSet)
-              .questionText(requestDto.questionText())
-              .answer(requestDto.answer())
-              .explanation(requestDto.explanation())
-              .build();
+      case MULTIPLE_CHOICE -> buildMultipleChoiceQuestion(questionSet, requestDto);
+      case TRUE_FALSE -> buildTrueFalseQuestion(questionSet, requestDto);
+      case SHORT_ANSWER -> buildShortAnswerQuestion(questionSet, requestDto);
       default ->
           throw new IllegalStateException(
               "Unsupported question type: " + requestDto.questionType());
     };
+  }
+
+  private MultipleChoiceQuestion buildMultipleChoiceQuestion(
+      QuestionSet questionSet, QuestionCreateRequest requestDto) {
+    return MultipleChoiceQuestion.builder()
+        .questionSet(questionSet)
+        .questionText(requestDto.questionText())
+        .options(requestDto.options())
+        .answer(requestDto.answer())
+        .explanation(requestDto.explanation())
+        .build();
+  }
+
+  private TrueFalseQuestion buildTrueFalseQuestion(
+      QuestionSet questionSet, QuestionCreateRequest requestDto) {
+    return TrueFalseQuestion.builder()
+        .questionSet(questionSet)
+        .questionText(requestDto.questionText())
+        .answer(Boolean.parseBoolean(requestDto.answer()))
+        .explanation(requestDto.explanation())
+        .build();
+  }
+
+  private ShortAnswerQuestion buildShortAnswerQuestion(
+      QuestionSet questionSet, QuestionCreateRequest requestDto) {
+    return ShortAnswerQuestion.builder()
+        .questionSet(questionSet)
+        .questionText(requestDto.questionText())
+        .answer(requestDto.answer())
+        .explanation(requestDto.explanation())
+        .build();
   }
 
   private Question findQuestionById(Long questionId) {

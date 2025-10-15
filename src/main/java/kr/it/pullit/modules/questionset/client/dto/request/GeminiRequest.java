@@ -1,29 +1,32 @@
 package kr.it.pullit.modules.questionset.client.dto.request;
 
+import com.google.genai.types.Content;
+import com.google.genai.types.GenerateContentConfig;
+import com.google.genai.types.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import com.google.genai.types.Content;
-import com.google.genai.types.GenerateContentConfig;
-import com.google.genai.types.Part;
 import kr.it.pullit.modules.questionset.client.GeminiConfigBuilder;
 import kr.it.pullit.modules.questionset.client.exception.LlmException;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 
 public record GeminiRequest(String model, Content content, GenerateContentConfig config) {
 
-  private static final String DEFAULT_MODEL = "gemini-1.5-flash-latest";
+  private static final String DEFAULT_MODEL = "gemini-2.5-flash-lite";
 
-  public static GeminiRequest from(LlmGeneratedQuestionRequest request,
-      GeminiConfigBuilder configBuilder) {
+  public static GeminiRequest from(
+      LlmGeneratedQuestionRequest request, GeminiConfigBuilder configBuilder) {
     validateRequest(request);
 
     String model = determineModel(request.model());
     Content content = buildContent(request);
-    GenerateContentConfig config = buildConfig(configBuilder,
-        request.specification().questionCount(), request.specification().questionType());
+    GenerateContentConfig config =
+        buildConfig(
+            configBuilder,
+            request.specification().questionCount(),
+            request.specification().questionType());
 
     return new GeminiRequest(model, content, config);
   }
@@ -55,8 +58,8 @@ public record GeminiRequest(String model, Content content, GenerateContentConfig
     return parts;
   }
 
-  private static GenerateContentConfig buildConfig(GeminiConfigBuilder configBuilder,
-      Integer questionCount, QuestionType questionType) {
+  private static GenerateContentConfig buildConfig(
+      GeminiConfigBuilder configBuilder, Integer questionCount, QuestionType questionType) {
     return configBuilder.build(questionCount, questionType);
   }
 }

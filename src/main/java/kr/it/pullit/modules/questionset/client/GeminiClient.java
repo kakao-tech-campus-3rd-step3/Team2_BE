@@ -1,13 +1,12 @@
 package kr.it.pullit.modules.questionset.client;
 
-import java.io.IOException;
-import java.time.Duration;
-import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.FinishReason;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.HttpOptions;
+import java.io.IOException;
+import java.time.Duration;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.request.GeminiRequest;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
@@ -15,6 +14,7 @@ import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestion
 import kr.it.pullit.modules.questionset.client.exception.LlmException;
 import kr.it.pullit.modules.questionset.client.exception.LlmResponseParseException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -26,8 +26,10 @@ public class GeminiClient implements LlmClient {
   private final GeminiConfigBuilder configBuilder;
 
   public GeminiClient(GeminiProperties geminiProperties, GeminiConfigBuilder configBuilder) {
-    HttpOptions httpOptions = HttpOptions.builder()
-        .timeout((int) Duration.ofMinutes(GEMINI_API_TIMEOUT_MINUTES).toMillis()).build();
+    HttpOptions httpOptions =
+        HttpOptions.builder()
+            .timeout((int) Duration.ofMinutes(GEMINI_API_TIMEOUT_MINUTES).toMillis())
+            .build();
     this.client =
         Client.builder().apiKey(geminiProperties.getApiKey()).httpOptions(httpOptions).build();
     this.configBuilder = configBuilder;
@@ -52,26 +54,29 @@ public class GeminiClient implements LlmClient {
   }
 
   private GenerateContentResponse callGeminiApi(GeminiRequest geminiRequest) {
-    return client.models.generateContent(geminiRequest.model(), geminiRequest.content(),
-        geminiRequest.config());
+    return client.models.generateContent(
+        geminiRequest.model(), geminiRequest.content(), geminiRequest.config());
   }
 
   private void validateResponse(GenerateContentResponse response) {
     if (response.finishReason().knownEnum() != FinishReason.Known.STOP) {
-      throw LlmException
-          .generationFailed("AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
+      throw LlmException.generationFailed(
+          "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
     }
   }
 
   private void logRequestDetails(GeminiRequest geminiRequest, LlmGeneratedQuestionRequest request) {
-    log.info("""
+    log.info(
+        """
 
         --- Gemini API 요청 정보 ---
         [모델명] : {}
         [요청 질문 수] : {}
         [프롬프트 길이] : {} 자
         [파일 개수] : {}{}
-        --- 요청 정보 끝 ---""", geminiRequest.model(), request.specification().questionCount(),
+        --- 요청 정보 끝 ---""",
+        geminiRequest.model(),
+        request.specification().questionCount(),
         request.prompt() != null ? request.prompt().length() : "null",
         request.fileDataList() != null ? request.fileDataList().size() : "null",
         request.fileDataList() != null && !request.fileDataList().isEmpty()

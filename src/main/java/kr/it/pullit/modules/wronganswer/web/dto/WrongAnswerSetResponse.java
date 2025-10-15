@@ -11,5 +11,25 @@ public record WrongAnswerSetResponse(
     List<String> sourceNames,
     DifficultyType difficulty,
     String majorTopic,
-    int incorrectCount,
-    String category) {}
+    Long incorrectCount,
+    String category) {
+
+  public static WrongAnswerSetResponse of(
+      Long questionSetId,
+      String questionSetTitle,
+      List<String> sourceNames,
+      DifficultyType difficulty,
+      String majorTopic,
+      Long incorrectCount,
+      String category) {
+    return WrongAnswerSetResponse.builder()
+        .questionSetId(questionSetId)
+        .questionSetTitle(questionSetTitle)
+        .sourceNames(sourceNames)
+        .difficulty(difficulty)
+        .majorTopic(majorTopic)
+        .incorrectCount(incorrectCount)
+        .category(category)
+        .build();
+  }
+}

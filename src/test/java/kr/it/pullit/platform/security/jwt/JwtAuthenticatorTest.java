@@ -2,33 +2,29 @@ package kr.it.pullit.platform.security.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import kr.it.pullit.support.test.UnitTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 @UnitTest
 @DisplayName("JwtAuthenticator 단위 테스트")
 class JwtAuthenticatorTest {
 
-  @InjectMocks
-  private JwtAuthenticator jwtAuthenticator;
+  @InjectMocks private JwtAuthenticator jwtAuthenticator;
 
-  @Mock
-  private JwtTokenPort jwtTokenPort;
+  @Mock private JwtTokenPort jwtTokenPort;
 
-  @Mock
-  private DecodedJWT decodedJWT;
+  @Mock private DecodedJWT decodedJwt;
 
-  @Mock
-  private Claim memberIdClaim;
+  @Mock private Claim memberIdClaim;
 
-  @Mock
-  private Claim emailClaim;
+  @Mock private Claim emailClaim;
 
   @Test
   @DisplayName("유효한 토큰이 제공되면 Success 결과를 반환한다")
@@ -37,10 +33,10 @@ class JwtAuthenticatorTest {
     String token = "valid-token";
     String expectedEmail = "tester@pullit.kr";
 
-    when(jwtTokenPort.validateToken(token)).thenReturn(new TokenValidationResult.Valid(decodedJWT));
-    when(decodedJWT.getClaim("memberId")).thenReturn(memberIdClaim);
+    when(jwtTokenPort.validateToken(token)).thenReturn(new TokenValidationResult.Valid(decodedJwt));
+    when(decodedJwt.getClaim("memberId")).thenReturn(memberIdClaim);
     when(memberIdClaim.asLong()).thenReturn(1L);
-    when(decodedJWT.getClaim("email")).thenReturn(emailClaim);
+    when(decodedJwt.getClaim("email")).thenReturn(emailClaim);
     when(emailClaim.asString()).thenReturn(expectedEmail);
 
     // when

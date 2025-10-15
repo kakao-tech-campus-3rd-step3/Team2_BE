@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.modules.wronganswer.repository.adapter.jpa.WrongAnswerJpaRepository;
+import kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -24,19 +25,23 @@ public class WrongAnswerRepositoryImpl implements WrongAnswerRepository {
   }
 
   @Override
+  public List<WrongAnswer> findByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds) {
+    return wrongAnswerJpaRepository.findByMemberIdAndQuestionIdIn(memberId, questionIds);
+  }
+
+  @Override
   public List<WrongAnswer> saveAll(Iterable<WrongAnswer> entities) {
     return wrongAnswerJpaRepository.saveAll(entities);
   }
 
   @Override
-  public List<Object[]> findAllWrongAnswerQuestionSetAndCountByMemberId(Long memberId) {
-    return wrongAnswerJpaRepository.findAllWrongAnswerQuestionSetAndCountByMemberId(memberId);
+  public List<WrongAnswerSetDto> findAllWrongAnswerSetAndCountByMemberId(Long memberId) {
+    return wrongAnswerJpaRepository.findAllWrongAnswerSetAndCountByMemberId(memberId);
   }
 
   @Override
-  public List<Object[]> findWrongAnswerQuestionSetWithCursor(
+  public List<WrongAnswerSetDto> findWrongAnswerSetWithCursor(
       Long memberId, Long cursor, Pageable pageable) {
-    return wrongAnswerJpaRepository.findWrongAnswerQuestionSetWithCursor(
-        memberId, cursor, pageable);
+    return wrongAnswerJpaRepository.findWrongAnswerSetWithCursor(memberId, cursor, pageable);
   }
 }

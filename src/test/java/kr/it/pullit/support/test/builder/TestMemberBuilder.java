@@ -4,7 +4,7 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 
 public record TestMemberBuilder(Long kakaoId, String email, String nickname) {
 
-  public static TestMemberBuilder aMember() {
+  public static TestMemberBuilder builder() {
     return new TestMemberBuilder(null, "tester@pullit.kr", "테스터");
   }
 

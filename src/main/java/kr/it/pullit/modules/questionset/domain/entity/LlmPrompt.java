@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
 import static kr.it.pullit.modules.questionset.domain.QuestionSetConstants.TITLE_MAX_LENGTH;
+
 import java.util.Objects;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
@@ -17,7 +18,9 @@ public record LlmPrompt(String value) {
     String shortAnswerInstruction =
         questionType == QuestionType.SHORT_ANSWER ? "- 단답형 문제의 정답은 반드시 20자 이내로 생성해주세요.\n" : "";
 
-    String composed = String.format("""
+    String composed =
+        String.format(
+            """
         당신은 해당 pdf를 기반으로하는 시험 문제 출제 위원입니다.
         따라서 당신은 수험자들의 학습을 잘 했는지 확인 할 수 있게 중요한 개념과 학생들이 어려워 하는 부분들을 문제로 출제하세요.
         당신은 pdf의 내용을 기반으로 문제집 제목과 문제들을 생성해야 합니다.
@@ -37,8 +40,12 @@ public record LlmPrompt(String value) {
 
         [예시]:
         %s
-        """, TITLE_MAX_LENGTH, difficulty.getPrompt(), questionType.getType(),
-        shortAnswerInstruction, questionType.getExample());
+        """,
+            TITLE_MAX_LENGTH,
+            difficulty.getPrompt(),
+            questionType.getType(),
+            shortAnswerInstruction,
+            questionType.getExample());
 
     return new LlmPrompt(composed);
   }
