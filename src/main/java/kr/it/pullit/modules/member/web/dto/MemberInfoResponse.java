@@ -7,6 +7,10 @@ import lombok.Builder;
 public record MemberInfoResponse(Long id, String name, String email) {
 
   public static MemberInfoResponse from(Member member) {
-    return MemberInfoResponse.builder().id(member.getId()).name(member.getName()).email(member.getEmail()).build();
+    return MemberInfoResponse.builder()
+        .id(member.getId())
+        .name(member.getName())
+        .email(member.getEmail())
+        .build();
   }
 }
