@@ -24,7 +24,9 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
 import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,12 +129,42 @@ public class QuestionSetService implements QuestionSetPublicApi {
     }
   }
 
+  @Transactional(readOnly = true)
+  public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
+      Long memberId, Long cursor, int size) {
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
+
+    List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size);
+
+    boolean hasNext = results.size() > size;
+    List<MyQuestionSetsResponse> content = toContent(results, size);
+    Long nextCursor = calculateNextCursor(results, size, hasNext);
+
+    return CursorPageResponse.of(content, nextCursor, hasNext);
+  }
+
   @Override
   @Transactional(readOnly = true)
   public List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
     List<QuestionSet> questionSets = questionSetRepository.findByMemberId(memberId);
     return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
+  }
+
+  private List<QuestionSet> fetchQuestionSets(Long memberId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
+    return questionSetRepository.findByMemberIdWithCursor(memberId, cursor, pageableWithOneExtra);
+  }
+
+  private List<MyQuestionSetsResponse> toContent(List<QuestionSet> results, int size) {
+    return results.stream().limit(size).map(MyQuestionSetsResponse::from).toList();
+  }
+
+  private Long calculateNextCursor(List<QuestionSet> results, int size, boolean hasNext) {
+    if (!hasNext) {
+      return null;
+    }
+    return results.get(size - 1).getId();
   }
 
   @Override
