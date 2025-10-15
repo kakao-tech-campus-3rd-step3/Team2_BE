@@ -5,6 +5,8 @@ import static org.mockito.BDDMockito.given;
 
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
+import kr.it.pullit.modules.learningsource.source.service.SourceService;
+import kr.it.pullit.modules.learningsource.source.web.SourceController;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.support.IntegrationTest;
@@ -25,6 +27,8 @@ public class SourceControllerTest {
   @Autowired private SourceRepository sourceRepository;
 
   @MockitoBean private SourcePublicApi sourcePublicApi;
+
+  @MockitoBean private SourceService sourceService;
 
   @Test
   void shouldReturnPresignedUrlForValidRequest() {
