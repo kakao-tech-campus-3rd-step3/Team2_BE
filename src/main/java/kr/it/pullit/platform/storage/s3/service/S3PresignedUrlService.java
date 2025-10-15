@@ -45,4 +45,9 @@ public class S3PresignedUrlService implements S3PublicApi {
   public boolean fileExists(String filePath) {
     return fileStorageClient.fileExists(filePath);
   }
+
+  @Override
+  public void deleteFile(String filePath) {
+    fileStorageClient.deleteFile(filePath);
+  }
 }

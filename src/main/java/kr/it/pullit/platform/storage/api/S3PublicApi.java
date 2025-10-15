@@ -10,4 +10,6 @@ public interface S3PublicApi {
   byte[] downloadFileAsBytes(String filePath);
 
   boolean fileExists(String filePath);
+
+  void deleteFile(String filePath);
 }
