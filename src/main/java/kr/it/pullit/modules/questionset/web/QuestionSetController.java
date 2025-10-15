@@ -51,7 +51,7 @@ public class QuestionSetController {
    * 회원의 모든 문제집을 조회하는 API
    *
    * @param memberId 회원 ID
-   * @return 회원의 모든 문제집 응답
+   * @return 회원의 모든 문제집 목록
    */
   @GetMapping
   public ResponseEntity<CursorPageResponse<MyQuestionSetsResponse>> getMyQuestionSets(
@@ -86,6 +86,7 @@ public class QuestionSetController {
   }
 
   // TODO: 수정기능이 타이틀만 수정하는 기능임. 명칭오해가 없도록 해야함.
+
   /**
    * 문제집을 수정하는 API
    *
