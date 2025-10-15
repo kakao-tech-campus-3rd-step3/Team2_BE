@@ -7,37 +7,43 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import jakarta.servlet.http.Cookie;
-import kr.it.pullit.modules.auth.exception.AuthErrorCode;
-import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
-import kr.it.pullit.modules.auth.service.AuthService;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
-import kr.it.pullit.platform.web.cookie.CookieManager;
-import kr.it.pullit.testconfig.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import jakarta.servlet.http.Cookie;
+import kr.it.pullit.modules.auth.exception.AuthErrorCode;
+import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
+import kr.it.pullit.modules.auth.service.AuthService;
+import kr.it.pullit.platform.security.jwt.JwtAuthenticationFilter;
+import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.web.cookie.CookieManager;
+import kr.it.pullit.support.test.MvcSliceTest;
+import kr.it.pullit.testconfig.TestSecurityConfig;
 
-@WebMvcTest(AuthController.class)
+@MvcSliceTest(controllers = AuthController.class,
+    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class))
 @Import(TestSecurityConfig.class)
-@WithMockUser
 class AuthControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-  @MockitoBean private AuthService authService;
+  @MockitoBean
+  private CookieManager cookieManager;
 
-  @MockitoBean private JwtTokenPort jwtTokenPort;
+  @MockitoBean
+  private AuthService authService;
 
-  @MockitoBean private CookieManager cookieManager;
+  @MockitoBean
+  private JwtTokenPort jwtTokenPort;
 
   @Nested
   @DisplayName("토큰 재발급 API [/auth/refresh]")

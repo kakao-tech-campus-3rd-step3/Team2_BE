@@ -50,34 +50,35 @@ public class SourceService implements SourcePublicApi {
       throw new IllegalArgumentException("S3에 해당 파일이 존재하지 않습니다.");
     }
 
-    Optional<Source> existingSource =
-        sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath());
+    Source source =
+        sourceRepository
+            .findByMemberIdAndFilePath(memberId, request.getFilePath())
+            .orElseGet(
+                () -> {
+                  SourceCreationParam sourceCreationParam =
+                      new SourceCreationParam(
+                          memberId,
+                          request.getOriginalName(),
+                          request.getFilePath(),
+                          request.getContentType(),
+                          request.getFileSizeBytes());
 
-    if (existingSource.isPresent()) {
-      Source source = existingSource.get();
-      source.updateFileInfo(
-          request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
-      sourceRepository.save(source);
-    } else {
-      SourceCreationParam sourceCreationParam =
-          new SourceCreationParam(
-              memberId,
-              request.getOriginalName(),
-              request.getFilePath(),
-              request.getContentType(),
-              request.getFileSizeBytes());
+                  Member member =
+                      memberPublicApi
+                          .findById(memberId)
+                          .orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-      Member member =
-          memberPublicApi
-              .findById(memberId)
-              .orElseThrow(() -> MemberNotFoundException.byId(memberId));
+                  SourceFolder sourceFolder =
+                      sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
 
-      SourceFolder sourceFolder = sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
+                  return Source.create(sourceCreationParam, member, sourceFolder);
+                });
 
-      Source source = Source.create(sourceCreationParam, member, sourceFolder);
+    source.updateFileInfo(
+        request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
+    source.markAsReady(); // 상태를 READY로 변경
 
-      sourceRepository.save(source);
-    }
+    sourceRepository.save(source);
   }
 
   @Override

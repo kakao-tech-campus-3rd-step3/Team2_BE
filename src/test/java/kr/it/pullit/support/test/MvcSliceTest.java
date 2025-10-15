@@ -8,7 +8,9 @@ import kr.it.pullit.shared.error.GlobalExceptionAdvice;
 import kr.it.pullit.support.test.config.FixedClockConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.test.context.ActiveProfiles;
 
 @Target(ElementType.TYPE)
@@ -17,4 +19,14 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import({GlobalExceptionAdvice.class, FixedClockConfig.class})
-public @interface MvcSliceTest {}
+public @interface MvcSliceTest {
+
+  @AliasFor(annotation = WebMvcTest.class, attribute = "controllers")
+  Class<?>[] value() default {};
+
+  @AliasFor(annotation = WebMvcTest.class, attribute = "controllers")
+  Class<?>[] controllers() default {};
+
+  @AliasFor(annotation = WebMvcTest.class, attribute = "excludeFilters")
+  ComponentScan.Filter[] excludeFilters() default {};
+}

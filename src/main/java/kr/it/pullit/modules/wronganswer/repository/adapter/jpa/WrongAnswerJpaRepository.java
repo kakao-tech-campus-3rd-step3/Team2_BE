@@ -16,8 +16,9 @@ public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Lon
         SELECT q.questionSet, COUNT(q.id)
         FROM WrongAnswer wa
         JOIN wa.question q
-        WHERE wa.member.id = :memberId
+        WHERE wa.member.id = :memberId AND wa.isReviewed = false
         GROUP BY q.questionSet
+        HAVING COUNT(q.id) > 0
         ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
       """)
   List<Object[]> findAllWrongAnswerQuestionSetAndCountByMemberId(@Param("memberId") Long memberId);
@@ -28,8 +29,10 @@ public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Lon
         FROM WrongAnswer wa
         JOIN wa.question q
         WHERE wa.member.id = :memberId
+          AND wa.isReviewed = false
           AND (:cursor IS NULL OR q.questionSet.id < :cursor)
         GROUP BY q.questionSet
+        HAVING COUNT(q.id) > 0
         ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
       """)
   List<Object[]> findWrongAnswerQuestionSetWithCursor(

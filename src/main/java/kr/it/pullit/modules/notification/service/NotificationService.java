@@ -36,10 +36,7 @@ public class NotificationService implements NotificationPublicApi {
   @Override
   public void publishQuestionSetCreationComplete(
       Long userId, QuestionSetCreationCompleteResponse data) {
-    String eventName = SseEventType.QUESTION_SET_CREATION_COMPLETE.code();
-    EventData eventData = EventData.of(userId, eventName, data);
-    sseEventCache.put(eventData);
-    publishAndSend(userId, SseEventType.QUESTION_SET_CREATION_COMPLETE, eventData);
+    publishAndSend(userId, SseEventType.QUESTION_SET_CREATION_COMPLETE, data);
   }
 
   @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS)

@@ -44,3 +44,4 @@ application-local.yml
 .env
 src/main/resources/keystore.p12
 src/test/resources/application-s3-secrets.properties
+spy.log

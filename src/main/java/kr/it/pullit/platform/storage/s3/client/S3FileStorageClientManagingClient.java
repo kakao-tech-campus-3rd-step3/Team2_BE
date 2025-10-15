@@ -80,7 +80,27 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   public InputStream downloadFileAsStream(String filePath) {
     GetObjectRequest getObjectRequest =
         GetObjectRequest.builder().bucket(s3StorageProps.getBucketName()).key(filePath).build();
-    return s3Client.getObject(getObjectRequest);
+
+    int maxRetries = 3;
+    int attempt = 0;
+    long delay = 1000; // 1초부터 시작
+
+    while (true) {
+      try {
+        return s3Client.getObject(getObjectRequest);
+      } catch (NoSuchKeyException e) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw e;
+        }
+        try {
+          Thread.sleep(delay * attempt); // 재시도 간격 증가
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          throw new RuntimeException("S3 파일 다운로드 재시도 중 스레드 인터럽트 발생", ie);
+        }
+      }
+    }
   }
 
   private S3Client createS3Client() {
