@@ -47,4 +47,9 @@ public class SourceRepositoryImpl implements SourceRepository {
   public Optional<Source> findByMemberIdAndFilePath(Long memberId, String filePath) {
     return sourceJpaRepository.findByMemberIdAndFilePath(memberId, filePath);
   }
+
+  @Override
+  public void delete(Source source) {
+    sourceJpaRepository.delete(source);
+  }
 }

@@ -19,4 +19,6 @@ public interface SourceRepository {
   Optional<Source> findByIdAndMemberId(Long id, Long memberId);
 
   Optional<Source> findByMemberIdAndFilePath(Long memberId, String filePath);
+
+  void delete(Source source);
 }
