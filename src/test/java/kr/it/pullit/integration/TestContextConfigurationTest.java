@@ -2,7 +2,7 @@ package kr.it.pullit.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import kr.it.pullit.support.IntegrationTest;
+import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

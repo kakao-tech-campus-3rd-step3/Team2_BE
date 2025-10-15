@@ -1,4 +1,4 @@
-package kr.it.pullit.support;
+package kr.it.pullit.support.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

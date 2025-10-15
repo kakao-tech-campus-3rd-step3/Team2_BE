@@ -1,4 +1,4 @@
-package kr.it.pullit.support.test.security;
+package kr.it.pullit.support.security;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -1,7 +1,7 @@
-package kr.it.pullit.support.test.fixture;
+package kr.it.pullit.support.fixture;
 
 import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.support.test.builder.TestMemberBuilder;
+import kr.it.pullit.support.builder.TestMemberBuilder;
 
 public final class MemberFixtures {
 

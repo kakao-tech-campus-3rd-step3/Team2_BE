@@ -7,7 +7,7 @@ import java.util.Collections;
 import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
-import kr.it.pullit.support.test.UnitTest;
+import kr.it.pullit.support.annotation.UnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

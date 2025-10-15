@@ -1,4 +1,4 @@
-package kr.it.pullit.support.test.builder;
+package kr.it.pullit.support.builder;
 
 import kr.it.pullit.modules.member.domain.entity.Member;
 

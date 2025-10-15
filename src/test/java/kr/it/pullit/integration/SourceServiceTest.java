@@ -1,4 +1,4 @@
-package kr.it.pullit.integration.modules.learningsource.source.service;
+package kr.it.pullit.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,14 +8,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
-import kr.it.pullit.support.IntegrationTest;
+import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"mock-auth", "real-env"})
 @IntegrationTest
-public class SourceServiceIntegrationTest {
+public class SourceServiceTest {
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 

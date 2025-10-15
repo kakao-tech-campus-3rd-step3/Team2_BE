@@ -1,4 +1,4 @@
-package kr.it.pullit.support;
+package kr.it.pullit.support.annotation;
 
 import java.util.TimeZone;
 import kr.it.pullit.modules.notification.repository.SseEventCache;

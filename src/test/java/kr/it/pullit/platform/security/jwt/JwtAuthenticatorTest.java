@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
-import kr.it.pullit.support.test.UnitTest;
+import kr.it.pullit.support.annotation.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

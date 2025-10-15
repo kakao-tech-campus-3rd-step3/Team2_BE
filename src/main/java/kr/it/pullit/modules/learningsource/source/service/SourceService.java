@@ -20,10 +20,8 @@ import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -118,20 +116,21 @@ public class SourceService implements SourcePublicApi {
     return sourceRepository.findByIdIn(ids);
   }
 
+  @Override
   public void deleteSource(Long sourceId, Long memberId) {
-    Source source =
-        sourceRepository
-            .findById(sourceId)
-            .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
-
-    if (!source.getMember().getId().equals(memberId)) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 소스가 아니므로 삭제할 수 없습니다.");
-    }
-
+    Source source = getOrElseThrow(sourceId, memberId);
     String filePath = source.getFilePath();
-
     sourceRepository.delete(source);
+    deleteInS3(filePath);
+  }
 
+  private Source getOrElseThrow(Long sourceId, Long memberId) {
+    return sourceRepository
+        .findByIdAndMemberId(sourceId, memberId)
+        .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
+  }
+
+  private void deleteInS3(String filePath) {
     try {
       s3PublicApi.deleteFile(filePath);
     } catch (Exception e) {

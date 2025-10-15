@@ -1,4 +1,4 @@
-package kr.it.pullit.support.test.security;
+package kr.it.pullit.support.security;
 
 import java.util.Collections;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

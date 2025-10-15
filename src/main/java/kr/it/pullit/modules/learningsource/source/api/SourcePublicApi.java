@@ -25,4 +25,6 @@ public interface SourcePublicApi {
   Optional<Source> findByIdAndMemberId(Long id);
 
   List<Source> findByIdIn(List<Long> ids);
+
+  void deleteSource(Long sourceId, Long memberId);
 }

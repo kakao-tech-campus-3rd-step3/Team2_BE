@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
 import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.support.test.JpaSliceTest;
-import kr.it.pullit.support.test.builder.TestMemberBuilder;
+import kr.it.pullit.support.annotation.JpaSliceTest;
+import kr.it.pullit.support.builder.TestMemberBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

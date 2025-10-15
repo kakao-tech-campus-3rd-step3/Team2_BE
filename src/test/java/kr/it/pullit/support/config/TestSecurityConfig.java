@@ -1,4 +1,4 @@
-package kr.it.pullit.testconfig;
+package kr.it.pullit.support.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

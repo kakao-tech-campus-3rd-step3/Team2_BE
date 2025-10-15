@@ -1,4 +1,4 @@
-package kr.it.pullit.support.test.id;
+package kr.it.pullit.support.id;
 
 import java.util.concurrent.atomic.AtomicLong;
 import kr.it.pullit.shared.id.IdGenerator;

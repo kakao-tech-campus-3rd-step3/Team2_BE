@@ -1,4 +1,4 @@
-package kr.it.pullit.support.test.config;
+package kr.it.pullit.support.config;
 
 import java.time.Clock;
 import java.time.Instant;

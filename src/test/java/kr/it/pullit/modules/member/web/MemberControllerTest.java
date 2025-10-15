@@ -1,4 +1,4 @@
-package kr.it.pullit.integration.modules.member.web;
+package kr.it.pullit.modules.member.web;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -7,34 +7,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Optional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
-import kr.it.pullit.modules.member.web.MemberController;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
-import kr.it.pullit.platform.security.jwt.JwtAuthenticationFilter;
-import kr.it.pullit.platform.web.cookie.CookieManager;
-import kr.it.pullit.support.test.MvcSliceTest;
-import kr.it.pullit.support.test.security.WithMockMember;
+import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
+import kr.it.pullit.support.security.WithMockMember;
+import kr.it.pullit.support.test.ControllerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
-@MvcSliceTest(
-    controllers = MemberController.class,
-    excludeFilters =
-        @ComponentScan.Filter(
-            type = FilterType.ASSIGNABLE_TYPE,
-            classes = JwtAuthenticationFilter.class))
+@AuthenticatedMvcSliceTest(controllers = MemberController.class)
 @DisplayName("MemberController 슬라이스 테스트")
-class MemberControllerTest {
-
-  @Autowired private MockMvc mockMvc;
+class MemberControllerTest extends ControllerTest {
 
   @MockitoBean private MemberPublicApi memberPublicApi;
-
-  @MockitoBean private CookieManager cookieManager;
 
   @Test
   @WithMockMember
