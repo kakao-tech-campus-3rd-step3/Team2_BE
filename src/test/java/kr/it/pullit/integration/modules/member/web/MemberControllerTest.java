@@ -41,7 +41,7 @@ class MemberControllerTest {
   @DisplayName("로그인한 사용자는 자신의 정보를 성공적으로 조회한다")
   void shouldSuccessfullyRetrieveMyInfoWhenLoggedIn() throws Exception {
     // given
-    var memberInfo = new MemberInfoResponse(1L, "테스터");
+    var memberInfo = new MemberInfoResponse(1L, "테스터", "test@pullit.kr");
     given(memberPublicApi.getMemberInfo(1L)).willReturn(Optional.of(memberInfo));
 
     // when & then
