@@ -3,6 +3,7 @@ package kr.it.pullit.modules.wronganswer.repository;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
+import kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto;
 import org.springframework.data.domain.Pageable;
 
 public interface WrongAnswerRepository {
@@ -12,8 +13,10 @@ public interface WrongAnswerRepository {
 
   Optional<WrongAnswer> findByMemberIdAndQuestionId(Long memberId, Long questionId);
 
-  List<Object[]> findAllWrongAnswerQuestionSetAndCountByMemberId(Long memberId);
+  List<WrongAnswer> findByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds);
 
-  List<Object[]> findWrongAnswerQuestionSetWithCursor(
+  List<WrongAnswerSetDto> findAllWrongAnswerSetAndCountByMemberId(Long memberId);
+
+  List<WrongAnswerSetDto> findWrongAnswerSetWithCursor(
       Long memberId, Long cursor, Pageable pageable);
 }

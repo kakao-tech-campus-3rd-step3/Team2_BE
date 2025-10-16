@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -19,10 +20,8 @@ import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -46,40 +45,42 @@ public class SourceService implements SourcePublicApi {
   }
 
   /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */
+  // TODO: 리팩토링 대상.
   @Override
   public void processUploadComplete(SourceUploadCompleteRequest request, Long memberId) {
     if (!s3PublicApi.fileExists(request.getFilePath())) {
       throw new IllegalArgumentException("S3에 해당 파일이 존재하지 않습니다.");
     }
 
-    Optional<Source> existingSource =
-        sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath());
+    Source source =
+        sourceRepository
+            .findByMemberIdAndFilePath(memberId, request.getFilePath())
+            .orElseGet(
+                () -> {
+                  SourceCreationParam sourceCreationParam =
+                      new SourceCreationParam(
+                          memberId,
+                          request.getOriginalName(),
+                          request.getFilePath(),
+                          request.getContentType(),
+                          request.getFileSizeBytes());
 
-    if (existingSource.isPresent()) {
-      Source source = existingSource.get();
-      source.updateFileInfo(
-          request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
-      sourceRepository.save(source);
-    } else {
-      SourceCreationParam sourceCreationParam =
-          new SourceCreationParam(
-              memberId,
-              request.getOriginalName(),
-              request.getFilePath(),
-              request.getContentType(),
-              request.getFileSizeBytes());
+                  Member member =
+                      memberPublicApi
+                          .findById(memberId)
+                          .orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-      Member member =
-          memberPublicApi
-              .findById(memberId)
-              .orElseThrow(() -> MemberNotFoundException.byId(memberId));
+                  SourceFolder sourceFolder =
+                      sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
 
-      SourceFolder sourceFolder = sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
+                  return Source.create(sourceCreationParam, member, sourceFolder);
+                });
 
-      Source source = Source.create(sourceCreationParam, member, sourceFolder);
+    source.updateFileInfo(
+        request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
+    source.markAsReady(); // 상태를 READY로 변경
 
-      sourceRepository.save(source);
-    }
+    sourceRepository.save(source);
   }
 
   @Override
@@ -91,13 +92,13 @@ public class SourceService implements SourcePublicApi {
   }
 
   @Override
-  public byte[] getContentBytes(Long sourceId, Long memberId) {
+  public InputStream getContentStream(Long sourceId, Long memberId) {
     Source source =
         sourceRepository
             .findByIdAndMemberId(sourceId, memberId)
             .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
 
-    return s3PublicApi.downloadFileAsBytes(source.getFilePath());
+    return s3PublicApi.downloadFileAsStream(source.getFilePath());
   }
 
   @Override
@@ -115,20 +116,21 @@ public class SourceService implements SourcePublicApi {
     return sourceRepository.findByIdIn(ids);
   }
 
+  @Override
   public void deleteSource(Long sourceId, Long memberId) {
-    Source source =
-        sourceRepository
-            .findById(sourceId)
-            .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
-
-    if (!source.getMember().getId().equals(memberId)) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 소스가 아니므로 삭제할 수 없습니다.");
-    }
-
+    Source source = getOrElseThrow(sourceId, memberId);
     String filePath = source.getFilePath();
-
     sourceRepository.delete(source);
+    deleteInS3(filePath);
+  }
 
+  private Source getOrElseThrow(Long sourceId, Long memberId) {
+    return sourceRepository
+        .findByIdAndMemberId(sourceId, memberId)
+        .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
+  }
+
+  private void deleteInS3(String filePath) {
     try {
       s3PublicApi.deleteFile(filePath);
     } catch (Exception e) {

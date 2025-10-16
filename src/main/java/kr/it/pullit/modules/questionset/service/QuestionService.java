@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
 import jakarta.transaction.Transactional;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -45,10 +46,11 @@ public class QuestionService implements QuestionPublicApi {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
-    List<byte[]> sourceFileDataBytes = getSourceFileBytes(request.sourceIds(), request.ownerId());
+    List<InputStream> sourceFileDataStreams =
+        getSourceFileStreams(request.sourceIds(), request.ownerId());
 
     return callLlmClient(
-        request.questionSetId(), llmPrompt, sourceFileDataBytes, request.specification());
+        request.questionSetId(), llmPrompt, sourceFileDataStreams, request.specification());
   }
 
   @Override
@@ -80,8 +82,9 @@ public class QuestionService implements QuestionPublicApi {
   @Override
   @Transactional
   public void deleteQuestion(Long questionId) {
-    validateQuestionExists(questionId);
-    questionRepository.deleteById(questionId);
+    Question question = findQuestionById(questionId);
+    QuestionSet questionSet = question.getQuestionSet();
+    questionSet.removeQuestion(question);
   }
 
   @Override
@@ -95,6 +98,11 @@ public class QuestionService implements QuestionPublicApi {
     return questionRepository.findById(questionId);
   }
 
+  @Override
+  public List<Question> findEntitiesByIds(List<Long> questionIds) {
+    return questionRepository.findAllById(questionIds);
+  }
+
   private void validateQuestionSetExists(Long questionSetId, Long ownerId) {
     questionSetRepository
         .findByIdAndMemberId(questionSetId, ownerId)
@@ -105,20 +113,20 @@ public class QuestionService implements QuestionPublicApi {
     return LlmPrompt.compose(spec.difficultyType(), spec.questionType());
   }
 
-  private List<byte[]> getSourceFileBytes(List<Long> sourceIds, Long ownerId) {
+  private List<InputStream> getSourceFileStreams(List<Long> sourceIds, Long ownerId) {
     return sourceIds.stream()
-        .map(sourceId -> sourcePublicApi.getContentBytes(sourceId, ownerId))
+        .map(sourceId -> sourcePublicApi.getContentStream(sourceId, ownerId))
         .toList();
   }
 
   private LlmGeneratedQuestionSetResponse callLlmClient(
       Long questionSetId,
       LlmPrompt llmPrompt,
-      List<byte[]> sourceFileDataBytes,
+      List<InputStream> sourceFileDataStreams,
       QuestionGenerationSpecification spec) {
     logLlmCall(questionSetId, DEFAULT_MODEL_NAME);
     LlmGeneratedQuestionRequest request =
-        createLlmRequest(llmPrompt, sourceFileDataBytes, spec, DEFAULT_MODEL_NAME);
+        createLlmRequest(llmPrompt, sourceFileDataStreams, spec, DEFAULT_MODEL_NAME);
     return llmClient.getLlmGeneratedQuestionContent(request);
   }
 
@@ -128,10 +136,11 @@ public class QuestionService implements QuestionPublicApi {
 
   private LlmGeneratedQuestionRequest createLlmRequest(
       LlmPrompt llmPrompt,
-      List<byte[]> sourceFileDataBytes,
+      List<InputStream> sourceFileDataStreams,
       QuestionGenerationSpecification spec,
       String modelName) {
-    return new LlmGeneratedQuestionRequest(llmPrompt.value(), sourceFileDataBytes, modelName, spec);
+    return new LlmGeneratedQuestionRequest(
+        llmPrompt.value(), sourceFileDataStreams, modelName, spec);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId) {
@@ -143,32 +152,44 @@ public class QuestionService implements QuestionPublicApi {
   private Question buildQuestionFromRequest(
       QuestionSet questionSet, QuestionCreateRequest requestDto) {
     return switch (requestDto.questionType()) {
-      case MULTIPLE_CHOICE ->
-          MultipleChoiceQuestion.builder()
-              .questionSet(questionSet)
-              .questionText(requestDto.questionText())
-              .options(requestDto.options())
-              .answer(requestDto.answer())
-              .explanation(requestDto.explanation())
-              .build();
-      case TRUE_FALSE ->
-          TrueFalseQuestion.builder()
-              .questionSet(questionSet)
-              .questionText(requestDto.questionText())
-              .answer(Boolean.parseBoolean(requestDto.answer()))
-              .explanation(requestDto.explanation())
-              .build();
-      case SHORT_ANSWER ->
-          ShortAnswerQuestion.builder()
-              .questionSet(questionSet)
-              .questionText(requestDto.questionText())
-              .answer(requestDto.answer())
-              .explanation(requestDto.explanation())
-              .build();
+      case MULTIPLE_CHOICE -> buildMultipleChoiceQuestion(questionSet, requestDto);
+      case TRUE_FALSE -> buildTrueFalseQuestion(questionSet, requestDto);
+      case SHORT_ANSWER -> buildShortAnswerQuestion(questionSet, requestDto);
       default ->
           throw new IllegalStateException(
               "Unsupported question type: " + requestDto.questionType());
     };
+  }
+
+  private MultipleChoiceQuestion buildMultipleChoiceQuestion(
+      QuestionSet questionSet, QuestionCreateRequest requestDto) {
+    return MultipleChoiceQuestion.builder()
+        .questionSet(questionSet)
+        .questionText(requestDto.questionText())
+        .options(requestDto.options())
+        .answer(requestDto.answer())
+        .explanation(requestDto.explanation())
+        .build();
+  }
+
+  private TrueFalseQuestion buildTrueFalseQuestion(
+      QuestionSet questionSet, QuestionCreateRequest requestDto) {
+    return TrueFalseQuestion.builder()
+        .questionSet(questionSet)
+        .questionText(requestDto.questionText())
+        .answer(Boolean.parseBoolean(requestDto.answer()))
+        .explanation(requestDto.explanation())
+        .build();
+  }
+
+  private ShortAnswerQuestion buildShortAnswerQuestion(
+      QuestionSet questionSet, QuestionCreateRequest requestDto) {
+    return ShortAnswerQuestion.builder()
+        .questionSet(questionSet)
+        .questionText(requestDto.questionText())
+        .answer(requestDto.answer())
+        .explanation(requestDto.explanation())
+        .build();
   }
 
   private Question findQuestionById(Long questionId) {
