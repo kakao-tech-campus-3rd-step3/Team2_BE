@@ -6,6 +6,7 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 
 public interface QuestionSetPublicApi {
 
@@ -24,6 +25,9 @@ public interface QuestionSetPublicApi {
   void delete(Long questionSetId, Long memberId);
 
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
+
+  CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
+      Long memberId, Long cursor, int size);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
 

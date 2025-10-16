@@ -5,7 +5,9 @@ import kr.it.pullit.modules.notification.domain.EventData;
 
 public interface SseEventCache {
 
-  void put(Long userId, EventData event);
+  EventData put(EventData event);
+
+  void clear();
 
   /**
    * 이 사용자를 위해 저장된 이벤트들 중에서, 클라이언트가 마지막으로 받았던 이벤트 ID보다 더 최신인 것들을 모두 찾아서 목록으로 반환한다. 재연결한 클라이언트에게, 연결이

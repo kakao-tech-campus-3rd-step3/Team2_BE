@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.api;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -16,7 +17,7 @@ public interface SourcePublicApi {
 
   List<SourceResponse> getMySources(Long memberId);
 
-  byte[] getContentBytes(Long sourceId, Long memberId);
+  InputStream getContentStream(Long sourceId, Long memberId);
 
   Optional<Source> findById(Long id);
 
@@ -24,4 +25,6 @@ public interface SourcePublicApi {
   Optional<Source> findByIdAndMemberId(Long id);
 
   List<Source> findByIdIn(List<Long> ids);
+
+  void deleteSource(Long sourceId, Long memberId);
 }

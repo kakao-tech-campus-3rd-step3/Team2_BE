@@ -1,6 +1,9 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
+import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.event.SourceExtractionCompleteEvent;
 import kr.it.pullit.modules.learningsource.source.event.SourceExtractionStartEvent;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
@@ -37,6 +40,7 @@ public class QuestionGenerationEventHandler {
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
+  private final SourcePublicApi sourcePublicApi;
 
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -87,9 +91,36 @@ public class QuestionGenerationEventHandler {
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
         fetchQuestionSetMetadata(event.questionSetId(), event.ownerId());
+
+    validateSourcesAreReady(questionSetResponse.getSourceIds(), event.questionSetId());
+
     QuestionGenerationSpecification specification = createSpecificationFrom(questionSetResponse);
     return new QuestionGenerationRequest(
         event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
+  }
+
+  // TODO: 과연 서비스에 있을 로직이 맞는지? 리팩토링 대상.
+  private void validateSourcesAreReady(List<Long> sourceIds, Long questionSetId) {
+    if (sourceIds.isEmpty()) {
+      return;
+    }
+
+    List<Source> sources = sourcePublicApi.findByIdIn(sourceIds);
+    if (sources.size() != sourceIds.size()) {
+      log.warn("요청된 소스 ID 중 일부를 DB에서 찾을 수 없습니다. QuestionSet ID: {}", questionSetId);
+    }
+
+    List<Source> notReadySources =
+        sources.stream().filter(source -> source.getStatus() != SourceStatus.READY).toList();
+
+    if (!notReadySources.isEmpty()) {
+      for (Source source : notReadySources) {
+        log.error(
+            "소스 파일이 준비되지 않았습니다. Source ID: {}, Status: {}", source.getId(), source.getStatus());
+      }
+      throw new IllegalStateException(
+          "모든 소스 파일이 준비되지 않아 문제 생성을 시작할 수 없습니다. QuestionSet ID: " + questionSetId);
+    }
   }
 
   private QuestionSetResponse fetchQuestionSetMetadata(Long questionSetId, Long ownerId) {

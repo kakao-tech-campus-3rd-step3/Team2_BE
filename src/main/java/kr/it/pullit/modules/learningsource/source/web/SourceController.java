@@ -3,7 +3,6 @@ package kr.it.pullit.modules.learningsource.source.web;
 import jakarta.validation.Valid;
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
-import kr.it.pullit.modules.learningsource.source.service.SourceService;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class SourceController {
 
   private final SourcePublicApi sourcePublicApi;
-  private final SourceService sourceService;
 
   @PostMapping("/upload")
   public ResponseEntity<SourceUploadResponse> generateUploadUrl(
@@ -53,7 +51,7 @@ public class SourceController {
   @DeleteMapping("/{sourceId}")
   public ResponseEntity<Void> deleteSource(
       @PathVariable Long sourceId, @AuthenticationPrincipal Long memberId) {
-    sourceService.deleteSource(sourceId, memberId);
+    sourcePublicApi.deleteSource(sourceId, memberId);
     return ResponseEntity.noContent().build();
   }
 }

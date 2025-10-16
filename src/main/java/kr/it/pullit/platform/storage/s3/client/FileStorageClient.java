@@ -1,5 +1,6 @@
 package kr.it.pullit.platform.storage.s3.client;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 
@@ -13,5 +14,5 @@ public interface FileStorageClient {
 
   String getFileUrl(String filePath);
 
-  byte[] downloadFileAsBytes(String filePath);
+  InputStream downloadFileAsStream(String filePath);
 }

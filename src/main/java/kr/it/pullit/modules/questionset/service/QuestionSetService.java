@@ -3,6 +3,7 @@ package kr.it.pullit.modules.questionset.service;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
@@ -23,7 +24,9 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
 import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +106,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
         memberPublicApi.findById(ownerId).orElseThrow(() -> MemberNotFoundException.byId(ownerId));
     List<Source> sources = sourcePublicApi.findByIdIn(request.sourceIds());
 
+    validateAllSourcesAreReady(sources);
+
     QuestionSetCreateParam createParam = QuestionSetCreateParam.from(request);
 
     QuestionSet questionSet = QuestionSet.create(owner, sources, createParam);
@@ -114,12 +119,52 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return QuestionSetResponse.from(savedQuestionSet);
   }
 
+  private void validateAllSourcesAreReady(List<Source> sources) {
+    List<Source> notReadySources =
+        sources.stream().filter(s -> s.getStatus() != SourceStatus.READY).toList();
+
+    if (!notReadySources.isEmpty()) {
+      // 여기에서 예외를 발생시켜 사용자에게 즉시 피드백을 줍니다.
+      throw new IllegalStateException("아직 처리 중인 소스 파일이 있어 문제집을 생성할 수 없습니다.");
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
+      Long memberId, Long cursor, int size) {
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
+
+    List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size);
+
+    boolean hasNext = results.size() > size;
+    List<MyQuestionSetsResponse> content = toContent(results, size);
+    Long nextCursor = calculateNextCursor(results, size, hasNext);
+
+    return CursorPageResponse.of(content, nextCursor, hasNext);
+  }
+
   @Override
   @Transactional(readOnly = true)
   public List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
     List<QuestionSet> questionSets = questionSetRepository.findByMemberId(memberId);
     return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
+  }
+
+  private List<QuestionSet> fetchQuestionSets(Long memberId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
+    return questionSetRepository.findByMemberIdWithCursor(memberId, cursor, pageableWithOneExtra);
+  }
+
+  private List<MyQuestionSetsResponse> toContent(List<QuestionSet> results, int size) {
+    return results.stream().limit(size).map(MyQuestionSetsResponse::from).toList();
+  }
+
+  private Long calculateNextCursor(List<QuestionSet> results, int size, boolean hasNext) {
+    if (!hasNext) {
+      return null;
+    }
+    return results.get(size - 1).getId();
   }
 
   @Override

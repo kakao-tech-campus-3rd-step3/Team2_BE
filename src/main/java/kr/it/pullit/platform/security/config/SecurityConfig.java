@@ -9,12 +9,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -42,7 +46,6 @@ public class SecurityConfig {
 
   private static final String[] PUBLIC_ENDPOINTS = {
     "/",
-    "/api",
     "/api/health",
     "/login/oauth2/code/**",
     "/oauth/authorize/**",
@@ -71,7 +74,14 @@ public class SecurityConfig {
   private void applyCommon(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionFixation().migrateSession());
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+    http.exceptionHandling(
+        handler ->
+            handler.defaultAuthenticationEntryPointFor(
+                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                PathPatternRequestMatcher.withDefaults().matcher("/api/**")));
   }
 
   private void configureOAuth2Login(HttpSecurity http) throws Exception {

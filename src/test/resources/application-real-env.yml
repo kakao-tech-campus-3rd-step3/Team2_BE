@@ -1,6 +1,12 @@
 spring:
   jpa:
     defer-datasource-initialization: false
+#    hibernate:
+#      ddl-auto: create-drop # 테스트 실행 시 스키마를 생성하고, 종료 시 삭제합니다.
+#      generate-ddl: true
+#    datasource:
+#      hikari:
+#        maxLifetime: 30000 # 30초, DB의 wait_timeout 보다 짧게 설정하여 커넥션 유효성 문제 방지
   sql:
     init:
       mode: never
