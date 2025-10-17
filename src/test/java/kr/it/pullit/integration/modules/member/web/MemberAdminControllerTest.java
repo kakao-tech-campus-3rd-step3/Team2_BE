@@ -3,22 +3,22 @@ package kr.it.pullit.integration.modules.member.web;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.modules.member.web.MemberAdminController;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @AuthenticatedMvcSliceTest(controllers = MemberAdminController.class)
 @DisplayName("MemberAdminController 슬라이스 테스트")
 class MemberAdminControllerTest extends ControllerTest {
 
-  @MockitoBean
-  private MemberPublicApi memberPublicApi;
+  @MockitoBean private MemberPublicApi memberPublicApi;
 
   @Test
   @WithMockMember(role = Role.ADMIN)
@@ -28,7 +28,8 @@ class MemberAdminControllerTest extends ControllerTest {
     long targetMemberId = 2L;
 
     // when & then
-    mockMvc.perform(post("/api/admin/members/{id}/grant-admin", targetMemberId))
+    mockMvc
+        .perform(post("/api/admin/members/{id}/grant-admin", targetMemberId))
         .andExpect(status().isOk());
 
     verify(memberPublicApi).grantAdminRole(targetMemberId);
@@ -42,7 +43,8 @@ class MemberAdminControllerTest extends ControllerTest {
     long targetMemberId = 2L;
 
     // when & then
-    mockMvc.perform(post("/api/admin/members/{id}/grant-admin", targetMemberId))
+    mockMvc
+        .perform(post("/api/admin/members/{id}/grant-admin", targetMemberId))
         .andExpect(status().isForbidden());
   }
 
@@ -54,7 +56,8 @@ class MemberAdminControllerTest extends ControllerTest {
     long targetMemberId = 2L;
 
     // when & then
-    mockMvc.perform(post("/api/admin/members/{id}/revoke-admin", targetMemberId))
+    mockMvc
+        .perform(post("/api/admin/members/{id}/revoke-admin", targetMemberId))
         .andExpect(status().isOk());
 
     verify(memberPublicApi).revokeAdminRole(targetMemberId);
