@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-class MigrationHistoryRepositoryImpl implements MigrationHistoryRepository {
+public class MigrationHistoryRepositoryImpl implements MigrationHistoryRepository {
 
   private final MigrationHistoryJpaRepository jpaRepository;
 

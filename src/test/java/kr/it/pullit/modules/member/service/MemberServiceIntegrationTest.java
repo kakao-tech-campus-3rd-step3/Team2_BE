@@ -1,11 +1,10 @@
-package kr.it.pullit.integration.modules.member.service;
+package kr.it.pullit.modules.member.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.modules.member.repository.MemberRepository;
-import kr.it.pullit.modules.member.service.MemberService;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import kr.it.pullit.support.fixture.MemberFixtures;
 import org.junit.jupiter.api.DisplayName;

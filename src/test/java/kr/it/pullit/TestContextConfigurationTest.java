@@ -1,4 +1,4 @@
-package kr.it.pullit.integration;
+package kr.it.pullit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

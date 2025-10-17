@@ -1,4 +1,4 @@
-package kr.it.pullit.integration.platform.migration.web;
+package kr.it.pullit.platform.migration.web;
 
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.migration.api.MigrationPublicApi;
-import kr.it.pullit.platform.migration.web.MigrationController;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;

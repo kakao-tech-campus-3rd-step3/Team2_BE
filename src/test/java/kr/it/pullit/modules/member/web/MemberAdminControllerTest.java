@@ -1,4 +1,4 @@
-package kr.it.pullit.integration.modules.member.web;
+package kr.it.pullit.modules.member.web;
 
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Role;
-import kr.it.pullit.modules.member.web.MemberAdminController;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
