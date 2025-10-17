@@ -27,4 +27,6 @@ public interface SourcePublicApi {
   List<Source> findByIdIn(List<Long> ids);
 
   void deleteSource(Long sourceId, Long memberId);
+
+  void migrateUploadedSourcesToReady();
 }

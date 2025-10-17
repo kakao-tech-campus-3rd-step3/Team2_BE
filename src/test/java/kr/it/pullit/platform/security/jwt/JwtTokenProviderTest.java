@@ -36,7 +36,7 @@ class JwtTokenProviderTest {
   @DisplayName("AccessToken을 성공적으로 생성하고 검증한다")
   void shouldCreateAndValidateAccessToken() {
     // given
-    TokenCreationSubject subject = new TokenCreationSubject(1L, "test@pullit.kr", Role.USER);
+    TokenCreationSubject subject = new TokenCreationSubject(1L, "test@pullit.kr", Role.MEMBER);
 
     // when
     String accessToken = jwtTokenProvider.createAccessToken(subject);
@@ -47,7 +47,7 @@ class JwtTokenProviderTest {
     var validResult = (TokenValidationResult.Valid) result;
     assertThat(validResult.decodedJwt().getSubject()).isEqualTo("test@pullit.kr");
     assertThat(validResult.decodedJwt().getClaim("memberId").asLong()).isEqualTo(1L);
-    assertThat(validResult.decodedJwt().getClaim("role").asString()).isEqualTo("USER");
+    assertThat(validResult.decodedJwt().getClaim("role").asString()).isEqualTo("MEMBER");
   }
 
   @Test
@@ -64,7 +64,7 @@ class JwtTokenProviderTest {
             Collections.emptyList(),
             Collections.emptyList());
     JwtTokenProvider expiredTokenProvider = new JwtTokenProvider(jwtProps);
-    TokenCreationSubject subject = new TokenCreationSubject(1L, "test@pullit.kr", Role.USER);
+    TokenCreationSubject subject = new TokenCreationSubject(1L, "test@pullit.kr", Role.MEMBER);
     String expiredToken = expiredTokenProvider.createAccessToken(subject);
 
     // when

@@ -22,10 +22,8 @@ class MemberRepositoryTest {
   @DisplayName("회원을 저장하고 이메일로 조회하면, 저장된 회원이 조회되어야 한다")
   void shouldSaveAndFindMemberByEmail() {
     // given
-    Member frodo =
-        TestMemberBuilder.builder().withEmail("hyeonjun@example.com").withNickname("현준").build();
-    Member sam =
-        TestMemberBuilder.builder().withEmail("flareseek@example.com").withNickname("지환").build();
+    Member frodo = TestMemberBuilder.builder().email("hyeonjun@example.com").name("현준").build();
+    Member sam = TestMemberBuilder.builder().email("flareseek@example.com").name("지환").build();
     memberRepository.save(frodo);
     memberRepository.save(sam);
 
