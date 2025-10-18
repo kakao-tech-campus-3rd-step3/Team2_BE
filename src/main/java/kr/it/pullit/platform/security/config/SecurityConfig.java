@@ -4,9 +4,9 @@ import static kr.it.pullit.platform.security.config.AuthorizationRules.authentic
 
 import java.util.Optional;
 import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
-import kr.it.pullit.platform.security.filter.DevAuthenticationFilter;
 import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
-import kr.it.pullit.platform.security.jwt.JwtAuthenticationFilter;
+import kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter;
+import kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter;
 import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
