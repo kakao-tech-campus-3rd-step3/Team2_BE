@@ -3,6 +3,7 @@ package kr.it.pullit.modules.member.service;
 import java.util.Optional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class MemberService implements MemberPublicApi {
 
@@ -51,7 +53,7 @@ public class MemberService implements MemberPublicApi {
             .orElseGet(
                 () -> {
                   Member newMember =
-                      Member.create(command.kakaoId(), command.email(), command.name());
+                      Member.createMember(command.kakaoId(), command.email(), command.name());
                   return memberRepository.save(newMember);
                 });
 
@@ -71,5 +73,23 @@ public class MemberService implements MemberPublicApi {
   @Override
   public Optional<MemberInfoResponse> getMemberInfo(Long memberId) {
     return memberRepository.findById(memberId).map(MemberInfoResponse::from);
+  }
+
+  @Override
+  public void grantAdminRole(Long memberId) {
+    Member member = findMemberOrThrow(memberId);
+    member.grantAdmin();
+  }
+
+  @Override
+  public void revokeAdminRole(Long memberId) {
+    Member member = findMemberOrThrow(memberId);
+    member.revokeAdmin();
+  }
+
+  private Member findMemberOrThrow(Long memberId) {
+    return memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> MemberNotFoundException.byId(memberId));
   }
 }

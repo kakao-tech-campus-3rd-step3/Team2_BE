@@ -177,6 +177,7 @@ jacocoTestReport {
     reports {
         xml.required = true
         html.required = true
+        csv.required = true
     }
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {

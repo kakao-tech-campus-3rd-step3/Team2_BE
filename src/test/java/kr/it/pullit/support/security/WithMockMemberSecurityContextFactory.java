@@ -14,7 +14,8 @@ public class WithMockMemberSecurityContextFactory
   @Override
   public SecurityContext createSecurityContext(WithMockMember annotation) {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
-    var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+    var authorities =
+        Collections.singletonList(new SimpleGrantedAuthority(annotation.role().getKey()));
     Authentication auth =
         new UsernamePasswordAuthenticationToken(annotation.memberId(), null, authorities);
     context.setAuthentication(auth);

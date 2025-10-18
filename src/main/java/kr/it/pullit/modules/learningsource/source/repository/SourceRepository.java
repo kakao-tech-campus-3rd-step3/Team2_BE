@@ -2,6 +2,7 @@ package kr.it.pullit.modules.learningsource.source.repository;
 
 import java.util.List;
 import java.util.Optional;
+import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 
 public interface SourceRepository {
@@ -21,4 +22,6 @@ public interface SourceRepository {
   Optional<Source> findByMemberIdAndFilePath(Long memberId, String filePath);
 
   void delete(Source source);
+
+  List<Source> findByStatus(SourceStatus status);
 }

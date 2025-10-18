@@ -5,8 +5,11 @@ import static org.mockito.Mockito.when;
 
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.util.Optional;
+import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.fixture.MemberFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,6 +29,8 @@ class JwtAuthenticatorTest {
 
   @Mock private Claim emailClaim;
 
+  @Mock private MemberRepository memberRepository;
+
   @Test
   @DisplayName("유효한 토큰이 제공되면 Success 결과를 반환한다")
   void shouldReturnSuccessWhenTokenIsValid() {
@@ -38,6 +43,7 @@ class JwtAuthenticatorTest {
     when(memberIdClaim.asLong()).thenReturn(1L);
     when(decodedJwt.getClaim("email")).thenReturn(emailClaim);
     when(emailClaim.asString()).thenReturn(expectedEmail);
+    when(memberRepository.findById(1L)).thenReturn(Optional.of(MemberFixtures.basicUser()));
 
     // when
     AuthenticationResult result = jwtAuthenticator.authenticate(token);

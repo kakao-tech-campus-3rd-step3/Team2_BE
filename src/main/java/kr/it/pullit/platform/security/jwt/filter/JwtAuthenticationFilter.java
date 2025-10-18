@@ -1,4 +1,4 @@
-package kr.it.pullit.platform.security.jwt;
+package kr.it.pullit.platform.security.jwt.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import kr.it.pullit.platform.security.jwt.AuthenticationResult;
+import kr.it.pullit.platform.security.jwt.JwtAuthenticator;
+import kr.it.pullit.platform.security.jwt.JwtTokenPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

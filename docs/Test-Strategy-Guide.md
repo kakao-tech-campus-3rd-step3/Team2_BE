@@ -190,7 +190,7 @@ public class SourceControllerTest extends ControllerTest {
 
 `@IntegrationTest`는 `@SpringBootTest`를 포함하며, 테스트 프로필에 설정된 실제 데이터베이스(예: H2)에 연결하는 등 완전한 애플리케이션 컨텍스트를 구성합니다. 이를 통해 서비스 메서드 호출 시 실제 트랜잭션과 DB 쿼리가 발생하는 상황을 시뮬레이션할 수 있습니다.
 
-### 다. 작성 예시: (SourceServiceIntegrationTest.java 가상 예시)
+### 다. 작성 예시: (SourceServiceTest.java 가상 예시)
 
 `SourceService`의 파일 업로드 완료 로직을 테스트합니다. 실제 DB에 `Source` 데이터가 저장되고 상태가 변경되는지를 검증합니다.
 
