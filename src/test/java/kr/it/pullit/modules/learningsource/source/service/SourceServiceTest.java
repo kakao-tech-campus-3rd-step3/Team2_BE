@@ -42,7 +42,7 @@ class SourceServiceTest {
     // 반
     // 환
 
-    final Member mockMember = Member.create(1L, "test@example.com", "테스트사용자");
+    final Member mockMember = Member.createMember(1L, "test@example.com", "테스트사용자");
     final SourceFolder mockSourceFolder =
         SourceFolder.builder().member(mockMember).name("default").color("#000000").build();
     final SourceCreationParam creationParam =

@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "members")
+@Table(name = "member")
 public class Member extends BaseEntity {
 
   @OneToMany(mappedBy = "owner")
@@ -59,23 +59,46 @@ public class Member extends BaseEntity {
   @Column
   private MemberStatus status;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Role role;
+
   @Builder(access = AccessLevel.PRIVATE)
-  public Member(Long kakaoId, String email, String name, MemberStatus status) {
+  public Member(
+      final Long kakaoId,
+      final String email,
+      final String name,
+      final MemberStatus status,
+      final Role role) {
     Assert.hasText(email, "email은 비어있을 수 없습니다.");
     Assert.hasText(name, "name은 비어있을 수 없습니다.");
+    Assert.notNull(status, "status는 null일 수 없습니다.");
+    Assert.notNull(role, "role은 null일 수 없습니다.");
 
     this.kakaoId = kakaoId;
     this.email = email;
     this.name = name;
-    this.status = (status != null) ? status : MemberStatus.ACTIVE;
+    this.status = status;
+    this.role = role;
   }
 
-  public static Member create(Long kakaoId, String email, String name) {
+  public static Member createMember(Long kakaoId, String email, String name) {
     return Member.builder()
         .kakaoId(kakaoId)
         .email(email)
         .name(name)
         .status(MemberStatus.ACTIVE)
+        .role(Role.MEMBER)
+        .build();
+  }
+
+  public static Member createAdmin(Long kakaoId, String email, String name) {
+    return Member.builder()
+        .kakaoId(kakaoId)
+        .email(email)
+        .name(name)
+        .status(MemberStatus.ACTIVE)
+        .role(Role.ADMIN)
         .build();
   }
 
@@ -94,5 +117,13 @@ public class Member extends BaseEntity {
     if (name != null && !name.isBlank()) {
       this.name = name;
     }
+  }
+
+  public void grantAdmin() {
+    this.role = Role.ADMIN;
+  }
+
+  public void revokeAdmin() {
+    this.role = Role.MEMBER;
   }
 }

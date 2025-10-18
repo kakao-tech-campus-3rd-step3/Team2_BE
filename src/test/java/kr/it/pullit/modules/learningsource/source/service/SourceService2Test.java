@@ -1,4 +1,4 @@
-package kr.it.pullit.integration;
+package kr.it.pullit.modules.learningsource.source.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"mock-auth", "real-env"})
 @IntegrationTest
-public class SourceServiceTest {
+public class SourceService2Test {
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
