@@ -14,7 +14,7 @@ import org.mockito.Mock;
 
 @UnitTest
 @DisplayName("MigrationService 단위 테스트")
-class MigrationServiceTest {
+class MigrationServiceUnitTest {
 
   @InjectMocks private MigrationService migrationService;
 

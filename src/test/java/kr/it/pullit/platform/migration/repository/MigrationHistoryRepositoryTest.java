@@ -19,7 +19,7 @@ class MigrationHistoryRepositoryTest {
 
   @Nested
   @DisplayName("existsByMigrationName 메서드는")
-  class Describe_existsByMigrationName {
+  class DescribeExistsByMigrationName {
 
     @Test
     @DisplayName("저장된 마이그레이션 이름이 주어지면 true를 반환한다")
@@ -51,7 +51,7 @@ class MigrationHistoryRepositoryTest {
 
   @Nested
   @DisplayName("save 메서드는")
-  class Describe_save {
+  class DescribeSave {
 
     @Test
     @DisplayName("주어진 이름으로 마이그레이션 기록을 성공적으로 저장한다")

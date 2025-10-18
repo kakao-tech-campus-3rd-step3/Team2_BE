@@ -37,7 +37,7 @@ class MemberRepositoryTest {
 
   @Nested
   @DisplayName("조회 테스트")
-  class Describe_find {
+  class DescribeFind {
 
     @Test
     @DisplayName("ID로 회원을 조회하면, 저장된 회원이 조회되어야 한다")
