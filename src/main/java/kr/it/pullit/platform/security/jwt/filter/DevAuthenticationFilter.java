@@ -1,12 +1,15 @@
-package kr.it.pullit.platform.security.filter;
+package kr.it.pullit.platform.security.jwt.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
+import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.security.jwt.PullitAuthenticationToken;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -25,7 +28,11 @@ public class DevAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     PullitAuthenticationToken token =
-        new PullitAuthenticationToken(DEFAULT_MEMBER_ID, DEFAULT_MEMBER_EMAIL, null);
+        new PullitAuthenticationToken(
+            DEFAULT_MEMBER_ID,
+            DEFAULT_MEMBER_EMAIL,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority(Role.MEMBER.getKey())));
     context.setAuthentication(token);
     SecurityContextHolder.setContext(context);
 
