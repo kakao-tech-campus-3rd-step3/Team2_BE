@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class JwtAuthenticator {
 
-  private final JwtTokenPort jwtTokenPort;
+  private final JwtTokenProvider jwtTokenPort;
   private final MemberRepository memberRepository;
 
   public AuthenticationResult authenticate(String token) {

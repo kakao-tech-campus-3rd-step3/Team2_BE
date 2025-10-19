@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import kr.it.pullit.platform.security.jwt.AuthenticationResult;
 import kr.it.pullit.platform.security.jwt.JwtAuthenticator;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,7 +23,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private final JwtTokenPort jwtTokenPort;
+  private final JwtTokenProvider jwtTokenPort;
   private final JwtAuthenticator jwtAuthenticator;
   private final ObjectMapper objectMapper;
 

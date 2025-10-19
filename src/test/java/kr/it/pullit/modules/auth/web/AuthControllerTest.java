@@ -12,7 +12,7 @@ import jakarta.servlet.http.Cookie;
 import kr.it.pullit.modules.auth.exception.AuthErrorCode;
 import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.modules.auth.service.AuthService;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.security.jwt.JwtTokenProvider;
 import kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter;
 import kr.it.pullit.platform.web.cookie.CookieManager;
 import kr.it.pullit.support.annotation.MvcSliceTest;
@@ -43,7 +43,7 @@ class AuthControllerTest {
 
   @MockitoBean private AuthService authService;
 
-  @MockitoBean private JwtTokenPort jwtTokenPort;
+  @MockitoBean private JwtTokenProvider jwtTokenPort;
 
   @Nested
   @DisplayName("토큰 재발급 API [/auth/refresh]")

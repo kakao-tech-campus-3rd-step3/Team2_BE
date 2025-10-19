@@ -136,6 +136,7 @@ public class SecurityConfig {
   @Profile("local")
   public SecurityFilterChain localChain(HttpSecurity http) throws Exception {
     applyCommon(http);
+    configureOAuth2Login(http);
     http.authorizeHttpRequests(
         authorize ->
             authorize

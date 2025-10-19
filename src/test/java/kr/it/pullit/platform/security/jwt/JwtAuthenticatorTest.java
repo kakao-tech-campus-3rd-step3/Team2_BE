@@ -21,7 +21,7 @@ class JwtAuthenticatorTest {
 
   @InjectMocks private JwtAuthenticator jwtAuthenticator;
 
-  @Mock private JwtTokenPort jwtTokenPort;
+  @Mock private JwtTokenProvider jwtTokenPort;
 
   @Mock private DecodedJWT decodedJwt;
 
