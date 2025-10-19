@@ -8,6 +8,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequest
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -51,10 +52,18 @@ public class QuestionSetController {
    * 회원의 모든 문제집을 조회하는 API
    *
    * @param memberId 회원 ID
-   * @return
+   * @return 회원의 모든 문제집 목록
    */
   @GetMapping
-  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets(
+  public ResponseEntity<CursorPageResponse<MyQuestionSetsResponse>> getMyQuestionSets(
+      @AuthenticationPrincipal Long memberId,
+      @RequestParam(required = false) Long cursor,
+      @RequestParam(defaultValue = "10") int size) {
+    return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size));
+  }
+
+  @GetMapping("/all")
+  public ResponseEntity<List<MyQuestionSetsResponse>> getAllMyQuestionSets(
       @AuthenticationPrincipal Long memberId) {
     return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId));
   }
@@ -83,6 +92,7 @@ public class QuestionSetController {
   }
 
   // TODO: 수정기능이 타이틀만 수정하는 기능임. 명칭오해가 없도록 해야함.
+
   /**
    * 문제집을 수정하는 API
    *
@@ -95,7 +105,7 @@ public class QuestionSetController {
   public ResponseEntity<Void> updateQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
-      @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
+      @Valid @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
     questionSetPublicApi.updateTitle(id, questionSetUpdateRequestDto.title(), memberId);
     return ResponseEntity.ok().build();
   }

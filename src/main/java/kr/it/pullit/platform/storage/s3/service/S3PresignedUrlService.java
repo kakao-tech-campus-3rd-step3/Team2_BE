@@ -1,5 +1,6 @@
 package kr.it.pullit.platform.storage.s3.service;
 
+import java.io.InputStream;
 import java.net.URL;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.core.FilePathPolicy;
@@ -37,12 +38,17 @@ public class S3PresignedUrlService implements S3PublicApi {
   }
 
   @Override
-  public byte[] downloadFileAsBytes(String filePath) {
-    return fileStorageClient.downloadFileAsBytes(filePath);
+  public InputStream downloadFileAsStream(String filePath) {
+    return fileStorageClient.downloadFileAsStream(filePath);
   }
 
   @Override
   public boolean fileExists(String filePath) {
     return fileStorageClient.fileExists(filePath);
+  }
+
+  @Override
+  public void deleteFile(String filePath) {
+    fileStorageClient.deleteFile(filePath);
   }
 }

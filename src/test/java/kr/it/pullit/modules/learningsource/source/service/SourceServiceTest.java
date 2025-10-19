@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
@@ -35,9 +37,12 @@ class SourceServiceTest {
     final Long memberId = 1L;
     final Long sourceId = 1L;
     final String filePath = "path/to/file.pdf";
-    final byte[] expectedContent = "test file content".getBytes();
+    final InputStream expectedContent =
+        new ByteArrayInputStream("test file content".getBytes()); // stream으로
+    // 반
+    // 환
 
-    final Member mockMember = Member.create(1L, "test@example.com", "테스트사용자");
+    final Member mockMember = Member.createMember(1L, "test@example.com", "테스트사용자");
     final SourceFolder mockSourceFolder =
         SourceFolder.builder().member(mockMember).name("default").color("#000000").build();
     final SourceCreationParam creationParam =
@@ -47,13 +52,13 @@ class SourceServiceTest {
 
     given(sourceRepository.findByIdAndMemberId(sourceId, memberId))
         .willReturn(Optional.of(mockSource));
-    given(s3PublicApi.downloadFileAsBytes(filePath)).willReturn(expectedContent);
+    given(s3PublicApi.downloadFileAsStream(filePath)).willReturn(expectedContent);
     // when
-    byte[] actualContent = sourceService.getContentBytes(sourceId, memberId);
+    InputStream actualContent = sourceService.getContentStream(sourceId, memberId);
     // then
     assertThat(actualContent).isEqualTo(expectedContent);
     verify(sourceRepository).findByIdAndMemberId(sourceId, memberId);
-    verify(s3PublicApi).downloadFileAsBytes(filePath);
+    verify(s3PublicApi).downloadFileAsStream(filePath);
   }
 
   @Test
@@ -67,7 +72,7 @@ class SourceServiceTest {
         .willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> sourceService.getContentBytes(nonExistentSourceId, memberId))
+    assertThatThrownBy(() -> sourceService.getContentStream(nonExistentSourceId, memberId))
         .isInstanceOf(SourceNotFoundException.class)
         .hasMessageContaining("소스를 찾을 수 없습니다.");
   }

@@ -6,6 +6,7 @@ plugins {
     id 'com.diffplug.spotless' version "7.2.1"
     id 'checkstyle'
     id "io.sentry.jvm.gradle" version "5.12.0"
+    id 'jacoco'
 }
 
 sentry {
@@ -146,10 +147,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'com.h2database:h2'
 
-    // 통합 테스트 도구 (Testcontainers)
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mariadb'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'com.squareup.okhttp3:okhttp-sse'
 }
@@ -158,7 +155,6 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-        mavenBom "org.testcontainers:testcontainers-bom:1.20.1"
     }
 }
 
@@ -166,4 +162,63 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
     environment 'AWS_REGION', 'ap-northeast-2'
+}
+
+// JaCoCo 설정
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.named('test') {
+    finalizedBy 'jacocoTestReport'
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: [
+                            "**/*Application*",
+                            "**/config/**",
+                            "**/dto/**",
+                            "**/vo/**",
+                            "**/enums/**",
+                            "**/exception/**",
+                            "**/handler/**",
+                            "**/jwt/**",
+                            "**/principal/**",
+                            "**/util/**",
+                            "**/kr/it/pullit/platform/**",
+                            "**/kr/it/pullit/shared/**"
+                    ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            enabled = true
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
 }
