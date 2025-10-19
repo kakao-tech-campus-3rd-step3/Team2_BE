@@ -1,5 +1,6 @@
 package kr.it.pullit.platform.security.config;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
@@ -25,6 +26,8 @@ public final class AuthorizationRules {
       authenticated() {
     return authorize ->
         authorize
+            .requestMatchers(HttpMethod.OPTIONS, "/**")
+            .permitAll()
             .requestMatchers(PUBLIC_ENDPOINTS)
             .permitAll()
             .requestMatchers("/api/admin/**")

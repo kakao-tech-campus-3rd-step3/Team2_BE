@@ -38,7 +38,7 @@ public class WebConfig implements WebMvcConfigurer {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
 
-    configuration.setAllowedOrigins(props.getAllowedOrigins());
+    configuration.setAllowedOriginPatterns(props.getAllowedOrigins());
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
