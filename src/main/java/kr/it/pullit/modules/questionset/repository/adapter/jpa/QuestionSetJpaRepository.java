@@ -16,7 +16,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
        FROM QuestionSet qs
        LEFT JOIN FETCH qs.questions
        WHERE qs.id = :id
-       AND qs.owner.id = :memberId
+       AND qs.ownerId = :memberId
       """)
   Optional<QuestionSet> findByIdAndMemberId(@Param("id") Long id, @Param("memberId") Long memberId);
 
@@ -27,7 +27,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
        LEFT JOIN FETCH qs.questions
        LEFT JOIN FETCH qs.sources
        WHERE qs.id = :id
-       AND qs.owner.id = :memberId
+       AND qs.ownerId = :memberId
        AND qs.status = 'COMPLETE'
       """)
   Optional<QuestionSet> findByIdWithQuestionsForSolve(
@@ -37,7 +37,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """
       SELECT qs
       FROM QuestionSet qs
-      WHERE qs.owner.id = :memberId
+      WHERE qs.ownerId = :memberId
       """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
@@ -48,7 +48,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         LEFT JOIN FETCH qs.questions q
         JOIN q.wrongAnswer wa
         WHERE qs.id = :id
-        AND wa.member.id = :memberId
+        AND wa.memberId = :memberId
         AND wa.isReviewed = false
         AND qs.status = 'COMPLETE'
       """)
@@ -62,7 +62,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         SELECT qs
         FROM QuestionSet qs
         WHERE qs.id = :id
-        AND qs.owner.id = :memberId
+        AND qs.ownerId = :memberId
         AND qs.status != 'COMPLETE'
       """)
   Optional<QuestionSet> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
@@ -71,7 +71,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """
         SELECT qs
         FROM QuestionSet qs
-        WHERE qs.owner.id = :memberId
+        WHERE qs.ownerId = :memberId
         AND (:cursor IS NULL OR qs.id < :cursor)
         ORDER BY qs.createdAt DESC, qs.id DESC
       """)

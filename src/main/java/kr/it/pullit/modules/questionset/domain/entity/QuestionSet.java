@@ -7,14 +7,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
@@ -45,9 +42,8 @@ public class QuestionSet extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id")
-  private Member owner;
+  @Column(name = "owner_id")
+  private Long ownerId;
 
   @ManyToMany
   @JoinTable(
@@ -74,13 +70,13 @@ public class QuestionSet extends BaseEntity {
 
   @Builder
   public QuestionSet(
-      Member owner,
+      Long ownerId,
       Set<Source> sources,
       String title,
       DifficultyType difficulty,
       QuestionType type,
       Integer questionLength) {
-    this.owner = owner;
+    this.ownerId = ownerId;
     this.sources = sources != null ? sources : new HashSet<>();
     this.title = title;
     this.difficulty = difficulty;
@@ -90,14 +86,14 @@ public class QuestionSet extends BaseEntity {
   }
 
   public static QuestionSet create(
-      Member owner, List<Source> sources, QuestionSetCreateParam param) {
+      Long ownerId, List<Source> sources, QuestionSetCreateParam param) {
     validateSources(sources);
 
     String title = sources.getFirst().getOriginalName();
     Set<Source> sourceSet = new HashSet<>(sources);
 
     return QuestionSet.builder()
-        .owner(owner)
+        .ownerId(ownerId)
         .sources(sourceSet)
         .title(title)
         .difficulty(param.difficulty())

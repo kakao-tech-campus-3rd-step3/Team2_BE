@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -82,21 +81,21 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
       return;
     }
 
-    Member member = findMemberById(memberId);
+    validateMemberExists(memberId);
     List<Question> questions = questionPublicApi.findEntitiesByIds(questionIds);
     Set<Long> existingWrongAnswerQuestionIds =
         findExistingWrongAnswerQuestionIds(memberId, questionIds);
 
     List<WrongAnswer> newWrongAnswers =
-        createNewWrongAnswers(member, questions, existingWrongAnswerQuestionIds);
+        createNewWrongAnswers(memberId, questions, existingWrongAnswerQuestionIds);
 
     if (!newWrongAnswers.isEmpty()) {
       wrongAnswerRepository.saveAll(newWrongAnswers);
     }
   }
 
-  private Member findMemberById(Long memberId) {
-    return memberPublicApi
+  private void validateMemberExists(Long memberId) {
+    memberPublicApi
         .findById(memberId)
         .orElseThrow(() -> new IllegalArgumentException("요청한 회원 ID를 찾을 수 없습니다: " + memberId));
   }
@@ -108,10 +107,10 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
   }
 
   private List<WrongAnswer> createNewWrongAnswers(
-      Member member, List<Question> questions, Set<Long> existingIds) {
+      Long memberId, List<Question> questions, Set<Long> existingIds) {
     return questions.stream()
         .filter(question -> !existingIds.contains(question.getId()))
-        .map(question -> new WrongAnswer(member, question))
+        .map(question -> WrongAnswer.create(memberId, question))
         .collect(Collectors.toList());
   }
 

@@ -6,7 +6,6 @@ import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
@@ -103,15 +102,14 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Transactional
   public QuestionSetResponse create(QuestionSetCreateRequestDto request, Long ownerId) {
-    Member owner =
-        memberPublicApi.findById(ownerId).orElseThrow(() -> MemberNotFoundException.byId(ownerId));
+    memberPublicApi.findById(ownerId).orElseThrow(() -> MemberNotFoundException.byId(ownerId));
     List<Source> sources = sourcePublicApi.findByIdIn(request.sourceIds());
 
     validateAllSourcesAreReady(sources);
 
     QuestionSetCreateParam createParam = QuestionSetCreateParam.from(request);
 
-    QuestionSet questionSet = QuestionSet.create(owner, sources, createParam);
+    QuestionSet questionSet = QuestionSet.create(ownerId, sources, createParam);
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
@@ -197,7 +195,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
             .findById(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
-    if (!questionSet.getOwner().getId().equals(memberId)) {
+    if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 
@@ -212,7 +210,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
             .findById(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
-    if (!questionSet.getOwner().getId().equals(memberId)) {
+    if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 

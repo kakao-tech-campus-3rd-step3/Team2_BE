@@ -15,9 +15,8 @@ public interface SourceJpaRepository extends JpaRepository<Source, Long> {
   @Query(
       "SELECT s "
           + "FROM Source s "
-          + "JOIN FETCH s.member m "
           + "JOIN FETCH s.sourceFolder sf "
-          + "WHERE m.id = :memberId "
+          + "WHERE s.memberId = :memberId "
           + "ORDER BY s.createdAt DESC")
   List<Source> findSourcesByMemberIdWithDetails(@Param("memberId") Long memberId);
 

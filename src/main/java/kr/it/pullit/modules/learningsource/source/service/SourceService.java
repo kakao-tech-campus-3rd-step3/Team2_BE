@@ -15,7 +15,6 @@ import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.modules.learningsource.sourcefolder.api.SourceFolderPublicApi;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
@@ -72,7 +71,7 @@ public class SourceService implements SourcePublicApi {
   }
 
   private Source create(SourceUploadCompleteRequest request, Long memberId) {
-    Member member = findMemberBy(memberId);
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
     SourceFolder sourceFolder = findSourceFolderBy(memberId);
     SourceCreationParam sourceCreationParam =
         new SourceCreationParam(
@@ -82,17 +81,11 @@ public class SourceService implements SourcePublicApi {
             request.getContentType(),
             request.getFileSizeBytes());
 
-    return Source.create(sourceCreationParam, member, sourceFolder);
+    return Source.create(sourceCreationParam, memberId, sourceFolder);
   }
 
   private SourceFolder findSourceFolderBy(Long memberId) {
     return sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
-  }
-
-  private Member findMemberBy(Long memberId) {
-    return memberPublicApi
-        .findById(memberId)
-        .orElseThrow(() -> MemberNotFoundException.byId(memberId));
   }
 
   @Override
