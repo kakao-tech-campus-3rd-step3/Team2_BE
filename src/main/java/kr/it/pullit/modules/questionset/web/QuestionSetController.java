@@ -1,19 +1,24 @@
 package kr.it.pullit.modules.questionset.web;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -25,21 +30,25 @@ public class QuestionSetController {
   private final QuestionSetPublicApi questionSetPublicApi;
 
   @GetMapping("/{id}")
-  public ResponseEntity<QuestionSetResponse> getQuestionSetById(@PathVariable Long id) {
-    QuestionSetResponse questionSetResponse = questionSetPublicApi.getQuestionSetById(id);
+  public ResponseEntity<QuestionSetResponse> getQuestionSetById(
+      @AuthenticationPrincipal Long memberId,
+      @PathVariable Long id,
+      @RequestParam(defaultValue = "false") Boolean isReviewing) {
+    QuestionSetResponse questionSetResponse =
+        questionSetPublicApi.getQuestionSetForSolving(id, memberId, isReviewing);
     return ResponseEntity.ok(questionSetResponse);
   }
 
   @GetMapping
-  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets() {
-    final Long userId = 1L;
-    return ResponseEntity.ok(questionSetPublicApi.getUserQuestionSets(userId));
+  public ResponseEntity<List<MyQuestionSetsResponse>> getMyQuestionSets(
+      @AuthenticationPrincipal Long memberId) {
+    return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId));
   }
 
   @PostMapping
   public ResponseEntity<Void> createQuestionSet(
       @AuthenticationPrincipal Long memberId,
-      @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
+      @Valid @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
     QuestionSetResponse questionSetResponse =
         questionSetPublicApi.create(questionSetCreateRequestDto, memberId);
 
@@ -50,5 +59,21 @@ public class QuestionSetController {
             .toUri();
 
     return ResponseEntity.created(location).build();
+  }
+
+  @PatchMapping("/{id}")
+  public ResponseEntity<Void> updateQuestionSet(
+      @AuthenticationPrincipal Long memberId,
+      @PathVariable Long id,
+      @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
+    questionSetPublicApi.updateTitle(id, questionSetUpdateRequestDto.title(), memberId);
+    return ResponseEntity.ok().build();
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteQuestionSet(
+      @AuthenticationPrincipal Long memberId, @PathVariable Long id) {
+    questionSetPublicApi.delete(id, memberId);
+    return ResponseEntity.ok().build();
   }
 }

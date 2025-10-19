@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
@@ -26,7 +27,7 @@ public class QuestionController {
 
   @PostMapping
   public ResponseEntity<Void> createQuestion(
-      @RequestBody QuestionCreateRequest questionCreateRequest) {
+      @Valid @RequestBody QuestionCreateRequest questionCreateRequest) {
 
     QuestionResponse questionResponse = questionService.createQuestion(questionCreateRequest);
 
@@ -47,7 +48,8 @@ public class QuestionController {
 
   @PutMapping("/{id}")
   public ResponseEntity<QuestionResponse> updateQuestion(
-      @PathVariable Long id, @RequestBody QuestionUpdateRequestDto questionUpdateRequestDto) {
+      @PathVariable Long id,
+      @Valid @RequestBody QuestionUpdateRequestDto questionUpdateRequestDto) {
 
     QuestionResponse questionResponse =
         questionService.updateQuestion(id, questionUpdateRequestDto);

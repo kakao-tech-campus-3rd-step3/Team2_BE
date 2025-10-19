@@ -23,8 +23,8 @@ public class MemberControllerTest extends TestContainerTest {
   @Test
   void getMemberById() {
     // given
-    Member frodo = Member.builder().email("hyeonjun@example.com").name("현준").build();
-    Member sam = Member.builder().email("flareseek@example.com").name("지환").build();
+    Member frodo = Member.create(1L, "hyeonjun@example.com", "현준");
+    Member sam = Member.create(2L, "flareseek@example.com", "지환");
     memberRepository.save(frodo);
     memberRepository.save(sam);
 

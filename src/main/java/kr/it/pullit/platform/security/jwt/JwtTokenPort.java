@@ -1,17 +1,17 @@
 package kr.it.pullit.platform.security.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
+import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 
 public interface JwtTokenPort {
 
-  AuthTokens createAuthTokens(Long memberId, String email, Role role);
+  AuthTokens createAuthTokens(TokenCreationSubject subject);
 
-  String createAccessToken(Long memberId, String email, Role role);
+  String createAccessToken(TokenCreationSubject subject);
 
-  String createRefreshToken(Long memberId, String email, Role role);
+  String createRefreshToken(TokenCreationSubject subject);
 
   TokenValidationResult validateToken(String token);
 

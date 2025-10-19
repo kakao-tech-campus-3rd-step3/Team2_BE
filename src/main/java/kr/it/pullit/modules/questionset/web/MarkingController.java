@@ -4,12 +4,15 @@ import java.util.List;
 import kr.it.pullit.modules.questionset.service.MarkingService;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
@@ -18,17 +21,23 @@ public class MarkingController {
 
   private final MarkingService markingService;
 
+  /**
+   * 문제풀이 완료 후 채점 결과를 저장하는 엔드포인트
+   *
+   * @param markingRequest 문제 채점 요청 정보
+   * @param memberId 회원 ID
+   * @param isReviewing 오답노트 복습 모드 여부 (true: 맞힌 문제 제거, false: 틀린 문제 추가)
+   * @return ResponseEntity 응답
+   */
   @PostMapping
-  public ResponseEntity<Void> markQuestionAsIncorrect(
-      @RequestBody List<MarkingRequest> markingRequest) {
+  public ResponseEntity<MarkQuestionsResponse> markQuestions(
+      @RequestBody List<MarkingRequest> markingRequest,
+      @AuthenticationPrincipal Long memberId,
+      @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
-    final Long userId = 1L; // TODO: 인증 기능이 추가되면 수정 필요
-    List<MarkingServiceRequest> markingServiceRequest =
-        markingRequest.stream()
-            .map(req -> new MarkingServiceRequest(userId, req.questionId(), req.isCorrect()))
-            .toList();
-    markingService.markQuestionAsIncorrect(markingServiceRequest);
-
-    return ResponseEntity.ok().build();
+    MarkingServiceRequest markingServiceRequest =
+        MarkingServiceRequest.of(memberId, markingRequest, isReviewing);
+    MarkQuestionsResponse res = markingService.markQuestions(markingServiceRequest);
+    return ResponseEntity.ok(res);
   }
 }

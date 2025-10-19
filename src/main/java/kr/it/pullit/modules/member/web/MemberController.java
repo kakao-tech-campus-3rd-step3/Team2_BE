@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.member.web;
 
 import kr.it.pullit.modules.member.api.MemberPublicApi;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,16 +21,9 @@ public class MemberController {
 
   @GetMapping("/me")
   public ResponseEntity<MemberInfoResponse> getMyInfo(@AuthenticationPrincipal Long memberId) {
-
-    if (memberId == null) {
-      log.warn("memberId is null from AuthenticationPrincipal");
-      return ResponseEntity.status(401).build();
-    }
-    MemberInfoResponse memberInfoResponse =
+    return ResponseEntity.ok(
         memberPublicApi
             .getMemberInfo(memberId)
-            .orElseThrow(() -> new NullPointerException("멤버 아이디가 존재하지 않습니다."));
-
-    return ResponseEntity.ok(memberInfoResponse);
+            .orElseThrow(() -> MemberNotFoundException.byId(memberId)));
   }
 }

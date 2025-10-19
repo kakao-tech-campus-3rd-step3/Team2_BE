@@ -9,8 +9,8 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.Date;
-import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
+import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import org.springframework.stereotype.Component;
 
@@ -34,40 +34,34 @@ public class JwtTokenProvider implements JwtTokenPort {
   }
 
   @Override
-  public AuthTokens createAuthTokens(Long memberId, String email, Role role) {
-    return new AuthTokens(
-        createAccessToken(memberId, email, role), createRefreshToken(memberId, email, role));
+  public AuthTokens createAuthTokens(TokenCreationSubject subject) {
+    return new AuthTokens(createAccessToken(subject), createRefreshToken(subject));
   }
 
   @Override
-  public String createAccessToken(Long memberId, String email, Role role) {
+  public String createAccessToken(TokenCreationSubject subject) {
     Instant now = Instant.now();
     Instant expiration = now.plus(jwtProps.accessTokenExpirationMinutes());
 
-    return JWT.create()
-        .withSubject(email)
-        .withClaim("memberId", memberId)
-        .withClaim("email", email)
-        .withClaim("role", role.name())
-        .withClaim("tokenType", "access")
-        .withIssuer(jwtProps.issuer())
-        .withAudience(jwtProps.audience())
-        .withIssuedAt(Date.from(now))
-        .withExpiresAt(Date.from(expiration))
-        .sign(algorithm);
+    return createToken(subject, now, expiration, "access");
   }
 
   @Override
-  public String createRefreshToken(Long memberId, String email, Role role) {
+  public String createRefreshToken(TokenCreationSubject subject) {
     Instant now = Instant.now();
     Instant expiration = now.plus(jwtProps.refreshTokenExpirationDays());
 
+    return createToken(subject, now, expiration, "refresh");
+  }
+
+  private String createToken(
+      TokenCreationSubject subject, Instant now, Instant expiration, String tokenType) {
     return JWT.create()
-        .withSubject(email)
-        .withClaim("memberId", memberId)
-        .withClaim("email", email)
-        .withClaim("role", role.name())
-        .withClaim("tokenType", "refresh")
+        .withSubject(subject.email())
+        .withClaim("memberId", subject.memberId())
+        .withClaim("email", subject.email())
+        .withClaim("role", subject.role().name())
+        .withClaim("tokenType", tokenType)
         .withIssuer(jwtProps.issuer())
         .withAudience(jwtProps.audience())
         .withIssuedAt(Date.from(now))

@@ -39,4 +39,8 @@ public class QuestionSetResponse {
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
   }
+
+  public static QuestionSetResponse from(QuestionSet questionSet) {
+    return new QuestionSetResponse(questionSet);
+  }
 }

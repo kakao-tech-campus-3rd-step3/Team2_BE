@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
@@ -90,5 +91,31 @@ public class Source extends BaseEntity {
         .fileSizeBytes(param.fileSizeBytes())
         .status(SourceStatus.UPLOADED)
         .build();
+  }
+
+  public LocalDateTime getRecentQuestionGeneratedAt() {
+    return questionSets.stream()
+        .map(QuestionSet::getCreatedAt)
+        .max(LocalDateTime::compareTo)
+        .orElse(null);
+  }
+
+  public void updateFileInfo(String originalName, String contentType, Long fileSizeBytes) {
+    this.originalName = originalName;
+    this.contentType = contentType;
+    this.fileSizeBytes = fileSizeBytes;
+    this.status = SourceStatus.UPLOADED;
+  }
+
+  public void startProcessing() {
+    this.status = SourceStatus.PROCESSING;
+  }
+
+  public void markAsReady() {
+    this.status = SourceStatus.READY;
+  }
+
+  public void markAsFailed() {
+    this.status = SourceStatus.FAILED;
   }
 }

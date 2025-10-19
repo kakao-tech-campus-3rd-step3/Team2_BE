@@ -13,13 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
-import kr.it.pullit.modules.questionset.domain.entity.IncorrectAnswerQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 @Entity
 @Getter
@@ -37,7 +38,7 @@ public class Member extends BaseEntity {
   private final List<Source> sources = new ArrayList<>();
 
   @OneToMany(mappedBy = "member")
-  private final List<IncorrectAnswerQuestion> incorrectAnswerQuestions = new ArrayList<>();
+  private final List<WrongAnswer> wrongAnswers = new ArrayList<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,8 +59,11 @@ public class Member extends BaseEntity {
   @Column
   private MemberStatus status;
 
-  @Builder
+  @Builder(access = AccessLevel.PRIVATE)
   public Member(Long kakaoId, String email, String name, MemberStatus status) {
+    Assert.hasText(email, "email은 비어있을 수 없습니다.");
+    Assert.hasText(name, "name은 비어있을 수 없습니다.");
+
     this.kakaoId = kakaoId;
     this.email = email;
     this.name = name;
@@ -81,5 +85,14 @@ public class Member extends BaseEntity {
 
   public void linkKakaoId(Long kakaoId) {
     this.kakaoId = kakaoId;
+  }
+
+  public void updateMemberInfo(String email, String name) {
+    if (email != null && !email.isBlank()) {
+      this.email = email;
+    }
+    if (name != null && !name.isBlank()) {
+      this.name = name;
+    }
   }
 }

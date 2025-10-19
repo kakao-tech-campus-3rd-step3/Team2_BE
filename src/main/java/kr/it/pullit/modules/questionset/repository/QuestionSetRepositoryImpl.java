@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -15,12 +16,23 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
 
   @Override
   public Optional<QuestionSet> findById(Long id) {
-    return questionSetJpaRepository.findByIdWithQuestions(id);
+    return questionSetJpaRepository.findById(id);
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithoutQuestions(Long id) {
-    return questionSetJpaRepository.findById(id);
+  public Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId) {
+    return questionSetJpaRepository.findByIdAndMemberId(id, memberId);
+  }
+
+  @Override
+  public Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId) {
+    return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
+  }
+
+  /** lazy loading을 위해 문제 목록을 제외한 문제집 메타데이터만 조회합니다. */
+  @Override
+  public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
+    return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
   }
 
   @Override
@@ -29,7 +41,25 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findByUserId(Long userId) {
-    return questionSetJpaRepository.findByUserId(userId);
+  public Optional<QuestionSet> findQuestionSetForReviewing(Long id, Long memberId) {
+    return questionSetJpaRepository.findWrongAnswersByIdAndMemberId(id, memberId);
+  }
+
+  @Override
+  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(
+      Long id, Long memberId) {
+    return questionSetJpaRepository
+        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+        .map(QuestionSetResponse::new);
+  }
+
+  @Override
+  public List<QuestionSet> findByMemberId(Long memberId) {
+    return questionSetJpaRepository.findByMemberId(memberId);
+  }
+
+  @Override
+  public void delete(QuestionSet questionSet) {
+    questionSetJpaRepository.delete(questionSet);
   }
 }
