@@ -17,6 +17,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
+import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
@@ -125,7 +126,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     if (!notReadySources.isEmpty()) {
       // 여기에서 예외를 발생시켜 사용자에게 즉시 피드백을 줍니다.
-      throw new IllegalStateException("아직 처리 중인 소스 파일이 있어 문제집을 생성할 수 없습니다.");
+      throw new SourceNotReadyException();
     }
   }
 

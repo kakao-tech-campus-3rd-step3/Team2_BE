@@ -121,6 +121,7 @@ logging:
   level:
     ROOT: INFO
     kr.it.pullit: DEBUG
+    kr.it.pullit.modules.notification.service.NotificationService: INFO
     org.springframework.security: DEBUG
     java.lang.ProcessBuilder: INFO
     sun.rmi.loader: WARN
