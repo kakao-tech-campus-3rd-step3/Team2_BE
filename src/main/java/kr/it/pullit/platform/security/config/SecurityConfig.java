@@ -64,12 +64,7 @@ public class SecurityConfig {
 
   private void applyCommon(HttpSecurity http) throws Exception {
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
-<<<<<<< HEAD
         .csrf(AbstractHttpConfigurer::disable).sessionManagement(
-=======
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(
->>>>>>> develop
             session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
   }
 
@@ -78,7 +73,7 @@ public class SecurityConfig {
         .authorizationEndpoint(config -> config
             .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository))
         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-        .successHandler(oauth2AuthenticationSuccessHandler));
+        .successHandler(oauth2AuthenticationSuccessHandler).failureHandler(OAUTH2_FAILURE_HANDLER));
   }
 
   @Bean
@@ -105,15 +100,8 @@ public class SecurityConfig {
     applyCommon(http);
     configureOAuth2Login(http); // OAuth2는 웹 체인에만 적용
 
-<<<<<<< HEAD
     http.exceptionHandling(ex -> ex.authenticationEntryPoint(
         new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/kakao")));
-=======
-    http.exceptionHandling(
-        ex ->
-            ex.authenticationEntryPoint(
-                new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/kakao")));
->>>>>>> develop
 
     http.authorizeHttpRequests(AuthorizationRules.authenticated());
 
@@ -124,18 +112,8 @@ public class SecurityConfig {
   @Profile("local")
   public SecurityFilterChain localChain(HttpSecurity http) throws Exception {
     applyCommon(http);
-<<<<<<< HEAD
     http.authorizeHttpRequests(authorize -> authorize
         .requestMatchers(AuthorizationRules.PUBLIC_ENDPOINTS).permitAll().anyRequest().permitAll());
-=======
-    http.authorizeHttpRequests(
-        authorize ->
-            authorize
-                .requestMatchers(AuthorizationRules.PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .permitAll());
->>>>>>> develop
     devAuthenticationFilter.ifPresent(
         filter -> http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class));
     return http.build();

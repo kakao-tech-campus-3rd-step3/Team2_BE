@@ -1,11 +1,15 @@
 package kr.it.pullit.modules.commonfolder.service;
 
 import java.util.List;
-import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
-import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
+import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -14,71 +18,51 @@ public class CommonFolderService {
 
   private final CommonFolderRepository commonFolderRepository;
 
-  public List<CommonFolder> getAllFolders() {
-    return commonFolderRepository.findAllByOrderBySortOrderAsc();
-  }
-
-  public List<CommonFolder> getFoldersByType(String type) {
-    return commonFolderRepository.findByTypeOrderBySortOrderAsc(type);
+  public List<CommonFolderResponse> getQuestionSetFolders() {
+    List<CommonFolder> folders =
+        commonFolderRepository.findByTypeOrderBySortOrderAsc(CommonFolderType.QUESTION_SET);
+    return folders.stream().map(this::toDto).collect(Collectors.toList());
   }
 
   @Transactional
-  public CommonFolder createFolder(String name, String type, Long parentId, int sortOrder) {
-    CommonFolder parent = null;
-    if (parentId != null) {
-      parent =
-          commonFolderRepository
-              .findById(parentId)
-              .orElseThrow(() -> new IllegalArgumentException("부모 폴더를 찾을 수 없습니다."));
-    }
-
-    boolean duplicate = commonFolderRepository.existsByParentAndSortOrder(parent, sortOrder);
-    if (duplicate) {
-      throw new IllegalArgumentException("같은 부모 내에서 sortOrder가 중복되었습니다.");
-    }
+  public CommonFolderResponse createQuestionSetFolder(CommonFolderRequest request) {
+    int sortOrder = calculateNextSortOrder();
 
     CommonFolder folder =
-        CommonFolder.builder().name(name).type(type).parent(parent).sortOrder(sortOrder).build();
+        CommonFolder.create(request.name(), CommonFolderType.QUESTION_SET, sortOrder);
 
-    return commonFolderRepository.save(folder);
+    return toDto(commonFolderRepository.save(folder));
+  }
+
+  private int calculateNextSortOrder() {
+    return commonFolderRepository.findFirstByTypeOrderBySortOrderDesc(CommonFolderType.QUESTION_SET)
+        .map(folder -> folder.getSortOrder() + 1).orElse(0);
   }
 
   @Transactional(readOnly = true)
-  public CommonFolder getFolderById(Long id) {
-    return commonFolderRepository
-        .findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
+  public CommonFolderResponse getFolder(Long id) {
+    return toDto(findFolderById(id));
   }
 
   @Transactional
-  public CommonFolder updateFolder(
-      Long id, String name, String type, Long parentId, int sortOrder) {
-    CommonFolder folder =
-        commonFolderRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("수정할 폴더를 찾을 수 없습니다."));
-
-    CommonFolder parent = null;
-    if (parentId != null) {
-      parent =
-          commonFolderRepository
-              .findById(parentId)
-              .orElseThrow(() -> new IllegalArgumentException("부모 폴더를 찾을 수 없습니다."));
-    }
-
-    boolean duplicate =
-        commonFolderRepository.existsByParentAndSortOrder(parent, sortOrder)
-            && !folder.getSortOrder().equals(sortOrder);
-    if (duplicate) {
-      throw new IllegalArgumentException("같은 부모 내에서 sortOrder가 중복되었습니다.");
-    }
-
-    folder.update(name, type, parent, sortOrder);
-    return commonFolderRepository.save(folder);
+  public CommonFolderResponse updateFolder(Long id, CommonFolderRequest request) {
+    CommonFolder folder = findFolderById(id);
+    folder.update(request.name());
+    return toDto(commonFolderRepository.save(folder));
   }
 
   @Transactional
   public void deleteFolder(Long id) {
     commonFolderRepository.deleteById(id);
+  }
+
+  private CommonFolder findFolderById(Long id) {
+    return commonFolderRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
+  }
+
+  private CommonFolderResponse toDto(CommonFolder folder) {
+    return new CommonFolderResponse(folder.getId(), folder.getName(), folder.getType(),
+        folder.getSortOrder());
   }
 }

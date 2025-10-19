@@ -2,15 +2,14 @@ package kr.it.pullit.modules.commonfolder.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +17,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Table(name = "common_folder")
 public class CommonFolder {
 
@@ -30,20 +27,29 @@ public class CommonFolder {
   @Column(nullable = false)
   private String name;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private String type;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "parent_id")
-  private CommonFolder parent;
+  private CommonFolderType type;
 
   @Column(nullable = false)
-  private Integer sortOrder;
+  private int sortOrder;
 
-  public void update(String name, String type, CommonFolder parent, int sortOrder) {
+  @Builder(access = AccessLevel.PRIVATE)
+  public CommonFolder(String name, CommonFolderType type, int sortOrder) {
     this.name = name;
     this.type = type;
-    this.parent = parent;
+    this.sortOrder = sortOrder;
+  }
+
+  public static CommonFolder create(String name, CommonFolderType type, int sortOrder) {
+    return CommonFolder.builder().name(name).type(type).sortOrder(sortOrder).build();
+  }
+
+  public void update(String name) {
+    this.name = name;
+  }
+
+  public void updateSortOrder(int sortOrder) {
     this.sortOrder = sortOrder;
   }
 }
