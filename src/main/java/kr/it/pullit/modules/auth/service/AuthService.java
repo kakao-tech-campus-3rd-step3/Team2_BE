@@ -4,14 +4,12 @@ import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.security.jwt.JwtTokenProvider;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
-import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +18,7 @@ public class AuthService {
   // TODO: REVIEW-3 : 메서드를 기능 단위로 추출해보세요. 그리고 값을 꺼내서 처리하고 있다면 Value Object를 도출하거나 객체에게 메시지를 보내보세요.
 
   private final MemberPublicApi memberPublicApi;
-  private final JwtTokenPort jwtTokenPort;
+  private final JwtTokenProvider jwtTokenPort;
 
   @Transactional
   public AuthTokens issueAndSaveTokens(Long memberId) {
@@ -32,9 +30,7 @@ public class AuthService {
     String existingRefreshToken = member.getRefreshToken();
 
     // 기존 리프레시 토큰이 있고, 유효하다면 재사용
-    if (StringUtils.hasText(existingRefreshToken)
-        && jwtTokenPort.validateToken(existingRefreshToken)
-            instanceof TokenValidationResult.Valid) {
+    if (jwtTokenPort.validateToken(existingRefreshToken).isValid()) {
       String newAccessToken = jwtTokenPort.createAccessToken(TokenCreationSubject.from(member));
       return new AuthTokens(newAccessToken, existingRefreshToken);
     }
@@ -68,11 +64,7 @@ public class AuthService {
   }
 
   private void validateRefreshToken(String refreshToken) {
-    if (!StringUtils.hasText(refreshToken)) {
-      throw InvalidRefreshTokenException.by();
-    }
-    TokenValidationResult result = jwtTokenPort.validateToken(refreshToken);
-    if (!(result instanceof TokenValidationResult.Valid)) {
+    if (!jwtTokenPort.validateToken(refreshToken).isValid()) {
       throw InvalidRefreshTokenException.by();
     }
   }

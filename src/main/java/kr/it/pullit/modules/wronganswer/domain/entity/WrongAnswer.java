@@ -7,17 +7,18 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import kr.it.pullit.modules.member.domain.entity.Member;
+import jakarta.persistence.UniqueConstraint;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "wrong_answer")
+@Table(
+    name = "wrong_answer",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"member_id", "question_id"})})
 @Getter
 @NoArgsConstructor
 public class WrongAnswer extends BaseEntity {
@@ -25,9 +26,8 @@ public class WrongAnswer extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id")
-  private Member member;
+  @Column(name = "member_id")
+  private Long memberId;
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "question_id")
@@ -35,10 +35,14 @@ public class WrongAnswer extends BaseEntity {
 
   @Column private Boolean isReviewed;
 
-  public WrongAnswer(Member member, Question question) {
-    this.member = member;
+  private WrongAnswer(Long memberId, Question question) {
+    this.memberId = memberId;
     this.question = question;
     this.isReviewed = false;
+  }
+
+  public static WrongAnswer create(Long memberId, Question question) {
+    return new WrongAnswer(memberId, question);
   }
 
   public void markAsReviewed() {
