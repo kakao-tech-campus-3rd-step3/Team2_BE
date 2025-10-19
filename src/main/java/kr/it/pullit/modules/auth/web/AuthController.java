@@ -1,10 +1,8 @@
 package kr.it.pullit.modules.auth.web;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import kr.it.pullit.modules.auth.service.AuthService;
 import kr.it.pullit.modules.auth.web.dto.AccessTokenResponse;
-import kr.it.pullit.platform.web.cookie.CookieManager;
+import kr.it.pullit.platform.web.interceptor.annotation.ClearCookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,9 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
   private final AuthService authService;
-  private final CookieManager cookieManager;
 
   @PostMapping("/refresh")
   public ResponseEntity<AccessTokenResponse> refresh(
@@ -29,12 +25,9 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      @AuthenticationPrincipal Long memberId) {
+  @ClearCookie(name = "refresh_token")
+  public ResponseEntity<Void> logout(@AuthenticationPrincipal Long memberId) {
     authService.logout(memberId);
-    cookieManager.removeRefreshTokenCookie(request, response);
     return ResponseEntity.noContent().build();
   }
 }

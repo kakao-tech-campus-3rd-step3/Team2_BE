@@ -3,20 +3,29 @@ package kr.it.pullit.modules.questionset.api;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 
 public interface QuestionSetPublicApi {
 
-  QuestionSetResponse getQuestionSetById(Long id);
+  QuestionSetResponse getQuestionSetForSolving(Long id, Long memberId, Boolean isReviewing);
 
   QuestionSetResponse create(QuestionSetCreateRequestDto request, Long ownerId);
 
-  void updateStatus(Long questionSetId, QuestionSetStatus status);
+  void markAsComplete(Long questionSetId);
 
-  Optional<QuestionSet> findEntityById(Long id);
+  void markAsFailed(Long questionSetId);
 
-  List<MyQuestionSetsResponse> getUserQuestionSets(Long userId);
+  void updateTitle(Long questionSetId, String title);
+
+  void updateTitle(Long questionSetId, String title, Long memberId);
+
+  void delete(Long questionSetId, Long memberId);
+
+  Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
+
+  List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
+
+  QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }

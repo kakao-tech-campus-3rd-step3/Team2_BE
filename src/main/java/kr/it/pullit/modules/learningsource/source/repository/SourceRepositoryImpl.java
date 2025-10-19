@@ -42,4 +42,9 @@ public class SourceRepositoryImpl implements SourceRepository {
   public Optional<Source> findByIdAndMemberId(Long id, Long memberId) {
     return sourceJpaRepository.findByIdAndMemberId(id, memberId);
   }
+
+  @Override
+  public Optional<Source> findByMemberIdAndFilePath(Long memberId, String filePath) {
+    return sourceJpaRepository.findByMemberIdAndFilePath(memberId, filePath);
+  }
 }
