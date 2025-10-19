@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
@@ -111,12 +112,8 @@ public class Member extends BaseEntity {
   }
 
   public void updateMemberInfo(String email, String name) {
-    if (email != null && !email.isBlank()) {
-      this.email = email;
-    }
-    if (name != null && !name.isBlank()) {
-      this.name = name;
-    }
+    this.email = StringUtils.hasText(email) ? email : this.email;
+    this.name = StringUtils.hasText(name) ? name : this.name;
   }
 
   public void grantAdmin() {

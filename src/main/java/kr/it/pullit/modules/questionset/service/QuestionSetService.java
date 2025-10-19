@@ -126,7 +126,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     if (!notReadySources.isEmpty()) {
       // 여기에서 예외를 발생시켜 사용자에게 즉시 피드백을 줍니다.
-      throw new SourceNotReadyException();
+      throw new SourceNotReadyException(notReadySources);
     }
   }
 

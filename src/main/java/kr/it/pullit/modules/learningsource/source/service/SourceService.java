@@ -7,7 +7,6 @@ import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
-import kr.it.pullit.modules.learningsource.source.event.SourceUploadCompleteEvent;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
@@ -64,9 +63,6 @@ public class SourceService implements SourcePublicApi {
         request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
     source.markAsReady(); // 상태를 READY로 변경
     sourceRepository.save(source);
-
-    eventPublisher.publishEvent(
-        new SourceUploadCompleteEvent(source.getId(), source.getFilePath()));
   }
 
   private Source findSourceBy(SourceUploadCompleteRequest request, Long memberId) {
