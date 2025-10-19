@@ -12,6 +12,8 @@ import java.util.Date;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
+import kr.it.pullit.platform.security.jwt.exception.TokenErrorCode;
+import kr.it.pullit.platform.security.jwt.exception.TokenException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -90,23 +92,25 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     }
     try {
       DecodedJWT decodedJwt = verifier.verify(token);
-      return validateTokenType(decodedJwt, expectedTokenType, invalidTypeMessage);
+      validateTokenType(decodedJwt, expectedTokenType, invalidTypeMessage);
+      return new TokenValidationResult.Valid(decodedJwt);
     } catch (TokenExpiredException e) {
       return new TokenValidationResult.Expired();
     } catch (JWTVerificationException e) {
       return new TokenValidationResult.Invalid("토큰 검증 실패: " + e.getMessage(), e);
+    } catch (TokenException e) {
+      return new TokenValidationResult.Invalid(e.getMessage(), e);
     } catch (Exception e) {
       return new TokenValidationResult.Invalid("예상치 못한 오류: " + e.getMessage(), e);
     }
   }
 
-  private TokenValidationResult validateTokenType(
+  private void validateTokenType(
       DecodedJWT decodedJwt, String expectedTokenType, String invalidTypeMessage) {
     String tokenType = decodedJwt.getClaim(TOKEN_TYPE_CLAIM).asString();
     if (!expectedTokenType.equals(tokenType)) {
-      return new TokenValidationResult.Invalid(invalidTypeMessage);
+      throw new TokenException(TokenErrorCode.TOKEN_INVALID, invalidTypeMessage);
     }
-    return new TokenValidationResult.Valid(decodedJwt);
   }
 
   @Override

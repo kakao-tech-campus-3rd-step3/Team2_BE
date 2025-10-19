@@ -12,4 +12,8 @@ public class TokenException extends BusinessException {
   public TokenException(ErrorCode errorCode, String message, Throwable cause) {
     super(errorCode, message, cause);
   }
+
+  public TokenException(ErrorCode errorCode, String message) {
+    super(errorCode, message);
+  }
 }

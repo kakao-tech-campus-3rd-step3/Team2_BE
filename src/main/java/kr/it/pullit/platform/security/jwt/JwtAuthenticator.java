@@ -44,7 +44,7 @@ public class JwtAuthenticator {
   }
 
   private AuthenticationResult handleExpiredToken() {
-    return new AuthenticationResult.Expired();
+    throw new TokenException(TokenErrorCode.TOKEN_EXPIRED);
   }
 
   private AuthenticationResult processValidToken(DecodedJWT decodedJwt) {
