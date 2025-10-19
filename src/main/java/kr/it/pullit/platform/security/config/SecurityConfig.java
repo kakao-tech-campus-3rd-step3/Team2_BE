@@ -51,6 +51,18 @@ public class SecurityConfig {
   private final OAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
   private final Optional<DevAuthenticationFilter> devAuthenticationFilter;
 
+  @Bean
+  @Order(0)
+  public SecurityFilterChain actuatorChain(HttpSecurity http) throws Exception {
+    http.securityMatcher("/actuator/**")
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .requestCache(rc -> rc.disable()) // Saved request 방지
+        .exceptionHandling(ex -> ex.disable()) // 불필요한 EntryPoint/Redirect 제거
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    return http.build();
+  }
+
   private static final AuthenticationFailureHandler OAUTH2_FAILURE_HANDLER =
       (request, response, ex) -> {
         LoggerFactory.getLogger("OAuth2Failure").error(
