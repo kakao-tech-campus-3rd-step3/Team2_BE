@@ -57,7 +57,7 @@ public class QuestionService implements QuestionPublicApi {
   @Transactional
   public void saveQuestion(Question question) {
     validateQuestionSetExists(
-        question.getQuestionSet().getId(), question.getQuestionSet().getOwner().getId());
+        question.getQuestionSet().getId(), question.getQuestionSet().getOwnerId());
     questionRepository.save(question);
   }
 

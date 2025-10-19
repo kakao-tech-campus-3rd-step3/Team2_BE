@@ -1,4 +1,4 @@
-package kr.it.pullit.platform.web.interceptor.annotation;
+package kr.it.pullit.platform.aop.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -13,7 +13,6 @@ import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationPa
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,13 +41,13 @@ class SourceServiceTest {
     // 반
     // 환
 
-    final Member mockMember = Member.createMember(1L, "test@example.com", "테스트사용자");
+    final Long memberIdForMock = 1L; // assuming memberId 1 is used for mock creation
     final SourceFolder mockSourceFolder =
-        SourceFolder.builder().member(mockMember).name("default").color("#000000").build();
+        SourceFolder.create(memberIdForMock, "default", null, "#000000");
     final SourceCreationParam creationParam =
         new SourceCreationParam(memberId, "test.pdf", filePath, "application/pdf", 1024L);
 
-    Source mockSource = Source.create(creationParam, mockMember, mockSourceFolder);
+    Source mockSource = Source.create(creationParam, memberIdForMock, mockSourceFolder);
 
     given(sourceRepository.findByIdAndMemberId(sourceId, memberId))
         .willReturn(Optional.of(mockSource));

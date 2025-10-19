@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.Map;
 import kr.it.pullit.platform.security.jwt.AuthenticationResult;
 import kr.it.pullit.platform.security.jwt.JwtAuthenticator;
-import kr.it.pullit.platform.security.jwt.JwtTokenPort;
+import kr.it.pullit.platform.security.jwt.JwtTokenProvider;
+import kr.it.pullit.platform.security.jwt.exception.TokenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,7 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private final JwtTokenPort jwtTokenPort;
+  private final JwtTokenProvider jwtTokenProvider;
   private final JwtAuthenticator jwtAuthenticator;
   private final ObjectMapper objectMapper;
 
@@ -34,32 +35,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
 
-    String token = jwtTokenPort.resolveToken(request);
-    AuthenticationResult authResult = jwtAuthenticator.authenticate(token);
-    log.debug(
-        "[JwtFilter] Request URI: {}, AuthResult: {}",
-        request.getRequestURI(),
-        authResult.getClass().getSimpleName());
-
-    switch (authResult) {
-      case AuthenticationResult.Success(var authentication) ->
-          SecurityContextHolder.getContext().setAuthentication(authentication);
-      case AuthenticationResult.Expired ignored -> {
-        log.warn("[JwtFilter] Expired JWT token received.");
-        sendErrorResponse(response, "만료된 토큰입니다.");
-        return;
-      }
-      case AuthenticationResult.Invalid(String errorMessage) -> {
-        log.warn("[JwtFilter] Invalid JWT token received. Reason: {}", errorMessage);
-        sendErrorResponse(response, "유효하지 않은 토큰입니다: " + errorMessage);
-        return;
-      }
-      case AuthenticationResult.NoToken ignored -> {
-        // 토큰이 없는 경우 아무것도 하지 않고 다음 필터로 진행
-      }
+    try {
+      authenticateRequest(request);
+    } catch (TokenException e) {
+      handleAuthenticationFailure(response, e);
+      return;
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  private void authenticateRequest(HttpServletRequest request) {
+    String token = jwtTokenProvider.resolveToken(request);
+    AuthenticationResult authResult = jwtAuthenticator.authenticate(token);
+
+    authResult.getAuthentication().ifPresent(SecurityContextHolder.getContext()::setAuthentication);
+  }
+
+  private void handleAuthenticationFailure(HttpServletResponse response, TokenException e)
+      throws IOException {
+    log.warn(
+        "[JwtFilter] Authentication failed: Code={}, Message={}",
+        e.getErrorCode().getCode(),
+        e.getMessage());
+    sendErrorResponse(response, e.getMessage());
   }
 
   private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {

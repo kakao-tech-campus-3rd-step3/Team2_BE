@@ -2,7 +2,6 @@ package kr.it.pullit.platform.web;
 
 import java.time.Duration;
 import java.util.List;
-import kr.it.pullit.platform.web.interceptor.ClearCookieInterceptor;
 import kr.it.pullit.platform.web.resolver.NotNullAuthenticationPrincipalArgumentResolver;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,17 +18,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
   private final WebCorsProps props;
-  private final ClearCookieInterceptor clearCookieInterceptor;
   private final NotNullAuthenticationPrincipalArgumentResolver
       notNullAuthenticationPrincipalArgumentResolver;
 
   public WebConfig(
       WebCorsProps props,
-      ClearCookieInterceptor clearCookieInterceptor,
       NotNullAuthenticationPrincipalArgumentResolver
           notNullAuthenticationPrincipalArgumentResolver) {
     this.props = props;
-    this.clearCookieInterceptor = clearCookieInterceptor;
     this.notNullAuthenticationPrincipalArgumentResolver =
         notNullAuthenticationPrincipalArgumentResolver;
   }
@@ -50,9 +46,7 @@ public class WebConfig implements WebMvcConfigurer {
   }
 
   @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(clearCookieInterceptor).addPathPatterns("/auth/refresh");
-  }
+  public void addInterceptors(InterceptorRegistry registry) {}
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {

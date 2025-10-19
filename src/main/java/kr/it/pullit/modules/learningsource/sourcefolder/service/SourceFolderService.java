@@ -5,7 +5,6 @@ import kr.it.pullit.modules.learningsource.sourcefolder.api.SourceFolderPublicAp
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.learningsource.sourcefolder.repository.SourceFolderRepository;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,16 +45,9 @@ public class SourceFolderService implements SourceFolderPublicApi {
   }
 
   private SourceFolder createDefaultFolderForMember(Long memberId) {
-    Optional<Member> maybeMember = memberPublicApi.findById(memberId);
-    Member member = maybeMember.orElseThrow(() -> MemberNotFoundException.byId(memberId));
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    SourceFolder folder =
-        SourceFolder.builder()
-            .member(member)
-            .name(SourceFolder.DEFAULT_FOLDER_NAME)
-            .description(null)
-            .color(null)
-            .build();
+    SourceFolder folder = SourceFolder.createDefaultFolder(memberId);
 
     return sourceFolderRepository.save(folder);
   }

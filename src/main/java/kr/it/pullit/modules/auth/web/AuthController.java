@@ -3,7 +3,7 @@ package kr.it.pullit.modules.auth.web;
 import io.sentry.Sentry;
 import kr.it.pullit.modules.auth.service.AuthService;
 import kr.it.pullit.modules.auth.web.dto.AccessTokenResponse;
-import kr.it.pullit.platform.web.interceptor.annotation.ClearCookie;
+import kr.it.pullit.platform.aop.annotation.ClearCookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

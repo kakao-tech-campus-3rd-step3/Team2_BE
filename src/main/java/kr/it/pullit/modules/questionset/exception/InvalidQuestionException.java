@@ -8,4 +8,8 @@ public class InvalidQuestionException extends BusinessException {
   public InvalidQuestionException(ErrorCode errorCode) {
     super(errorCode);
   }
+
+  public InvalidQuestionException(ErrorCode errorCode, Object... args) {
+    super(errorCode, args);
+  }
 }

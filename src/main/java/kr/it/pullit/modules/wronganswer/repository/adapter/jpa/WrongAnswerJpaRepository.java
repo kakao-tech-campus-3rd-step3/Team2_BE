@@ -20,7 +20,7 @@ public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Lon
           q.questionSet, COUNT(q.id), MAX(wa.id))
         FROM WrongAnswer wa
         JOIN wa.question q
-        WHERE wa.member.id = :memberId AND wa.isReviewed = false
+        WHERE wa.memberId = :memberId AND wa.isReviewed = false
         GROUP BY q.questionSet
         HAVING COUNT(q.id) > 0
         ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
@@ -33,7 +33,7 @@ public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Lon
           q.questionSet, COUNT(q.id), MAX(wa.id))
         FROM WrongAnswer wa
         JOIN wa.question q
-        WHERE wa.member.id = :memberId
+        WHERE wa.memberId = :memberId
           AND wa.isReviewed = false
           AND (:cursor IS NULL OR MAX(wa.id) < :cursor)
         GROUP BY q.questionSet

@@ -162,6 +162,8 @@ app:
       secret-key: ${S3_SECRET_KEY:test}
       presigned-url-expiration: PT15M
       base-path: learning-sources
+  notification:
+    sse-cache-size: 10000
 
 # OpenAPI/Swagger 설정
 springdoc:

@@ -30,7 +30,6 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
     return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
   }
 
-  /** lazy loading을 위해 문제 목록을 제외한 문제집 메타데이터만 조회합니다. */
   @Override
   public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
