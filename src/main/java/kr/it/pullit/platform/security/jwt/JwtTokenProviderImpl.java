@@ -94,9 +94,9 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     } catch (TokenExpiredException e) {
       return new TokenValidationResult.Expired();
     } catch (JWTVerificationException e) {
-      return new TokenValidationResult.Invalid("토큰 검증 실패: " + e.getMessage());
+      return new TokenValidationResult.Invalid("토큰 검증 실패: " + e.getMessage(), e);
     } catch (Exception e) {
-      return new TokenValidationResult.Invalid("예상치 못한 오류: " + e.getMessage());
+      return new TokenValidationResult.Invalid("예상치 못한 오류: " + e.getMessage(), e);
     }
   }
 

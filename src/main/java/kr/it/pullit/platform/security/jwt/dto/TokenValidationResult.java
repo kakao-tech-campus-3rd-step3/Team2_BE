@@ -19,7 +19,11 @@ public sealed interface TokenValidationResult {
     }
   }
 
-  record Invalid(String errorMessage) implements TokenValidationResult {
+  record Invalid(String errorMessage, Throwable cause) implements TokenValidationResult {
+    public Invalid(String errorMessage) {
+      this(errorMessage, null);
+    }
+
     @Override
     public boolean isValid() {
       return false;

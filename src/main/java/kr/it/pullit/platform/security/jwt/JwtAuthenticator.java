@@ -1,12 +1,13 @@
 package kr.it.pullit.platform.security.jwt;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import java.util.Collections;
 import java.util.List;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
+import kr.it.pullit.platform.security.jwt.exception.TokenErrorCode;
+import kr.it.pullit.platform.security.jwt.exception.TokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -26,12 +27,24 @@ public class JwtAuthenticator {
 
     TokenValidationResult validationResult = jwtTokenPort.validateToken(token);
 
+    return handleValidationResult(validationResult);
+  }
+
+  private AuthenticationResult handleValidationResult(TokenValidationResult validationResult) {
     return switch (validationResult) {
       case TokenValidationResult.Valid(DecodedJWT decodedJwt) -> processValidToken(decodedJwt);
-      case TokenValidationResult.Expired ignored -> new AuthenticationResult.Expired();
-      case TokenValidationResult.Invalid(String message) ->
-          new AuthenticationResult.Invalid(message);
+      case TokenValidationResult.Expired ignored -> handleExpiredToken();
+      case TokenValidationResult.Invalid(String message, Throwable cause) ->
+          handleInvalidToken(message, cause);
     };
+  }
+
+  private AuthenticationResult handleInvalidToken(String message, Throwable cause) {
+    throw new TokenException(TokenErrorCode.TOKEN_INVALID, message, cause);
+  }
+
+  private AuthenticationResult handleExpiredToken() {
+    return new AuthenticationResult.Expired();
   }
 
   private AuthenticationResult processValidToken(DecodedJWT decodedJwt) {
@@ -46,8 +59,7 @@ public class JwtAuthenticator {
       DecodedJWT decodedJwt, Member member) {
     Long memberId = decodedJwt.getClaim("memberId").asLong();
     String email = decodedJwt.getClaim("email").asString();
-    List<SimpleGrantedAuthority> authorities =
-        Collections.singletonList(new SimpleGrantedAuthority(member.getRole().getKey()));
+    List<SimpleGrantedAuthority> authorities = member.getRole().getAuthorities();
 
     return new PullitAuthenticationToken(memberId, email, decodedJwt, authorities);
   }
