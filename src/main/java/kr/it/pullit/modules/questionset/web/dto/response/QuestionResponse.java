@@ -26,13 +26,13 @@ public record QuestionResponse(
   }
 
   private static QuestionResponse createResponseByType(Question question) {
-    return switch (question) {
-      case MultipleChoiceQuestion mcq -> fromMultipleChoiceQuestion(mcq);
-      case TrueFalseQuestion tfq -> fromTrueFalseQuestion(tfq);
-      case ShortAnswerQuestion saq -> fromShortAnswerQuestion(saq);
-      default ->
+    return switch (question.getQuestionType()) {
+      case MULTIPLE_CHOICE -> fromMultipleChoiceQuestion((MultipleChoiceQuestion) question);
+      case TRUE_FALSE -> fromTrueFalseQuestion((TrueFalseQuestion) question);
+      case SHORT_ANSWER -> fromShortAnswerQuestion((ShortAnswerQuestion) question);
+      case SUBJECTIVE ->
           throw new InvalidQuestionException(
-              QuestionSetErrorCode.UNSUPPORTED_QUESTION_TYPE, question.getClass().getSimpleName());
+              QuestionSetErrorCode.UNSUPPORTED_QUESTION_TYPE, question.getQuestionType());
     };
   }
 

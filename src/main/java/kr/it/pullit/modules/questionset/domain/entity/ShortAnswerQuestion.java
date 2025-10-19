@@ -4,6 +4,7 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
 import kr.it.pullit.modules.questionset.exception.QuestionErrorCode;
 import lombok.Getter;
@@ -35,6 +36,11 @@ public class ShortAnswerQuestion extends Question {
     String processedAnswer = this.answer.replaceAll("\\s+", "").toLowerCase();
     String processedUserAnswer = userAnswer.toString().replaceAll("\\s+", "").toLowerCase();
     return processedUserAnswer.equals(processedAnswer);
+  }
+
+  @Override
+  public QuestionType getQuestionType() {
+    return QuestionType.SHORT_ANSWER;
   }
 
   private void validate() {
