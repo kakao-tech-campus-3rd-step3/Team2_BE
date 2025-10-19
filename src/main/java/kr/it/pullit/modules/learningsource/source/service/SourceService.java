@@ -7,6 +7,7 @@ import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
+import kr.it.pullit.modules.learningsource.source.event.SourceUploadCompleteEvent;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
@@ -21,6 +22,7 @@ import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ public class SourceService implements SourcePublicApi {
   private final SourceRepository sourceRepository;
   private final MemberPublicApi memberPublicApi;
   private final SourceFolderPublicApi sourceFolderPublicApi;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public SourceUploadResponse generateUploadUrl(
@@ -52,36 +55,48 @@ public class SourceService implements SourcePublicApi {
     if (!s3PublicApi.fileExists(request.getFilePath())) {
       throw new IllegalArgumentException("S3에 해당 파일이 존재하지 않습니다.");
     }
+    createOrUpdate(request, memberId);
+  }
 
-    Source source =
-        sourceRepository
-            .findByMemberIdAndFilePath(memberId, request.getFilePath())
-            .orElseGet(
-                () -> {
-                  SourceCreationParam sourceCreationParam =
-                      new SourceCreationParam(
-                          memberId,
-                          request.getOriginalName(),
-                          request.getFilePath(),
-                          request.getContentType(),
-                          request.getFileSizeBytes());
-
-                  Member member =
-                      memberPublicApi
-                          .findById(memberId)
-                          .orElseThrow(() -> MemberNotFoundException.byId(memberId));
-
-                  SourceFolder sourceFolder =
-                      sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
-
-                  return Source.create(sourceCreationParam, member, sourceFolder);
-                });
-
+  private void createOrUpdate(SourceUploadCompleteRequest request, Long memberId) {
+    Source source = findSourceBy(request, memberId);
     source.updateFileInfo(
         request.getOriginalName(), request.getContentType(), request.getFileSizeBytes());
     source.markAsReady(); // 상태를 READY로 변경
-
     sourceRepository.save(source);
+
+    eventPublisher.publishEvent(
+        new SourceUploadCompleteEvent(source.getId(), source.getFilePath()));
+  }
+
+  private Source findSourceBy(SourceUploadCompleteRequest request, Long memberId) {
+    return sourceRepository
+        .findByMemberIdAndFilePath(memberId, request.getFilePath())
+        .orElseGet(() -> create(request, memberId));
+  }
+
+  private Source create(SourceUploadCompleteRequest request, Long memberId) {
+    Member member = findMemberBy(memberId);
+    SourceFolder sourceFolder = findSourceFolderBy(memberId);
+    SourceCreationParam sourceCreationParam =
+        new SourceCreationParam(
+            memberId,
+            request.getOriginalName(),
+            request.getFilePath(),
+            request.getContentType(),
+            request.getFileSizeBytes());
+
+    return Source.create(sourceCreationParam, member, sourceFolder);
+  }
+
+  private SourceFolder findSourceFolderBy(Long memberId) {
+    return sourceFolderPublicApi.findOrCreateDefaultFolder(memberId);
+  }
+
+  private Member findMemberBy(Long memberId) {
+    return memberPublicApi
+        .findById(memberId)
+        .orElseThrow(() -> MemberNotFoundException.byId(memberId));
   }
 
   @Override
