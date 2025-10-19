@@ -42,7 +42,7 @@ public class QuestionSet extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "owner_id")
+  @Column(name = "owner_id", nullable = false)
   private Long ownerId;
 
   @ManyToMany

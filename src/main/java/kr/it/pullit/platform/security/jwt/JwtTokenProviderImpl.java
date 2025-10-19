@@ -13,12 +13,16 @@ import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 public class JwtTokenProviderImpl implements JwtTokenProvider {
 
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String AUTHORIZATION_HEADER = "Authorization";
+  private static final String TOKEN_TYPE_CLAIM = "tokenType";
+  private static final String TOKEN_TYPE_ACCESS = "access";
+  private static final String TOKEN_TYPE_REFRESH = "refresh";
   private final JwtProps jwtProps;
   private final Algorithm algorithm;
   private final JWTVerifier verifier;
@@ -43,7 +47,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     Instant now = Instant.now();
     Instant expiration = now.plus(jwtProps.accessTokenExpirationMinutes());
 
-    return createToken(subject, now, expiration, "access");
+    return createToken(subject, now, expiration, TOKEN_TYPE_ACCESS);
   }
 
   @Override
@@ -51,7 +55,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     Instant now = Instant.now();
     Instant expiration = now.plus(jwtProps.refreshTokenExpirationDays());
 
-    return createToken(subject, now, expiration, "refresh");
+    return createToken(subject, now, expiration, TOKEN_TYPE_REFRESH);
   }
 
   private String createToken(
@@ -61,7 +65,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
         .withClaim("memberId", subject.memberId())
         .withClaim("email", subject.email())
         .withClaim("role", subject.role().name())
-        .withClaim("tokenType", tokenType)
+        .withClaim(TOKEN_TYPE_CLAIM, tokenType)
         .withIssuer(jwtProps.issuer())
         .withAudience(jwtProps.audience())
         .withIssuedAt(Date.from(now))
@@ -71,9 +75,22 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
   @Override
   public TokenValidationResult validateToken(String token) {
+    return validateTokenInternal(token, TOKEN_TYPE_ACCESS, "액세스 토큰이 아닙니다.");
+  }
+
+  @Override
+  public TokenValidationResult validateRefreshToken(String token) {
+    return validateTokenInternal(token, TOKEN_TYPE_REFRESH, "리프레시 토큰이 아닙니다.");
+  }
+
+  private TokenValidationResult validateTokenInternal(
+      String token, String expectedTokenType, String invalidTypeMessage) {
+    if (!StringUtils.hasText(token)) {
+      return new TokenValidationResult.Invalid("빈 토큰입니다.");
+    }
     try {
       DecodedJWT decodedJwt = verifier.verify(token);
-      return new TokenValidationResult.Valid(decodedJwt);
+      return validateTokenType(decodedJwt, expectedTokenType, invalidTypeMessage);
     } catch (TokenExpiredException e) {
       return new TokenValidationResult.Expired();
     } catch (JWTVerificationException e) {
@@ -81,6 +98,15 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     } catch (Exception e) {
       return new TokenValidationResult.Invalid("예상치 못한 오류: " + e.getMessage());
     }
+  }
+
+  private TokenValidationResult validateTokenType(
+      DecodedJWT decodedJwt, String expectedTokenType, String invalidTypeMessage) {
+    String tokenType = decodedJwt.getClaim(TOKEN_TYPE_CLAIM).asString();
+    if (!expectedTokenType.equals(tokenType)) {
+      return new TokenValidationResult.Invalid(invalidTypeMessage);
+    }
+    return new TokenValidationResult.Valid(decodedJwt);
   }
 
   @Override

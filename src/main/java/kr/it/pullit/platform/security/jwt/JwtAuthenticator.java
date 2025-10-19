@@ -2,7 +2,9 @@ package kr.it.pullit.platform.security.jwt;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Collections;
+import java.util.List;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import lombok.RequiredArgsConstructor;
@@ -25,28 +27,34 @@ public class JwtAuthenticator {
     TokenValidationResult validationResult = jwtTokenPort.validateToken(token);
 
     return switch (validationResult) {
-      case TokenValidationResult.Valid(DecodedJWT decodedJwt) -> {
-        Long memberId = decodedJwt.getClaim("memberId").asLong();
-        String email = decodedJwt.getClaim("email").asString();
-
-        Member member =
-            memberRepository
-                .findById(memberId)
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            "JWT 토큰은 유효하지만 ID '%d'에 해당하는 멤버를 찾을 수 없습니다.".formatted(memberId)));
-
-        var authorities =
-            Collections.singletonList(new SimpleGrantedAuthority(member.getRole().getKey()));
-
-        var authentication =
-            new PullitAuthenticationToken(memberId, email, decodedJwt, authorities);
-        yield new AuthenticationResult.Success(authentication);
-      }
+      case TokenValidationResult.Valid(DecodedJWT decodedJwt) -> processValidToken(decodedJwt);
       case TokenValidationResult.Expired ignored -> new AuthenticationResult.Expired();
       case TokenValidationResult.Invalid(String message) ->
           new AuthenticationResult.Invalid(message);
     };
+  }
+
+  private AuthenticationResult processValidToken(DecodedJWT decodedJwt) {
+    Long memberId = decodedJwt.getClaim("memberId").asLong();
+    Member member = findMemberById(memberId);
+
+    PullitAuthenticationToken authentication = createAuthenticationToken(decodedJwt, member);
+    return new AuthenticationResult.Success(authentication);
+  }
+
+  private PullitAuthenticationToken createAuthenticationToken(
+      DecodedJWT decodedJwt, Member member) {
+    Long memberId = decodedJwt.getClaim("memberId").asLong();
+    String email = decodedJwt.getClaim("email").asString();
+    List<SimpleGrantedAuthority> authorities =
+        Collections.singletonList(new SimpleGrantedAuthority(member.getRole().getKey()));
+
+    return new PullitAuthenticationToken(memberId, email, decodedJwt, authorities);
+  }
+
+  private Member findMemberById(Long memberId) {
+    return memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> MemberNotFoundException.byId(memberId));
   }
 }

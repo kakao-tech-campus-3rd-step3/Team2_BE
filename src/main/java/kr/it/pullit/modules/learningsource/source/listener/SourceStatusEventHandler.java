@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
@@ -18,7 +19,7 @@ public class SourceStatusEventHandler {
 
   private final SourceRepository sourceRepository;
 
-  @TransactionalEventListener
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void handleSourceExtractionStart(final SourceExtractionStartEvent event) {
     sourceRepository
@@ -30,7 +31,7 @@ public class SourceStatusEventHandler {
             });
   }
 
-  @TransactionalEventListener
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void handleSourceExtractionComplete(final SourceExtractionCompleteEvent event) {
     sourceRepository
@@ -42,7 +43,7 @@ public class SourceStatusEventHandler {
             });
   }
 
-  @TransactionalEventListener
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void handleSourceExtractionFailure(final SourceExtractionFailureEvent event) {
     sourceRepository

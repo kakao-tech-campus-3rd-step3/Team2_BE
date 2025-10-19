@@ -15,5 +15,7 @@ public interface JwtTokenProvider {
 
   TokenValidationResult validateToken(String token);
 
+  TokenValidationResult validateRefreshToken(String token);
+
   String resolveToken(HttpServletRequest request);
 }

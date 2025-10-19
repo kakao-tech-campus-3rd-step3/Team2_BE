@@ -51,16 +51,19 @@ public class TrueFalseQuestion extends Question {
    * @param questionDto LLM이 생성한 문제 응답
    * @return 생성된 OX 문제 엔티티
    */
-  public static TrueFalseQuestion createFromLlm(QuestionSet questionSet,
-      LlmGeneratedQuestionResponse questionDto) {
+  public static TrueFalseQuestion createFromLlm(
+      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
 
     validateNoOptions(questionDto);
     validateAnswer(questionDto);
 
-    TrueFalseQuestion question = TrueFalseQuestion.builder().questionSet(questionSet)
-        .questionText(questionDto.questionText())
-        .answer("true".equalsIgnoreCase(questionDto.answer()))
-        .explanation(questionDto.explanation()).build();
+    TrueFalseQuestion question =
+        TrueFalseQuestion.builder()
+            .questionSet(questionSet)
+            .questionText(questionDto.questionText())
+            .answer("true".equalsIgnoreCase(questionDto.answer()))
+            .explanation(questionDto.explanation())
+            .build();
 
     question.validate();
     return question;

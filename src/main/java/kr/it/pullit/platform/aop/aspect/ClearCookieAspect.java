@@ -7,7 +7,7 @@ import kr.it.pullit.platform.web.cookie.CookieManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class ClearCookieAspect {
 
   private final CookieManager cookieManager;
 
-  @After("@annotation(kr.it.pullit.platform.aop.annotation.ClearCookie)")
+  @AfterReturning("@annotation(kr.it.pullit.platform.aop.annotation.ClearCookie)")
   public void clearCookie(JoinPoint joinPoint) {
     log.info("쿠키 삭제 AOP 실행");
     ServletRequestAttributes attributes =
