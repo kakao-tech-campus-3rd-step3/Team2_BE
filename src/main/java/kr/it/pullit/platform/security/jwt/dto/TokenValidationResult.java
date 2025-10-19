@@ -3,13 +3,26 @@ package kr.it.pullit.platform.security.jwt.dto;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 public sealed interface TokenValidationResult {
-  default boolean isValid() {
-    return this instanceof Valid;
+  boolean isValid();
+
+  record Valid(DecodedJWT decodedJwt) implements TokenValidationResult {
+    @Override
+    public boolean isValid() {
+      return true;
+    }
   }
 
-  record Valid(DecodedJWT decodedJwt) implements TokenValidationResult {}
+  record Expired() implements TokenValidationResult {
+    @Override
+    public boolean isValid() {
+      return false;
+    }
+  }
 
-  record Expired() implements TokenValidationResult {}
-
-  record Invalid(String errorMessage) implements TokenValidationResult {}
+  record Invalid(String errorMessage) implements TokenValidationResult {
+    @Override
+    public boolean isValid() {
+      return false;
+    }
+  }
 }
