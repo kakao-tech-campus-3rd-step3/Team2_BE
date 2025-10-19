@@ -123,6 +123,11 @@ public class QuestionSet extends BaseEntity {
     source.getQuestionSets().add(this);
   }
 
+  /**
+   * 정책상 문제집은 학습소스에 의해 생성되지만, 학습소스가 삭제되더라도 문제집은 유지되어야 함
+   *
+   * @param source 삭제할 학습소스
+   */
   public void removeSource(Source source) {
     sources.remove(source);
     source.getQuestionSets().remove(this);
