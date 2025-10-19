@@ -2,6 +2,7 @@ package kr.it.pullit.platform.web;
 
 import java.time.Duration;
 import java.util.List;
+import kr.it.pullit.platform.web.resolver.NotNullAuthenticationPrincipalArgumentResolver;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,17 +12,19 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import kr.it.pullit.platform.web.resolver.NotNullAuthenticationPrincipalArgumentResolver;
 
 @Configuration
 @EnableConfigurationProperties(WebCorsProps.class)
 public class WebConfig implements WebMvcConfigurer {
 
   private final WebCorsProps props;
-  private final NotNullAuthenticationPrincipalArgumentResolver notNullAuthenticationPrincipalArgumentResolver;
+  private final NotNullAuthenticationPrincipalArgumentResolver
+      notNullAuthenticationPrincipalArgumentResolver;
 
-  public WebConfig(WebCorsProps props,
-      NotNullAuthenticationPrincipalArgumentResolver notNullAuthenticationPrincipalArgumentResolver) {
+  public WebConfig(
+      WebCorsProps props,
+      NotNullAuthenticationPrincipalArgumentResolver
+          notNullAuthenticationPrincipalArgumentResolver) {
     this.props = props;
     this.notNullAuthenticationPrincipalArgumentResolver =
         notNullAuthenticationPrincipalArgumentResolver;
