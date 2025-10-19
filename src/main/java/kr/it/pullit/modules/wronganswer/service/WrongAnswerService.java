@@ -15,6 +15,8 @@ import kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto;
 import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class WrongAnswerService implements WrongAnswerPublicApi {
 
   private final WrongAnswerRepository wrongAnswerRepository;
@@ -83,14 +86,29 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
 
     validateMemberExists(memberId);
     List<Question> questions = questionPublicApi.findEntitiesByIds(questionIds);
+    List<WrongAnswer> newWrongAnswers = filterNewWrongAnswers(memberId, questionIds, questions);
+    persistNewWrongAnswers(memberId, questionIds, newWrongAnswers);
+  }
+
+  private List<WrongAnswer> filterNewWrongAnswers(
+      Long memberId, List<Long> questionIds, List<Question> questions) {
     Set<Long> existingWrongAnswerQuestionIds =
         findExistingWrongAnswerQuestionIds(memberId, questionIds);
+    return createNewWrongAnswers(memberId, questions, existingWrongAnswerQuestionIds);
+  }
 
-    List<WrongAnswer> newWrongAnswers =
-        createNewWrongAnswers(memberId, questions, existingWrongAnswerQuestionIds);
-
-    if (!newWrongAnswers.isEmpty()) {
+  private void persistNewWrongAnswers(
+      Long memberId, List<Long> questionIds, List<WrongAnswer> newWrongAnswers) {
+    if (newWrongAnswers.isEmpty()) {
+      return;
+    }
+    try {
       wrongAnswerRepository.saveAll(newWrongAnswers);
+    } catch (DataIntegrityViolationException e) {
+      log.warn(
+          "오답 등록 중 동시성 충돌이 발생했습니다. 멱등성 보장을 위해 정상 처리합니다. memberId: {}, questionIds: {}",
+          memberId,
+          questionIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
     }
   }
 

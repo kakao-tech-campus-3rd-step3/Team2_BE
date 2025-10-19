@@ -6,16 +6,12 @@ import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
-import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.entity.ShortAnswerQuestion;
-import kr.it.pullit.modules.questionset.domain.entity.TrueFalseQuestion;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
-import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
-import kr.it.pullit.modules.questionset.exception.QuestionSetErrorCode;
+import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +30,7 @@ public class QuestionGenerationEventHandler {
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
   private final SourceValidator sourceValidator;
+  private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
 
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -105,14 +102,9 @@ public class QuestionGenerationEventHandler {
   private Question createQuestion(
       QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
 
-    return switch (questionSet.getType()) {
-      case MULTIPLE_CHOICE -> MultipleChoiceQuestion.createFromLlm(questionSet, questionDto);
-      case TRUE_FALSE -> TrueFalseQuestion.createFromLlm(questionSet, questionDto);
-      case SHORT_ANSWER -> ShortAnswerQuestion.createFromLlm(questionSet, questionDto);
-      default ->
-          throw new InvalidQuestionException(
-              QuestionSetErrorCode.UNSUPPORTED_QUESTION_TYPE, questionSet.getType().name());
-    };
+    return questionCreationStrategyFactory
+        .getStrategy(questionSet.getType())
+        .create(questionSet, questionDto);
   }
 
   private void handleSuccess(QuestionSetCreatedEvent event) {

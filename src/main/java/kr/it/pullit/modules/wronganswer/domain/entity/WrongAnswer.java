@@ -9,13 +9,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "wrong_answer")
+@Table(
+    name = "wrong_answer",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"member_id", "question_id"})})
 @Getter
 @NoArgsConstructor
 public class WrongAnswer extends BaseEntity {
