@@ -7,6 +7,8 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.ShortAnswerQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.TrueFalseQuestion;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetErrorCode;
 import lombok.Builder;
 
 @Builder
@@ -24,21 +26,14 @@ public record QuestionResponse(
   }
 
   private static QuestionResponse createResponseByType(Question question) {
-    if (question instanceof MultipleChoiceQuestion mcq) {
-      return fromMultipleChoiceQuestion(mcq);
-    }
-
-    if (question instanceof TrueFalseQuestion tfq) {
-      return fromTrueFalseQuestion(tfq);
-    }
-
-    if (question instanceof ShortAnswerQuestion saq) {
-      return fromShortAnswerQuestion(saq);
-    }
-
-    // TODO: 추후 예외 처리.
-    throw new IllegalStateException(
-        "Unknown question type: " + question.getClass().getSimpleName());
+    return switch (question) {
+      case MultipleChoiceQuestion mcq -> fromMultipleChoiceQuestion(mcq);
+      case TrueFalseQuestion tfq -> fromTrueFalseQuestion(tfq);
+      case ShortAnswerQuestion saq -> fromShortAnswerQuestion(saq);
+      default ->
+          throw new InvalidQuestionException(
+              QuestionSetErrorCode.UNSUPPORTED_QUESTION_TYPE, question.getClass().getSimpleName());
+    };
   }
 
   private static QuestionResponse fromMultipleChoiceQuestion(MultipleChoiceQuestion mcq) {
