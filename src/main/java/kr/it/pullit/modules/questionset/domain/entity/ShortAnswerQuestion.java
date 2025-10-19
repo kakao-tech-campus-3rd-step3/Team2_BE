@@ -52,18 +52,14 @@ public class ShortAnswerQuestion extends Question {
    * @param questionDto LLM이 생성한 문제 응답
    * @return 생성된 단답형 문제 엔티티
    */
-  public static ShortAnswerQuestion createFromLlm(
-      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
+  public static ShortAnswerQuestion createFromLlm(QuestionSet questionSet,
+      LlmGeneratedQuestionResponse questionDto) {
 
     validateNoOptions(questionDto);
 
-    ShortAnswerQuestion question =
-        ShortAnswerQuestion.builder()
-            .questionSet(questionSet)
-            .questionText(questionDto.questionText())
-            .answer(questionDto.answer())
-            .explanation(questionDto.explanation())
-            .build();
+    ShortAnswerQuestion question = ShortAnswerQuestion.builder().questionSet(questionSet)
+        .questionText(questionDto.questionText()).answer(questionDto.answer())
+        .explanation(questionDto.explanation()).build();
 
     question.validate();
     return question;
