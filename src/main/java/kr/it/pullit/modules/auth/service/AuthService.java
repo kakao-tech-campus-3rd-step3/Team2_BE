@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
   private final MemberPublicApi memberPublicApi;
-  private final JwtTokenProvider jwtTokenPort;
+  private final JwtTokenProvider jwtTokenProvider;
 
   @Transactional
   public AuthTokens issueAndSaveTokens(Long memberId) {
@@ -27,7 +27,7 @@ public class AuthService {
             .findById(memberId)
             .orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    AuthTokens newAuthTokens = jwtTokenPort.createAuthTokens(TokenCreationSubject.from(member));
+    AuthTokens newAuthTokens = jwtTokenProvider.createAuthTokens(TokenCreationSubject.from(member));
     member.updateRefreshToken(newAuthTokens.refreshToken());
 
     log.info(" [토큰 발급] DB에 저장된 리프레시 토큰: {}", newAuthTokens.refreshToken());
@@ -45,7 +45,7 @@ public class AuthService {
             .findByRefreshToken(refreshToken)
             .orElseThrow(InvalidRefreshTokenException::by);
 
-    return jwtTokenPort.createAccessToken(TokenCreationSubject.from(member));
+    return jwtTokenProvider.createAccessToken(TokenCreationSubject.from(member));
   }
 
   @Transactional
@@ -58,7 +58,7 @@ public class AuthService {
   }
 
   private void validateRefreshToken(String refreshToken) {
-    if (!jwtTokenPort.validateToken(refreshToken).isValid()) {
+    if (!jwtTokenProvider.validateRefreshToken(refreshToken).isValid()) {
       throw InvalidRefreshTokenException.by();
     }
   }

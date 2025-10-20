@@ -76,7 +76,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
   }
 
   @Override
-  public TokenValidationResult validateToken(String token) {
+  public TokenValidationResult validateAccessToken(String token) {
     return validateTokenInternal(token, TOKEN_TYPE_ACCESS, "액세스 토큰이 아닙니다.");
   }
 
