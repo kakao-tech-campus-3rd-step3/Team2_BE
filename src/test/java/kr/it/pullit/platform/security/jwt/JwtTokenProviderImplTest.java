@@ -40,7 +40,7 @@ class JwtTokenProviderImplTest {
 
     // when
     String accessToken = jwtTokenProviderImpl.createAccessToken(subject);
-    TokenValidationResult result = jwtTokenProviderImpl.validateToken(accessToken);
+    TokenValidationResult result = jwtTokenProviderImpl.validateAccessToken(accessToken);
 
     // then
     assertThat(result).isInstanceOf(TokenValidationResult.Valid.class);
@@ -68,7 +68,7 @@ class JwtTokenProviderImplTest {
     String expiredToken = expiredTokenProvider.createAccessToken(subject);
 
     // when
-    TokenValidationResult result = jwtTokenProviderImpl.validateToken(expiredToken);
+    TokenValidationResult result = jwtTokenProviderImpl.validateAccessToken(expiredToken);
 
     // then
     assertThat(result).isInstanceOf(TokenValidationResult.Expired.class);
@@ -81,7 +81,7 @@ class JwtTokenProviderImplTest {
     String invalidToken = "invalid-token";
 
     // when
-    TokenValidationResult result = jwtTokenProviderImpl.validateToken(invalidToken);
+    TokenValidationResult result = jwtTokenProviderImpl.validateAccessToken(invalidToken);
 
     // then
     assertThat(result).isInstanceOf(TokenValidationResult.Invalid.class);

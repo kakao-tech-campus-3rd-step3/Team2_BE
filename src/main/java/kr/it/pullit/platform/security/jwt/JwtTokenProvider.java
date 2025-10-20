@@ -13,7 +13,7 @@ public interface JwtTokenProvider {
 
   String createRefreshToken(TokenCreationSubject subject);
 
-  TokenValidationResult validateToken(String token);
+  TokenValidationResult validateAccessToken(String token);
 
   TokenValidationResult validateRefreshToken(String token);
 
