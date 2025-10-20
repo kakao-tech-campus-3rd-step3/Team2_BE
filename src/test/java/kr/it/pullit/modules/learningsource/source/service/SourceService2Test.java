@@ -1,11 +1,5 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.support.annotation.IntegrationTest;
@@ -13,13 +7,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 @ActiveProfiles({"mock-auth", "real-env"})
 @IntegrationTest
 public class SourceService2Test {
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-  @Autowired private SourcePublicApi sourcePublicApi;
+  @Autowired
+  private SourcePublicApi sourcePublicApi;
 
   @Test
   void shouldGenerateUploadUrlSuccessfullyForPdfFile() {
@@ -52,7 +54,7 @@ public class SourceService2Test {
 
     // when & then
     assertThatThrownBy(
-            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("PDF 파일만 업로드 가능합니다.");
   }
@@ -124,7 +126,7 @@ public class SourceService2Test {
 
     // when & then
     assertThatThrownBy(
-            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("유효하지 않은 파일 크기입니다.");
   }
@@ -139,7 +141,7 @@ public class SourceService2Test {
 
     // when & then
     assertThatThrownBy(
-            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
   }
@@ -210,16 +212,16 @@ public class SourceService2Test {
     boolean uploadSuccess = uploadFileToS3(uploadUrl, testFileContent, contentType);
     assertThat(uploadSuccess).isTrue();
 
-    System.out.println("✅ 파일이 S3에 업로드되었습니다!");
-    System.out.println("📁 파일 경로: " + filePath);
-    System.out.println("🌐 업로드 URL: " + uploadUrl);
+    System.out.println("파일이 S3에 업로드되었습니다!");
+    System.out.println("파일 경로: " + filePath);
+    System.out.println("업로드 URL: " + uploadUrl);
   }
 
   private boolean uploadFileToS3(String presignedUrl, byte[] fileContent, String contentType) {
     try {
-      System.out.println("🔄 S3 업로드 시도 중...");
-      System.out.println("📎 Content-Type: " + contentType);
-      System.out.println("📦 File Size: " + fileContent.length + " bytes");
+      System.out.println("S3 업로드 시도 중...");
+      System.out.println("Content-Type: " + contentType);
+      System.out.println("File Size: " + fileContent.length + " bytes");
       System.out.println(
           "🌐 URL: " + presignedUrl.substring(0, Math.min(presignedUrl.length(), 100)) + "...");
 
@@ -233,19 +235,19 @@ public class SourceService2Test {
       HttpResponse<String> response =
           HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
-      System.out.println("📊 HTTP Status: " + response.statusCode());
-      System.out.println("📋 Response Headers: " + response.headers().map());
-      System.out.println("📄 Response Body: " + response.body());
+      System.out.println("HTTP Status: " + response.statusCode());
+      System.out.println("Response Headers: " + response.headers().map());
+      System.out.println("Response Body: " + response.body());
 
       if (response.statusCode() == 200) {
-        System.out.println("✅ S3 업로드 성공!");
+        System.out.println("S3 업로드 성공!");
         return true;
       } else {
-        System.err.println("❌ S3 업로드 실패 - HTTP " + response.statusCode());
+        System.err.println("S3 업로드 실패 - HTTP " + response.statusCode());
         return false;
       }
     } catch (Exception e) {
-      System.err.println("❌ S3 업로드 예외 발생: " + e.getMessage());
+      System.err.println("S3 업로드 예외 발생: " + e.getMessage());
       return false;
     }
   }
