@@ -3,15 +3,17 @@ package kr.it.pullit.modules.commonfolder.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
+import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
-import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderRequest;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
+import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +23,8 @@ public class CommonFolderService implements CommonFolderPublicApi {
   private final CommonFolderRepository commonFolderRepository;
 
   @Override
-  public List<CommonFolderResponse> getQuestionSetFolders() {
-    List<CommonFolder> folders =
-        commonFolderRepository.findByTypeOrderBySortOrderAsc(CommonFolderType.QUESTION_SET);
+  public List<CommonFolderResponse> getFolders(CommonFolderType type) {
+    List<CommonFolder> folders = commonFolderRepository.findByTypeOrderBySortOrderAsc(type);
     return folders.stream().map(this::toDto).collect(Collectors.toList());
   }
 
@@ -37,8 +38,8 @@ public class CommonFolderService implements CommonFolderPublicApi {
 
   @Override
   @Transactional
-  public CommonFolderResponse createQuestionSetFolder(CommonFolderRequest request) {
-    CommonFolder folder = createNewFolder(request.name(), CommonFolderType.QUESTION_SET);
+  public CommonFolderResponse createFolder(QuestionSetFolderRequest request) {
+    CommonFolder folder = createNewFolder(request.name(), request.type());
     return toDto(folder);
   }
 
@@ -49,10 +50,8 @@ public class CommonFolderService implements CommonFolderPublicApi {
   }
 
   private int calculateNextSortOrder(CommonFolderType type) {
-    return commonFolderRepository
-        .findFirstByTypeOrderBySortOrderDesc(type)
-        .map(folder -> folder.getSortOrder() + 1)
-        .orElse(0);
+    return commonFolderRepository.findFirstByTypeOrderBySortOrderDesc(type)
+        .map(folder -> folder.getSortOrder() + 1).orElse(0);
   }
 
   @Override
@@ -68,8 +67,13 @@ public class CommonFolderService implements CommonFolderPublicApi {
 
   @Override
   @Transactional
-  public CommonFolderResponse updateFolder(Long id, CommonFolderRequest request) {
+  public CommonFolderResponse updateFolder(Long id, QuestionSetFolderRequest request) {
     CommonFolder folder = findFolderById(id);
+
+    if (folder.getName().equals(CommonFolder.DEFAULT_NAME)) {
+      throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER);
+    }
+
     folder.update(request.name());
     return toDto(commonFolderRepository.save(folder));
   }
@@ -81,13 +85,12 @@ public class CommonFolderService implements CommonFolderPublicApi {
   }
 
   private CommonFolder findFolderById(Long id) {
-    return commonFolderRepository
-        .findById(id)
+    return commonFolderRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
   }
 
   private CommonFolderResponse toDto(CommonFolder folder) {
-    return new CommonFolderResponse(
-        folder.getId(), folder.getName(), folder.getType(), folder.getSortOrder());
+    return new CommonFolderResponse(folder.getId(), folder.getName(), folder.getType(),
+        folder.getSortOrder());
   }
 }

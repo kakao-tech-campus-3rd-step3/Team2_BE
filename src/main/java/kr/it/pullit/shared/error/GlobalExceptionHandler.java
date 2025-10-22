@@ -1,9 +1,5 @@
 package kr.it.pullit.shared.error;
 
-import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
-import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
-import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +7,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
+import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestControllerAdvice
@@ -53,8 +53,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return problemDetail;
   }
 
-  private ResponseEntity<ProblemDetail> createProblemDetailResponse(
-      ErrorCode errorCode, String message) {
+  private ResponseEntity<ProblemDetail> createProblemDetailResponse(ErrorCode errorCode,
+      String message) {
     log.warn("BusinessException: code={}, message={}", errorCode.getCode(), message);
 
     ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(errorCode.getStatus(), message);

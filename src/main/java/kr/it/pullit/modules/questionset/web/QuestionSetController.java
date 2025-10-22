@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -120,7 +119,7 @@ public class QuestionSetController {
    * @param request 문제집 폴더 수정 요청
    * @return 200 OK
    */
-  @PutMapping("/{id}/folder")
+  @PatchMapping("/{id}/folder")
   public ResponseEntity<Void> updateQuestionSetFolder(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
