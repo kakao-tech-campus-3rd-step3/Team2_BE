@@ -25,7 +25,7 @@ public class QuestionSetResponse {
 
   public QuestionSetResponse(QuestionSet questionSet) {
     this.id = questionSet.getId();
-    this.ownerID = questionSet.getOwner().getId();
+    this.ownerID = questionSet.getOwnerId();
     this.title = questionSet.getTitle();
     this.difficulty = questionSet.getDifficulty();
     this.type = questionSet.getType();

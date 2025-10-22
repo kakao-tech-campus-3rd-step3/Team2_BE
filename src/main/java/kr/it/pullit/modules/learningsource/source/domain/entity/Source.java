@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.Set;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
@@ -36,9 +35,8 @@ public class Source extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "member_id", nullable = false)
-  private Member member;
+  @Column(name = "member_id", nullable = false)
+  private Long memberId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "source_folder_id")
@@ -65,14 +63,14 @@ public class Source extends BaseEntity {
   @SuppressWarnings("unused")
   @Builder(access = AccessLevel.PRIVATE)
   private Source(
-      Member member,
+      Long memberId,
       SourceFolder sourceFolder,
       String originalName,
       String contentType,
       String filePath,
       Long fileSizeBytes,
       SourceStatus status) {
-    this.member = member;
+    this.memberId = memberId;
     this.sourceFolder = sourceFolder;
     this.originalName = originalName;
     this.contentType = contentType;
@@ -81,9 +79,9 @@ public class Source extends BaseEntity {
     this.status = status != null ? status : SourceStatus.UPLOADED;
   }
 
-  public static Source create(SourceCreationParam param, Member member, SourceFolder sourceFolder) {
+  public static Source create(SourceCreationParam param, Long memberId, SourceFolder sourceFolder) {
     return Source.builder()
-        .member(member)
+        .memberId(memberId)
         .sourceFolder(sourceFolder)
         .originalName(param.originalName())
         .filePath(param.filePath())
