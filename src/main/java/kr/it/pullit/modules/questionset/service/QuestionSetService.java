@@ -63,7 +63,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private QuestionSetResponse getQuestionSetForFirstSolving(Long id, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findByIdWithQuestionsForFirstSolving(id, memberId)
+            .findWithQuestionsForFirstSolving(id, memberId)
             .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
 
     return QuestionSetResponse.from(questionSet);
@@ -227,9 +227,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   public void deleteAllByFolderId(Long folderId) {
     List<QuestionSet> questionSetsToDelete =
         questionSetRepository.findAllByCommonFolderId(folderId);
-    if (!questionSetsToDelete.isEmpty()) {
-      questionSetRepository.deleteAll(questionSetsToDelete);
-    }
+    List<Long> questionSetIds = questionSetsToDelete.stream().map(QuestionSet::getId).toList();
+    questionSetRepository.deleteAllByIds(questionSetIds);
   }
 
   @Override
@@ -244,13 +243,18 @@ public class QuestionSetService implements QuestionSetPublicApi {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 
-    questionSetRepository.delete(questionSet);
+    questionSetRepository.deleteById(questionSet.getId());
   }
 
   @Override
   @Transactional(readOnly = true)
   public Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId) {
-    return questionSetRepository.findByIdWithoutQuestions(id, memberId);
+    return questionSetRepository.findWithoutQuestions(id, memberId);
+  }
+
+  @Override
+  public List<QuestionSet> findCompletedEntitiesByMemberId(Long memberId) {
+    return questionSetRepository.findCompletedByMemberId(memberId);
   }
 
   private QuestionSet findQuestionSetOrThrow(Long questionSetId) {

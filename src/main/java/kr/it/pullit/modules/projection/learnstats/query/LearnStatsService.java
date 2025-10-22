@@ -1,10 +1,8 @@
 package kr.it.pullit.modules.projection.learnstats.query;
 
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class LearnStatsService {
-
-}
+public class LearnStatsService {}

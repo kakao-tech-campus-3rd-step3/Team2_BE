@@ -39,8 +39,7 @@ class LearnStatsServiceTest {
       // given
       Long memberId = 1L;
       LearnStats existingProjection = LearnStats.newOf(memberId);
-      given(learnStatsRepository.findById(memberId))
-          .willReturn(Optional.of(existingProjection));
+      given(learnStatsRepository.findById(memberId)).willReturn(Optional.of(existingProjection));
 
       // when
       sut.applyWeeklyReset(memberId);
@@ -75,8 +74,7 @@ class LearnStatsServiceTest {
       Long memberId = 1L;
       int questionCount = 10;
       LearnStats existingProjection = LearnStats.newOf(memberId);
-      given(learnStatsRepository.findById(memberId))
-          .willReturn(Optional.of(existingProjection));
+      given(learnStatsRepository.findById(memberId)).willReturn(Optional.of(existingProjection));
 
       // when
       sut.applyQuestionSetSolved(memberId, questionCount);

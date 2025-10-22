@@ -1,11 +1,12 @@
 package kr.it.pullit.modules.projection.learnstats.domain;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
@@ -61,6 +62,10 @@ public class LearnStats extends BaseEntity {
     this.totalSolvedQuestionCount += solvedQuestionCount;
     this.weeklySolvedQuestionCount += solvedQuestionCount;
     updateConsecutiveStreak(today);
+  }
+
+  public void updateTotalSolvedQuestionCount(long realCount) {
+    this.totalSolvedQuestionCount = realCount;
   }
 
   private void updateConsecutiveStreak(LocalDate today) {

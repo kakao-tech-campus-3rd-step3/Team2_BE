@@ -15,8 +15,7 @@ public class LearnStatsEventDispatcher {
   private final LearnStatsService projectionService;
   private final ObjectMapper objectMapper;
 
-  public LearnStatsEventDispatcher(
-      LearnStatsService projectionService, ObjectMapper objectMapper) {
+  public LearnStatsEventDispatcher(LearnStatsService projectionService, ObjectMapper objectMapper) {
     this.projectionService = projectionService;
     this.objectMapper = objectMapper;
   }

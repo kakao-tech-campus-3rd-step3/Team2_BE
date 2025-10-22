@@ -38,5 +38,4 @@ public class LearnStatsDailyService implements LearnStatsDailyPublicApi {
         .map(stat -> new DailyStatsResponse(stat.getActivityDate(), stat.getSolvedQuestionCount()))
         .toList();
   }
-
 }

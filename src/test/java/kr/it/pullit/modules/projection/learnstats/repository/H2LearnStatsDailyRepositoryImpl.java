@@ -15,8 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class H2LearnStatsDailyRepositoryImpl implements LearnStatsDailyRepository {
 
-  @PersistenceContext
-  private final EntityManager em;
+  @PersistenceContext private final EntityManager em;
 
   private final LearnStatsDailyJpaRepository jpaRepository;
 
@@ -47,8 +46,8 @@ public class H2LearnStatsDailyRepositoryImpl implements LearnStatsDailyRepositor
   }
 
   @Override
-  public List<LearnStatsDaily> findByMemberIdAndActivityDateBetween(Long memberId, LocalDate from,
-      LocalDate to) {
+  public List<LearnStatsDaily> findByMemberIdAndActivityDateBetween(
+      Long memberId, LocalDate from, LocalDate to) {
     return jpaRepository.findByMemberIdAndActivityDateBetween(memberId, from, to);
   }
 }

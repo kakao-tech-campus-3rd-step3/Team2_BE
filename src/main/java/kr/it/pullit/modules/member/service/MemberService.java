@@ -1,10 +1,6 @@
 package kr.it.pullit.modules.member.service;
 
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
@@ -12,6 +8,10 @@ import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -55,6 +55,11 @@ public class MemberService implements MemberPublicApi {
   }
 
   @Override
+  public Page<Member> findAll(Pageable pageable) {
+    return memberRepository.findAll(pageable);
+  }
+
+  @Override
   public Member save(Member member) {
     return memberRepository.save(member);
   }
@@ -72,15 +77,8 @@ public class MemberService implements MemberPublicApi {
 
   @Override
   public void revokeAdminRole(Long memberId) {
-    Member member =
-        memberRepository.findById(memberId).orElseThrow(() -> new MemberNotFoundException(memberId));
-    member.revokeAdminRole();
-    memberRepository.save(member);
-  }
-
-  @Override
-  public Page<Member> findAll(Pageable pageable) {
-    return memberRepository.findAll(pageable);
+    Member member = findMemberOrThrow(memberId);
+    member.revokeAdmin();
   }
 
   private Optional<Member> updateExistingKakaoMember(Member member, SocialLoginCommand command) {

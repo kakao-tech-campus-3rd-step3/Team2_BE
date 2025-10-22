@@ -14,20 +14,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class LearnStatsResponse {
 
-  @PositiveOrZero
-  private int totalQuestionSetCount; // 총 문제집 수
+  @PositiveOrZero private int totalQuestionSetCount; // 총 문제집 수
 
-  @PositiveOrZero
-  private int totalSolvedQuestionSetCount; // 완료한 문제집 수
+  @PositiveOrZero private int totalSolvedQuestionSetCount; // 완료한 문제집 수
 
-  @PositiveOrZero
-  private long totalSolvedQuestionCount; // 총 푼 문제 수
+  @PositiveOrZero private long totalSolvedQuestionCount; // 총 푼 문제 수
 
-  @PositiveOrZero
-  private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
+  @PositiveOrZero private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
 
-  @PositiveOrZero
-  private int consecutiveLearningDays; // 연속 학습일
+  @PositiveOrZero private int consecutiveLearningDays; // 연속 학습일
 
   public static LearnStatsResponse of(LearnStats p, int totalQuestionSetCount) {
     if (p == null) {
