@@ -1,7 +1,16 @@
 package kr.it.pullit.modules.commonfolder.web;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
+import kr.it.pullit.modules.commonfolder.api.FolderFacade;
+import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
+import kr.it.pullit.modules.commonfolder.web.dto.FolderDeleteWarningResponse;
+import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,15 +21,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
-import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
-import kr.it.pullit.modules.commonfolder.api.FolderFacade;
-import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderRequest;
-import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.FolderDeleteWarningResponse;
-import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
@@ -60,8 +60,8 @@ public class CommonFolderController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<CommonFolderResponse> updateFolder(@PathVariable Long id,
-      @Valid @RequestBody CommonFolderRequest request) {
+  public ResponseEntity<CommonFolderResponse> updateFolder(
+      @PathVariable Long id, @Valid @RequestBody CommonFolderRequest request) {
     return ResponseEntity.ok(commonFolderPublicApi.updateFolder(id, request));
   }
 

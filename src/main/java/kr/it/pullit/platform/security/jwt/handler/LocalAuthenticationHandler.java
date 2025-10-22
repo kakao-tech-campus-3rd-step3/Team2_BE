@@ -1,12 +1,12 @@
 package kr.it.pullit.platform.security.jwt.handler;
 
+import jakarta.servlet.http.HttpServletRequest;
+import kr.it.pullit.modules.member.domain.entity.Role;
+import kr.it.pullit.platform.security.jwt.PullitAuthenticationToken;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import jakarta.servlet.http.HttpServletRequest;
-import kr.it.pullit.modules.member.domain.entity.Role;
-import kr.it.pullit.platform.security.jwt.PullitAuthenticationToken;
 
 @Profile("local")
 @Component
@@ -20,8 +20,9 @@ public class LocalAuthenticationHandler {
 
     if (shouldApplyDevAuthentication(authorizationHeader)) {
       SecurityContext context = SecurityContextHolder.createEmptyContext();
-      PullitAuthenticationToken token = new PullitAuthenticationToken(DEFAULT_MEMBER_ID,
-          DEFAULT_MEMBER_EMAIL, null, Role.MEMBER.getAuthorities());
+      PullitAuthenticationToken token =
+          new PullitAuthenticationToken(
+              DEFAULT_MEMBER_ID, DEFAULT_MEMBER_EMAIL, null, Role.MEMBER.getAuthorities());
       context.setAuthentication(token);
       SecurityContextHolder.setContext(context);
     }

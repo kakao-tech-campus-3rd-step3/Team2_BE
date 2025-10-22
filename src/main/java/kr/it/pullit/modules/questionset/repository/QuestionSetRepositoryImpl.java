@@ -2,12 +2,12 @@ package kr.it.pullit.modules.questionset.repository;
 
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -51,9 +51,10 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id,
-      Long memberId) {
-    return questionSetJpaRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(
+      Long id, Long memberId) {
+    return questionSetJpaRepository
+        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
         .map(QuestionSetResponse::new);
   }
 

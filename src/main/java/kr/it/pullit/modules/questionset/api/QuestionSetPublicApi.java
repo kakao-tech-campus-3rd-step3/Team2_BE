@@ -30,8 +30,8 @@ public interface QuestionSetPublicApi {
 
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
-  CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId, Long cursor,
-      int size);
+  CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
+      Long memberId, Long cursor, int size);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
 
