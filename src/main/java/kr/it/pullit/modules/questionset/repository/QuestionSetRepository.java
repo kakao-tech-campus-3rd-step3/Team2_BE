@@ -18,11 +18,20 @@ public interface QuestionSetRepository {
 
   List<QuestionSet> findByMemberId(Long memberId);
 
-  List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable);
+  List<QuestionSet> findByMemberIdAndCommonFolderId(Long memberId, Long commonFolderId);
+
+  List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
+
+  long countByCommonFolderId(Long commonFolderId);
+
+  List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
+      Long memberId, Long folderId, Long cursor, Pageable pageable);
 
   QuestionSet save(QuestionSet questionSet);
 
   void delete(QuestionSet questionSet);
+
+  void deleteAll(List<QuestionSet> questionSets);
 
   Optional<QuestionSet> findQuestionSetForReviewing(Long questionSetId, Long memberId);
 

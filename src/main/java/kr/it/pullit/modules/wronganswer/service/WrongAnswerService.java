@@ -134,11 +134,12 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
 
   @Override
   public void markAsCorrectAnswers(Long memberId, List<Long> questionIds) {
-    for (Long questionId : questionIds) {
-      WrongAnswer wrongAnswer =
-          wrongAnswerRepository
-              .findByMemberIdAndQuestionId(memberId, questionId)
-              .orElseThrow(() -> new IllegalArgumentException("Wrong answer not found"));
+    if (questionIds == null || questionIds.isEmpty()) {
+      return;
+    }
+    List<WrongAnswer> wrongAnswers =
+        wrongAnswerRepository.findByMemberIdAndQuestionIdIn(memberId, questionIds);
+    for (WrongAnswer wrongAnswer : wrongAnswers) {
       wrongAnswer.markAsReviewed();
     }
   }

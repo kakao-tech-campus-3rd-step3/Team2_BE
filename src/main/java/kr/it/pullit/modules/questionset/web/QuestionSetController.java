@@ -58,8 +58,10 @@ public class QuestionSetController {
   public ResponseEntity<CursorPageResponse<MyQuestionSetsResponse>> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId,
       @RequestParam(required = false) Long cursor,
-      @RequestParam(defaultValue = "10") int size) {
-    return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size));
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(required = false) Long folderId) {
+    return ResponseEntity.ok(
+        questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId));
   }
 
   @GetMapping("/all")
@@ -91,22 +93,20 @@ public class QuestionSetController {
     return ResponseEntity.created(location).build();
   }
 
-  // TODO: 수정기능이 타이틀만 수정하는 기능임. 명칭오해가 없도록 해야함.
-
   /**
-   * 문제집을 수정하는 API
+   * 문제집을 수정하는 API (제목, 폴더 등)
    *
    * @param memberId 회원 ID
    * @param id 문제집 ID
-   * @param questionSetUpdateRequestDto 문제집 수정 요청
-   * @return 문제집 수정 응답
+   * @param request 문제집 수정 요청
+   * @return 200 OK
    */
   @PatchMapping("/{id}")
   public ResponseEntity<Void> updateQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
-      @Valid @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
-    questionSetPublicApi.updateTitle(id, questionSetUpdateRequestDto.title(), memberId);
+      @Valid @RequestBody QuestionSetUpdateRequestDto request) {
+    questionSetPublicApi.update(id, request, memberId);
     return ResponseEntity.ok().build();
   }
 

@@ -12,6 +12,7 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecific
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +50,16 @@ public class QuestionGenerationEventHandler {
     QuestionGenerationRequest request = createGenerationRequest(event);
     LlmGeneratedQuestionSetResponse response = questionPublicApi.generateQuestions(request);
 
-    questionSetPublicApi.updateTitle(event.questionSetId(), response.title());
+    questionSetPublicApi.update(
+        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
     saveQuestions(event.questionSetId(), event.ownerId(), response.questions());
 
     questionSetPublicApi.markAsComplete(event.questionSetId());
+  }
+
+  private static QuestionSetUpdateRequestDto toQuestionSetUpdateRequestDto(
+      LlmGeneratedQuestionSetResponse response) {
+    return QuestionSetUpdateRequestDto.builder().title(response.title()).build();
   }
 
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
