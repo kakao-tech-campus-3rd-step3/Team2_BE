@@ -20,12 +20,14 @@ public class QuestionSetResponse {
   private final DifficultyType difficulty;
   private final QuestionType type;
   private final Integer questionLength;
+  private final Long commonFolderId;
+  private final String commonFolderName;
   private final LocalDateTime createTime;
   private final LocalDateTime updateTime;
 
   public QuestionSetResponse(QuestionSet questionSet) {
     this.id = questionSet.getId();
-    this.ownerID = questionSet.getOwner().getId();
+    this.ownerID = questionSet.getOwnerId();
     this.title = questionSet.getTitle();
     this.difficulty = questionSet.getDifficulty();
     this.type = questionSet.getType();
@@ -38,6 +40,13 @@ public class QuestionSetResponse {
             .collect(Collectors.toList());
     this.sourceIds =
         questionSet.getSources().stream().map(Source::getId).collect(Collectors.toList());
+    if (questionSet.getCommonFolder() != null) {
+      this.commonFolderId = questionSet.getCommonFolder().getId();
+      this.commonFolderName = questionSet.getCommonFolder().getName();
+    } else {
+      this.commonFolderId = null;
+      this.commonFolderName = null;
+    }
   }
 
   public static QuestionSetResponse from(QuestionSet questionSet) {

@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -16,6 +15,8 @@ import kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto;
 import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class WrongAnswerService implements WrongAnswerPublicApi {
 
   private final WrongAnswerRepository wrongAnswerRepository;
@@ -82,21 +84,36 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
       return;
     }
 
-    Member member = findMemberById(memberId);
+    validateMemberExists(memberId);
     List<Question> questions = questionPublicApi.findEntitiesByIds(questionIds);
+    List<WrongAnswer> newWrongAnswers = filterNewWrongAnswers(memberId, questionIds, questions);
+    persistNewWrongAnswers(memberId, questionIds, newWrongAnswers);
+  }
+
+  private List<WrongAnswer> filterNewWrongAnswers(
+      Long memberId, List<Long> questionIds, List<Question> questions) {
     Set<Long> existingWrongAnswerQuestionIds =
         findExistingWrongAnswerQuestionIds(memberId, questionIds);
+    return createNewWrongAnswers(memberId, questions, existingWrongAnswerQuestionIds);
+  }
 
-    List<WrongAnswer> newWrongAnswers =
-        createNewWrongAnswers(member, questions, existingWrongAnswerQuestionIds);
-
-    if (!newWrongAnswers.isEmpty()) {
+  private void persistNewWrongAnswers(
+      Long memberId, List<Long> questionIds, List<WrongAnswer> newWrongAnswers) {
+    if (newWrongAnswers.isEmpty()) {
+      return;
+    }
+    try {
       wrongAnswerRepository.saveAll(newWrongAnswers);
+    } catch (DataIntegrityViolationException e) {
+      log.warn(
+          "오답 등록 중 동시성 충돌이 발생했습니다. 멱등성 보장을 위해 정상 처리합니다. memberId: {}, questionIds: {}",
+          memberId,
+          questionIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
     }
   }
 
-  private Member findMemberById(Long memberId) {
-    return memberPublicApi
+  private void validateMemberExists(Long memberId) {
+    memberPublicApi
         .findById(memberId)
         .orElseThrow(() -> new IllegalArgumentException("요청한 회원 ID를 찾을 수 없습니다: " + memberId));
   }
@@ -108,20 +125,21 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
   }
 
   private List<WrongAnswer> createNewWrongAnswers(
-      Member member, List<Question> questions, Set<Long> existingIds) {
+      Long memberId, List<Question> questions, Set<Long> existingIds) {
     return questions.stream()
         .filter(question -> !existingIds.contains(question.getId()))
-        .map(question -> new WrongAnswer(member, question))
+        .map(question -> WrongAnswer.create(memberId, question))
         .collect(Collectors.toList());
   }
 
   @Override
   public void markAsCorrectAnswers(Long memberId, List<Long> questionIds) {
-    for (Long questionId : questionIds) {
-      WrongAnswer wrongAnswer =
-          wrongAnswerRepository
-              .findByMemberIdAndQuestionId(memberId, questionId)
-              .orElseThrow(() -> new IllegalArgumentException("Wrong answer not found"));
+    if (questionIds == null || questionIds.isEmpty()) {
+      return;
+    }
+    List<WrongAnswer> wrongAnswers =
+        wrongAnswerRepository.findByMemberIdAndQuestionIdIn(memberId, questionIds);
+    for (WrongAnswer wrongAnswer : wrongAnswers) {
       wrongAnswer.markAsReviewed();
     }
   }

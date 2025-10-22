@@ -1,0 +1,16 @@
+package kr.it.pullit.modules.commonfolder.repository;
+
+import java.util.List;
+import java.util.Optional;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CommonFolderRepository extends JpaRepository<CommonFolder, Long> {
+
+  List<CommonFolder> findByTypeOrderBySortOrderAsc(CommonFolderType type);
+
+  Optional<CommonFolder> findFirstByTypeOrderBySortOrderDesc(CommonFolderType type);
+
+  Optional<CommonFolder> findByNameAndType(String name, CommonFolderType type);
+}

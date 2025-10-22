@@ -13,10 +13,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @UnitTest
-@DisplayName("JwtTokenProvider 단위 테스트")
-class JwtTokenProviderTest {
+@DisplayName("JwtTokenProviderImpl 단위 테스트")
+class JwtTokenProviderImplTest {
 
-  private JwtTokenProvider jwtTokenProvider;
+  private JwtTokenProviderImpl jwtTokenProviderImpl;
 
   @BeforeEach
   void setUp() {
@@ -29,7 +29,7 @@ class JwtTokenProviderTest {
             Duration.ofDays(7),
             Collections.emptyList(),
             Collections.emptyList());
-    jwtTokenProvider = new JwtTokenProvider(jwtProps);
+    jwtTokenProviderImpl = new JwtTokenProviderImpl(jwtProps);
   }
 
   @Test
@@ -39,8 +39,8 @@ class JwtTokenProviderTest {
     TokenCreationSubject subject = new TokenCreationSubject(1L, "test@pullit.kr", Role.MEMBER);
 
     // when
-    String accessToken = jwtTokenProvider.createAccessToken(subject);
-    TokenValidationResult result = jwtTokenProvider.validateToken(accessToken);
+    String accessToken = jwtTokenProviderImpl.createAccessToken(subject);
+    TokenValidationResult result = jwtTokenProviderImpl.validateAccessToken(accessToken);
 
     // then
     assertThat(result).isInstanceOf(TokenValidationResult.Valid.class);
@@ -63,12 +63,12 @@ class JwtTokenProviderTest {
             Duration.ZERO,
             Collections.emptyList(),
             Collections.emptyList());
-    JwtTokenProvider expiredTokenProvider = new JwtTokenProvider(jwtProps);
+    JwtTokenProviderImpl expiredTokenProvider = new JwtTokenProviderImpl(jwtProps);
     TokenCreationSubject subject = new TokenCreationSubject(1L, "test@pullit.kr", Role.MEMBER);
     String expiredToken = expiredTokenProvider.createAccessToken(subject);
 
     // when
-    TokenValidationResult result = jwtTokenProvider.validateToken(expiredToken);
+    TokenValidationResult result = jwtTokenProviderImpl.validateAccessToken(expiredToken);
 
     // then
     assertThat(result).isInstanceOf(TokenValidationResult.Expired.class);
@@ -81,7 +81,7 @@ class JwtTokenProviderTest {
     String invalidToken = "invalid-token";
 
     // when
-    TokenValidationResult result = jwtTokenProvider.validateToken(invalidToken);
+    TokenValidationResult result = jwtTokenProviderImpl.validateAccessToken(invalidToken);
 
     // then
     assertThat(result).isInstanceOf(TokenValidationResult.Invalid.class);

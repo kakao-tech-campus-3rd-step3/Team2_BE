@@ -30,10 +30,14 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
     return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
   }
 
-  /** lazy loading을 위해 문제 목록을 제외한 문제집 메타데이터만 조회합니다. */
   @Override
   public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
+  }
+
+  @Override
+  public List<QuestionSet> findByMemberIdAndCommonFolderId(Long memberId, Long commonFolderId) {
+    return questionSetJpaRepository.findByOwnerIdAndCommonFolderId(memberId, commonFolderId);
   }
 
   @Override
@@ -60,12 +64,29 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable) {
-    return questionSetJpaRepository.findByMemberIdWithCursor(memberId, cursor, pageable);
+  public List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
+      Long memberId, Long folderId, Long cursor, Pageable pageable) {
+    return questionSetJpaRepository.findByMemberIdAndFolderIdWithCursor(
+        memberId, folderId, cursor, pageable);
   }
 
   @Override
   public void delete(QuestionSet questionSet) {
     questionSetJpaRepository.delete(questionSet);
+  }
+
+  @Override
+  public void deleteAll(List<QuestionSet> questionSets) {
+    questionSetJpaRepository.deleteAll(questionSets);
+  }
+
+  @Override
+  public long countByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
+  }
+
+  @Override
+  public List<QuestionSet> findAllByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.findAllByCommonFolderId(commonFolderId);
   }
 }

@@ -34,30 +34,17 @@ public class MemberService implements MemberPublicApi {
   @Override
   @Transactional
   public Optional<Member> findOrCreateMember(SocialLoginCommand command) {
-    Optional<Member> memberByKakao = memberRepository.findByKakaoId(command.kakaoId());
-    if (memberByKakao.isPresent()) {
-      Member member = memberByKakao.get();
-      member.updateMemberInfo(command.email(), command.name());
-      return Optional.of(memberRepository.save(member));
+    Optional<Member> byKakaoId = memberRepository.findByKakaoId(command.kakaoId());
+    if (byKakaoId.isPresent()) {
+      return updateExistingKakaoMember(byKakaoId.get(), command);
     }
 
-    Member memberToReturn =
-        memberRepository
-            .findByEmail(command.email())
-            .map(
-                existing -> {
-                  existing.linkKakaoId(command.kakaoId());
-                  existing.updateMemberInfo(command.email(), command.name());
-                  return memberRepository.save(existing);
-                })
-            .orElseGet(
-                () -> {
-                  Member newMember =
-                      Member.createMember(command.kakaoId(), command.email(), command.name());
-                  return memberRepository.save(newMember);
-                });
+    Optional<Member> byEmail = memberRepository.findByEmail(command.email());
+    if (byEmail.isPresent()) {
+      return linkKakaoToExistingEmailMember(byEmail.get(), command);
+    }
 
-    return Optional.of(memberToReturn);
+    return createNewMember(command);
   }
 
   @Override
@@ -85,6 +72,23 @@ public class MemberService implements MemberPublicApi {
   public void revokeAdminRole(Long memberId) {
     Member member = findMemberOrThrow(memberId);
     member.revokeAdmin();
+  }
+
+  private Optional<Member> updateExistingKakaoMember(Member member, SocialLoginCommand command) {
+    member.updateMemberInfo(command.email(), command.name());
+    return Optional.of(memberRepository.save(member));
+  }
+
+  private Optional<Member> linkKakaoToExistingEmailMember(
+      Member member, SocialLoginCommand command) {
+    member.linkKakaoId(command.kakaoId());
+    member.updateMemberInfo(command.email(), command.name());
+    return Optional.of(memberRepository.save(member));
+  }
+
+  private Optional<Member> createNewMember(SocialLoginCommand command) {
+    Member newMember = Member.createMember(command.kakaoId(), command.email(), command.name());
+    return Optional.of(memberRepository.save(newMember));
   }
 
   private Member findMemberOrThrow(Long memberId) {

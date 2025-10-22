@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import kr.it.pullit.modules.notification.config.NotificationProperties;
 import kr.it.pullit.modules.notification.domain.EventData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -13,9 +14,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class InMemorySseEventCache implements SseEventCache {
 
-  private static final int DEFAULT_CACHE_SIZE = 10000;
+  private final int cacheSize;
   private final Deque<EventData> cache = new ConcurrentLinkedDeque<>();
   private final AtomicLong idCounter = new AtomicLong(0);
+
+  public InMemorySseEventCache(NotificationProperties notificationProperties) {
+    this.cacheSize = notificationProperties.getSseCacheSize();
+  }
 
   @Override
   public EventData put(EventData event) {
@@ -23,7 +28,7 @@ public class InMemorySseEventCache implements SseEventCache {
     EventData newEventData = event.withId(id);
 
     cache.add(newEventData);
-    if (cache.size() > DEFAULT_CACHE_SIZE) {
+    if (cache.size() > cacheSize) {
       cache.pollFirst();
     }
     log.debug("Event cached: {}", newEventData);
