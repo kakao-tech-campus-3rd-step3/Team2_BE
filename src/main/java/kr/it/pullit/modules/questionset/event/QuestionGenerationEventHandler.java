@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.questionset.service;
+package kr.it.pullit.modules.questionset.event;
 
 import java.util.List;
 import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
@@ -11,7 +11,7 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
+import kr.it.pullit.modules.questionset.service.SourceValidator;
 import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;

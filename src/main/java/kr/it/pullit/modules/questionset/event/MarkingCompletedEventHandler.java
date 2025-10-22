@@ -1,7 +1,6 @@
-package kr.it.pullit.modules.questionset.service;
+package kr.it.pullit.modules.questionset.event;
 
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
-import kr.it.pullit.modules.questionset.service.event.MarkingCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

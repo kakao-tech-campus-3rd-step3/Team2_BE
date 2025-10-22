@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.questionset.domain.enums;
+package kr.it.pullit.modules.questionset.enums;
 
 public enum PublishStatus {
   FAILURE,

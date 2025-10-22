@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.wronganswer.service;
 
 import java.util.List;
-import kr.it.pullit.modules.questionset.service.event.MarkingCompletedEvent;
+import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import lombok.RequiredArgsConstructor;

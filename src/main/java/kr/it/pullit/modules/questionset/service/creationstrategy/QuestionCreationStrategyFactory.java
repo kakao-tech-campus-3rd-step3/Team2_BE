@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
 import kr.it.pullit.modules.questionset.exception.QuestionErrorCode;
 import kr.it.pullit.modules.questionset.exception.QuestionSetErrorCode;

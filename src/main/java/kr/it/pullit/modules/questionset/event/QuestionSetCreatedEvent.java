@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.questionset.domain.event;
+package kr.it.pullit.modules.questionset.event;
 
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 
