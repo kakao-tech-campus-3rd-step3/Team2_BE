@@ -31,11 +31,9 @@ public interface QuestionSetPublicApi {
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
-      Long memberId, Long cursor, int size);
+      Long memberId, Long cursor, int size, Long folderId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
-
-  List<MyQuestionSetsResponse> getQuestionSetsByFolder(Long memberId, Long folderId);
 
   long countByFolderId(Long folderId);
 

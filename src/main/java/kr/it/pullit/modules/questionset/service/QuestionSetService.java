@@ -125,17 +125,6 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional(readOnly = true)
-  public List<MyQuestionSetsResponse> getQuestionSetsByFolder(Long memberId, Long folderId) {
-    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
-
-    List<QuestionSet> questionSets =
-        questionSetRepository.findByMemberIdAndCommonFolderId(memberId, folderId);
-
-    return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public long countByFolderId(Long folderId) {
     return questionSetRepository.countByCommonFolderId(folderId);
   }
@@ -163,12 +152,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
     }
   }
 
+  @Override
   @Transactional(readOnly = true)
   public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
-      Long memberId, Long cursor, int size) {
+      Long memberId, Long cursor, int size, Long folderId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size);
+    List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size, folderId);
 
     boolean hasNext = results.size() > size;
     List<MyQuestionSetsResponse> content = toContent(results, size);
@@ -185,9 +175,11 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
   }
 
-  private List<QuestionSet> fetchQuestionSets(Long memberId, Long cursor, int size) {
+  private List<QuestionSet> fetchQuestionSets(Long memberId, Long cursor, int size, Long folderId) {
     PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
-    return questionSetRepository.findByMemberIdWithCursor(memberId, cursor, pageableWithOneExtra);
+    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
+    return questionSetRepository.findByMemberIdAndFolderIdWithCursor(
+        memberId, targetFolderId, cursor, pageableWithOneExtra);
   }
 
   private List<MyQuestionSetsResponse> toContent(List<QuestionSet> results, int size) {

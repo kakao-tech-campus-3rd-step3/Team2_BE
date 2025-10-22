@@ -64,8 +64,10 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable) {
-    return questionSetJpaRepository.findByMemberIdWithCursor(memberId, cursor, pageable);
+  public List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
+      Long memberId, Long folderId, Long cursor, Pageable pageable) {
+    return questionSetJpaRepository.findByMemberIdAndFolderIdWithCursor(
+        memberId, folderId, cursor, pageable);
   }
 
   @Override

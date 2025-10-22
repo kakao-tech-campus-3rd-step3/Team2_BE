@@ -9,10 +9,8 @@ import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderRequest;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.FolderDeleteWarningResponse;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,12 +43,6 @@ public class CommonFolderController {
   @GetMapping("/{id}")
   public ResponseEntity<CommonFolderResponse> getFolderById(@PathVariable Long id) {
     return ResponseEntity.ok(commonFolderPublicApi.getFolder(id));
-  }
-
-  @GetMapping("/{folderId}/question-sets")
-  public ResponseEntity<List<MyQuestionSetsResponse>> getQuestionSetsByFolder(
-      @AuthenticationPrincipal Long memberId, @PathVariable Long folderId) {
-    return ResponseEntity.ok(questionSetPublicApi.getQuestionSetsByFolder(memberId, folderId));
   }
 
   @PostMapping

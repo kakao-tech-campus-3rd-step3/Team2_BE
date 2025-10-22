@@ -24,7 +24,8 @@ public interface QuestionSetRepository {
 
   long countByCommonFolderId(Long commonFolderId);
 
-  List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable);
+  List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
+      Long memberId, Long folderId, Long cursor, Pageable pageable);
 
   QuestionSet save(QuestionSet questionSet);
 

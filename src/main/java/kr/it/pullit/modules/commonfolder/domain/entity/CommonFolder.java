@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 public class CommonFolder {
 
   public static final String DEFAULT_NAME = "전체";
+  public static final Long DEFAULT_FOLDER_ID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

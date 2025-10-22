@@ -60,8 +60,10 @@ public class QuestionSetController {
   public ResponseEntity<CursorPageResponse<MyQuestionSetsResponse>> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId,
       @RequestParam(required = false) Long cursor,
-      @RequestParam(defaultValue = "10") int size) {
-    return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size));
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(required = false) Long folderId) {
+    return ResponseEntity.ok(
+        questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId));
   }
 
   @GetMapping("/all")
