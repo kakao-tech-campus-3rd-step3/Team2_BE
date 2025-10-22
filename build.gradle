@@ -162,6 +162,7 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
     environment 'AWS_REGION', 'ap-northeast-2'
+    jvmArgs '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED'
 }
 
 // JaCoCo 설정
