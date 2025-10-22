@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.projection.learnstats.repository;
 
 import java.util.Optional;
-import kr.it.pullit.modules.projection.learnstats.domain.LearnStatsProjection;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -12,12 +12,12 @@ public class LearnStatsProjectionRepositoryImpl implements LearnStatsProjectionR
   private final LearnStatsProjectionJpaRepository jpaRepository;
 
   @Override
-  public LearnStatsProjection save(LearnStatsProjection projection) {
+  public LearnStats save(LearnStats projection) {
     return jpaRepository.save(projection);
   }
 
   @Override
-  public Optional<LearnStatsProjection> findById(Long memberId) {
+  public Optional<LearnStats> findById(Long memberId) {
     return jpaRepository.findById(memberId);
   }
 }

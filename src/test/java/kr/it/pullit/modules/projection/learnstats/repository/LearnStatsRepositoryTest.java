@@ -2,7 +2,7 @@ package kr.it.pullit.modules.projection.learnstats.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import kr.it.pullit.modules.projection.learnstats.domain.LearnStatsProjection;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 
 @JpaSliceTest
 @Import(LearnStatsProjectionRepositoryImpl.class)
-class LearnStatsProjectionRepositoryTest {
+class LearnStatsRepositoryTest {
 
   @Autowired private LearnStatsProjectionRepository learnStatsProjectionRepository;
 
@@ -20,7 +20,7 @@ class LearnStatsProjectionRepositoryTest {
   @Test
   void save() {
     // given
-    var newProjection = LearnStatsProjection.newOf(1L);
+    var newProjection = LearnStats.newOf(1L);
 
     // when
     var savedProjection = learnStatsProjectionRepository.save(newProjection);
@@ -37,7 +37,7 @@ class LearnStatsProjectionRepositoryTest {
     @Test
     void findById_returnsProjection() {
       // given
-      var saved = learnStatsProjectionRepository.save(LearnStatsProjection.newOf(1L));
+      var saved = learnStatsProjectionRepository.save(LearnStats.newOf(1L));
 
       // when
       var found = learnStatsProjectionRepository.findById(saved.getMemberId()).orElseThrow();

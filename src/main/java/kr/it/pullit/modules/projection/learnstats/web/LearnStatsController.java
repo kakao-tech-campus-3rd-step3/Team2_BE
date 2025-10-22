@@ -2,8 +2,8 @@ package kr.it.pullit.modules.projection.learnstats.web;
 
 import java.time.LocalDate;
 import java.util.List;
-import kr.it.pullit.modules.projection.learnstats.query.LearnStatsDailyQueryService;
-import kr.it.pullit.modules.projection.learnstats.query.LearnStatsQueryService;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsProjectionPublicApi;
 import kr.it.pullit.modules.projection.learnstats.web.dto.DailyStatsResponse;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LearnStatsController {
 
-  private final LearnStatsQueryService learnStatsQueryService;
-  private final LearnStatsDailyQueryService learnStatsDailyQueryService;
+  private final LearnStatsProjectionPublicApi learnStatsPublicApi;
+  private final LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
   @GetMapping("/api/members/{memberId}/learn-stats")
   public ResponseEntity<LearnStatsResponse> getLearnStats(@PathVariable Long memberId) {
-    return ResponseEntity.ok(learnStatsQueryService.getLearnStats(memberId));
+    return ResponseEntity.ok(learnStatsPublicApi.getLearnStats(memberId));
   }
 
   @GetMapping("/api/members/{memberId}/daily-stats")
@@ -32,6 +32,6 @@ public class LearnStatsController {
       @PathVariable Long memberId,
       @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate from,
       @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate to) {
-    return ResponseEntity.ok(learnStatsDailyQueryService.findDailyStats(memberId, from, to));
+    return ResponseEntity.ok(learnStatsDailyPublicApi.findDailyStats(memberId, from, to));
   }
 }

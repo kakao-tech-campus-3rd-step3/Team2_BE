@@ -1,6 +1,6 @@
 package kr.it.pullit.modules.projection.learnstats.web.dto;
 
-import kr.it.pullit.modules.projection.learnstats.domain.LearnStatsProjection;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,12 +19,12 @@ public class LearnStatsResponse {
   private int weeklySolvedQuestionCount;
   private int consecutiveLearningDays;
 
-  public static LearnStatsResponse from(LearnStatsProjection p) {
+  public static LearnStatsResponse of(LearnStats p, int totalQuestionSetCount) {
     if (p == null) {
       return new LearnStatsResponse();
     }
     return LearnStatsResponse.builder()
-        .totalQuestionSetCount(p.getTotalQuestionSetCount())
+        .totalQuestionSetCount(totalQuestionSetCount)
         .totalSolvedQuestionSetCount(p.getTotalSolvedQuestionSetCount())
         .totalSolvedQuestionCount(p.getTotalSolvedQuestionCount())
         .weeklySolvedQuestionCount(p.getWeeklySolvedQuestionCount())

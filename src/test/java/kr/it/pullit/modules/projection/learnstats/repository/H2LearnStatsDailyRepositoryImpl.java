@@ -3,6 +3,8 @@ package kr.it.pullit.modules.projection.learnstats.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
+import java.util.List;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStatsDaily;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -13,7 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class H2LearnStatsDailyRepositoryImpl implements LearnStatsDailyRepository {
 
-  @PersistenceContext private final EntityManager em;
+  @PersistenceContext
+  private final EntityManager em;
+
+  private final LearnStatsDailyJpaRepository jpaRepository;
 
   @Override
   @Transactional
@@ -39,5 +44,11 @@ public class H2LearnStatsDailyRepositoryImpl implements LearnStatsDailyRepositor
         .setParameter("questionsDelta", questionsDelta)
         .setParameter("questionSetsDelta", questionSetsDelta)
         .executeUpdate();
+  }
+
+  @Override
+  public List<LearnStatsDaily> findByMemberIdAndActivityDateBetween(Long memberId, LocalDate from,
+      LocalDate to) {
+    return jpaRepository.findByMemberIdAndActivityDateBetween(memberId, from, to);
   }
 }

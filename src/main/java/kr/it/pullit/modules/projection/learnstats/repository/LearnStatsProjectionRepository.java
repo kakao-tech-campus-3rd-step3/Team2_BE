@@ -1,11 +1,11 @@
 package kr.it.pullit.modules.projection.learnstats.repository;
 
 import java.util.Optional;
-import kr.it.pullit.modules.projection.learnstats.domain.LearnStatsProjection;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 
 public interface LearnStatsProjectionRepository {
 
-  LearnStatsProjection save(LearnStatsProjection projection);
+  LearnStats save(LearnStats projection);
 
-  Optional<LearnStatsProjection> findById(Long memberId);
+  Optional<LearnStats> findById(Long memberId);
 }

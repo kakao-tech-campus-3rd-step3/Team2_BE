@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import kr.it.pullit.modules.projection.learnstats.query.LearnStatsDailyQueryService;
-import kr.it.pullit.modules.projection.learnstats.query.LearnStatsQueryService;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsProjectionPublicApi;
 import kr.it.pullit.modules.projection.learnstats.web.dto.DailyStatsResponse;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
@@ -22,9 +22,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @AuthenticatedMvcSliceTest(controllers = LearnStatsController.class)
 class LearnStatsControllerTest extends ControllerTest {
 
-  @MockitoBean private LearnStatsQueryService learnStatsQueryService;
+  @MockitoBean private LearnStatsProjectionPublicApi learnStatePublicApi;
 
-  @MockitoBean private LearnStatsDailyQueryService learnStatsDailyQueryService;
+  @MockitoBean private LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
   @Test
   @WithMockMember
@@ -41,7 +41,7 @@ class LearnStatsControllerTest extends ControllerTest {
             .consecutiveLearningDays(3)
             .build();
 
-    given(learnStatsQueryService.getLearnStats(memberId)).willReturn(response);
+    given(learnStatePublicApi.getLearnStats(memberId)).willReturn(response);
 
     // when & then
     mockMvc
@@ -61,7 +61,7 @@ class LearnStatsControllerTest extends ControllerTest {
     // given
     var memberId = 2L; // New user
     var emptyResponse = new LearnStatsResponse(); // All fields are 0 by default
-    given(learnStatsQueryService.getLearnStats(memberId)).willReturn(emptyResponse);
+    given(learnStatePublicApi.getLearnStats(memberId)).willReturn(emptyResponse);
 
     // when & then
     mockMvc
@@ -87,7 +87,7 @@ class LearnStatsControllerTest extends ControllerTest {
             new DailyStatsResponse(LocalDate.of(2024, 1, 1), 10),
             new DailyStatsResponse(LocalDate.of(2024, 1, 15), 5));
 
-    given(learnStatsDailyQueryService.findDailyStats(memberId, from, to)).willReturn(response);
+    given(learnStatsDailyPublicApi.findDailyStats(memberId, from, to)).willReturn(response);
 
     // when & then
     mockMvc
@@ -111,7 +111,7 @@ class LearnStatsControllerTest extends ControllerTest {
     var memberId = 1L;
     var from = LocalDate.of(2024, 2, 1);
     var to = LocalDate.of(2024, 2, 28);
-    given(learnStatsDailyQueryService.findDailyStats(memberId, from, to))
+    given(learnStatsDailyPublicApi.findDailyStats(memberId, from, to))
         .willReturn(Collections.emptyList());
 
     // when & then

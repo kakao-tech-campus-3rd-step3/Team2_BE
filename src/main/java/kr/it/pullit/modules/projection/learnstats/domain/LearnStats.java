@@ -1,12 +1,11 @@
 package kr.it.pullit.modules.projection.learnstats.domain;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-
+import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
@@ -17,17 +16,14 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "learn_stats_projection")
-public class LearnStatsProjection extends BaseEntity {
+@Table(name = "learn_stats")
+public class LearnStats extends BaseEntity {
 
   @Id
   @Column(nullable = false)
   private Long memberId;
 
   // 문제집
-  @Column(nullable = false)
-  private int totalQuestionSetCount; // 전체 문제집 수
-
   @Column(nullable = false)
   private int totalSolvedQuestionSetCount; // 완료한 문제집 수
 
@@ -45,21 +41,16 @@ public class LearnStatsProjection extends BaseEntity {
   private LocalDate lastLearningDate; // 마지막 학습일(처음은 null)
 
   @Builder(access = AccessLevel.PRIVATE)
-  public LearnStatsProjection(Long memberId) {
+  public LearnStats(Long memberId) {
     this.memberId = memberId;
   }
 
-  public static LearnStatsProjection newOf(Long memberId) {
-    return LearnStatsProjection.builder().memberId(memberId).build();
+  public static LearnStats newOf(Long memberId) {
+    return LearnStats.builder().memberId(memberId).build();
   }
 
   public void onWeeklyReset() {
     this.weeklySolvedQuestionCount = 0;
-    this.lastLearningDate = null;
-  }
-
-  public void onQuestionSetAssigned() {
-    totalQuestionSetCount++;
   }
 
   public void onQuestionSetSolved(int solvedQuestionCount, LocalDate today) {

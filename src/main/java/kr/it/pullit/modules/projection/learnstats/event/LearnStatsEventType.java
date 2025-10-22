@@ -7,9 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum LearnStatsEventType {
-  WEEKLY_RESET("WEEKLY_RESET"),
-  QUESTION_SET_SOLVED("QUESTION_SET_SOLVED"),
-  QUESTION_SET_ASSIGNED("QUESTION_SET_ASSIGNED");
+  WEEKLY_RESET("LEARN_STATS.WEEKLY_RESET"),
+  QUESTION_SET_SOLVED("LEARN_STATS.QUESTION_SET_SOLVED");
 
   private final String eventType;
 

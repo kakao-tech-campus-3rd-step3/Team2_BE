@@ -2,12 +2,14 @@ package kr.it.pullit.modules.projection.learnstats.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsProjectionPublicApi;
-import kr.it.pullit.modules.projection.learnstats.domain.LearnStatsProjection;
-import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsProjectionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsProjectionPublicApi;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
+import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsProjectionRepository;
+import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
+import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
@@ -15,29 +17,30 @@ import org.springframework.transaction.annotation.Transactional;
 public class LearnStatsProjectionService implements LearnStatsProjectionPublicApi {
 
   private final LearnStatsProjectionRepository repo;
+  private final QuestionSetPublicApi questionSetPublicApi;
   private final Clock clock;
 
   @Override
   public void applyWeeklyReset(Long memberId) {
-    LearnStatsProjection p =
-        repo.findById(memberId).orElseGet(() -> LearnStatsProjection.newOf(memberId));
+    LearnStats p = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
     p.onWeeklyReset();
     repo.save(p);
   }
 
   @Override
   public void applyQuestionSetSolved(Long memberId, int questionCount) {
-    LearnStatsProjection p =
-        repo.findById(memberId).orElseGet(() -> LearnStatsProjection.newOf(memberId));
+    LearnStats p = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
     p.onQuestionSetSolved(questionCount, LocalDate.now(clock));
     repo.save(p);
   }
 
   @Override
-  public void applyQuestionSetAssigned(Long memberId) {
-    LearnStatsProjection p =
-        repo.findById(memberId).orElseGet(() -> LearnStatsProjection.newOf(memberId));
-    p.onQuestionSetAssigned();
-    repo.save(p);
+  @Transactional(readOnly = true)
+  public LearnStatsResponse getLearnStats(Long memberId) {
+    LearnStats projection = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
+
+    int totalQuestionSetCount = questionSetPublicApi.getMemberQuestionSets(memberId).size();
+
+    return LearnStatsResponse.of(projection, totalQuestionSetCount);
   }
 }

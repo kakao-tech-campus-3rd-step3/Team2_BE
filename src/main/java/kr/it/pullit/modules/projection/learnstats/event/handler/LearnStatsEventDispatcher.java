@@ -38,10 +38,6 @@ public class LearnStatsEventDispatcher {
             objectMapper.readValue(e.getPayload(), QuestionSetSolvedPayload.class);
         projectionService.applyQuestionSetSolved(payload.memberId(), payload.solvedQuestionCount());
       }
-      case QUESTION_SET_ASSIGNED -> {
-        MemberIdPayload payload = objectMapper.readValue(e.getPayload(), MemberIdPayload.class);
-        projectionService.applyQuestionSetAssigned(payload.memberId());
-      }
       default -> {
         return false;
       }

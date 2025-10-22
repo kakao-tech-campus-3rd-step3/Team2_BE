@@ -14,19 +14,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @UnitTest
-@DisplayName("LearnStatsProjection 단위 테스트")
-class LearnStatsProjectionTest {
+@DisplayName("LearnStats 단위 테스트")
+class LearnStatsTest {
 
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private Clock clock;
 
-  private LearnStatsProjection projection;
+  private LearnStats projection;
   private LocalDate today;
 
   @BeforeEach
   void setUp() {
-    projection = LearnStatsProjection.newOf(1L);
+    projection = LearnStats.newOf(1L);
     today = LocalDate.now(clock);
   }
 
