@@ -14,4 +14,5 @@ public record QuestionSetCreateRequestDto(
         @Max(value = 100, message = "문제 수는 최대 100개까지 가능합니다.")
         int questionCount,
     @NotNull(message = "문제 유형은 필수입니다.") QuestionType type,
-    @NotEmpty(message = "학습 소스는 최소 1개 이상 선택해야 합니다.") List<Long> sourceIds) {}
+    @NotEmpty(message = "학습 소스는 최소 1개 이상 선택해야 합니다.") List<Long> sourceIds,
+    Long commonFolderId) {}

@@ -7,17 +7,20 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
@@ -41,6 +44,10 @@ public class QuestionSet extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "common_folder_id")
+  private CommonFolder commonFolder;
 
   @Column(name = "owner_id", nullable = false)
   private Long ownerId;
@@ -131,6 +138,10 @@ public class QuestionSet extends BaseEntity {
   public void removeSource(Source source) {
     sources.remove(source);
     source.getQuestionSets().remove(this);
+  }
+
+  public void assignToFolder(CommonFolder commonFolder) {
+    this.commonFolder = commonFolder;
   }
 
   public void completeProcessing() {
