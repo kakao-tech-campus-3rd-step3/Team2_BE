@@ -1,9 +1,9 @@
-package kr.it.pullit.modules.projection.learnstats.events.handler;
+package kr.it.pullit.modules.projection.learnstats.event.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.it.pullit.modules.projection.learnstats.events.LearnStatsEventType;
-import kr.it.pullit.modules.projection.learnstats.events.dto.MemberIdPayload;
-import kr.it.pullit.modules.projection.learnstats.events.dto.QuestionSetSolvedPayload;
+import kr.it.pullit.modules.projection.learnstats.event.LearnStatsEventType;
+import kr.it.pullit.modules.projection.learnstats.event.dto.MemberIdPayload;
+import kr.it.pullit.modules.projection.learnstats.event.dto.QuestionSetSolvedPayload;
 import kr.it.pullit.modules.projection.learnstats.service.LearnStatsProjectionService;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import lombok.SneakyThrows;

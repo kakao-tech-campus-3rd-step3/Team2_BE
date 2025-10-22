@@ -5,7 +5,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
 import java.util.List;
-import kr.it.pullit.modules.projection.learnstats.events.publisher.LearnStatsEventPublisher;
+import kr.it.pullit.modules.projection.learnstats.event.publisher.LearnStatsEventPublisher;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEventHandler;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;

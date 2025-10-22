@@ -1,10 +1,10 @@
-package kr.it.pullit.modules.projection.learnstats.events.publisher;
+package kr.it.pullit.modules.projection.learnstats.event.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
-import kr.it.pullit.modules.projection.learnstats.events.LearnStatsEventType;
-import kr.it.pullit.modules.projection.learnstats.events.dto.MemberIdPayload;
-import kr.it.pullit.modules.projection.learnstats.events.dto.QuestionSetSolvedPayload;
+import kr.it.pullit.modules.projection.learnstats.event.LearnStatsEventType;
+import kr.it.pullit.modules.projection.learnstats.event.dto.MemberIdPayload;
+import kr.it.pullit.modules.projection.learnstats.event.dto.QuestionSetSolvedPayload;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import kr.it.pullit.modules.projection.outbox.publisher.OutboxEventPublisher;
 import lombok.RequiredArgsConstructor;

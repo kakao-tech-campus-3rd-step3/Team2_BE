@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.projection.learnstats.events;
+package kr.it.pullit.modules.projection.learnstats.event;
 
 import java.util.Arrays;
 import lombok.Getter;

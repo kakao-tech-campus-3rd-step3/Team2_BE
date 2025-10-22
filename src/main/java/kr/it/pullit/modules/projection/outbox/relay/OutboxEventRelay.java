@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.projection.outbox.relay;
 
 import java.util.List;
-import kr.it.pullit.modules.projection.learnstats.events.handler.LearnStatsEventDispatcher;
+import kr.it.pullit.modules.projection.learnstats.event.handler.LearnStatsEventDispatcher;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import kr.it.pullit.modules.projection.outbox.domain.ProcessedEvent;
 import kr.it.pullit.modules.projection.outbox.repository.OutboxEventJpaRepository;

@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.projection.learnstats.events.handler;
+package kr.it.pullit.modules.projection.learnstats.event.handler;
 
 import static org.mockito.Mockito.verify;
 
