@@ -11,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 @JpaSliceTest
-@Import(LearnStatsProjectionRepositoryImpl.class)
+@Import(LearnStatsRepositoryImpl.class)
 class LearnStatsRepositoryTest {
 
-  @Autowired private LearnStatsProjectionRepository learnStatsProjectionRepository;
+  @Autowired private LearnStatsRepository learnStatsRepository;
 
   @DisplayName("학습 통계 프로젝션 저장")
   @Test
@@ -23,7 +23,7 @@ class LearnStatsRepositoryTest {
     var newProjection = LearnStats.newOf(1L);
 
     // when
-    var savedProjection = learnStatsProjectionRepository.save(newProjection);
+    var savedProjection = learnStatsRepository.save(newProjection);
 
     // then
     assertThat(savedProjection.getMemberId()).isEqualTo(1L);
@@ -37,10 +37,10 @@ class LearnStatsRepositoryTest {
     @Test
     void findById_returnsProjection() {
       // given
-      var saved = learnStatsProjectionRepository.save(LearnStats.newOf(1L));
+      var saved = learnStatsRepository.save(LearnStats.newOf(1L));
 
       // when
-      var found = learnStatsProjectionRepository.findById(saved.getMemberId()).orElseThrow();
+      var found = learnStatsRepository.findById(saved.getMemberId()).orElseThrow();
 
       // then
       assertThat(found.getMemberId()).isEqualTo(saved.getMemberId());
@@ -50,7 +50,7 @@ class LearnStatsRepositoryTest {
     @Test
     void findById_withNonExistentId_returnsEmpty() {
       // when
-      var found = learnStatsProjectionRepository.findById(999L);
+      var found = learnStatsRepository.findById(999L);
 
       // then
       assertThat(found).isEmpty();

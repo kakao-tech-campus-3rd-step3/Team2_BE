@@ -7,9 +7,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class LearnStatsProjectionRepositoryImpl implements LearnStatsProjectionRepository {
+public class LearnStatsRepositoryImpl implements LearnStatsRepository {
 
-  private final LearnStatsProjectionJpaRepository jpaRepository;
+  private final LearnStatsJpaRepository jpaRepository;
 
   @Override
   public LearnStats save(LearnStats projection) {

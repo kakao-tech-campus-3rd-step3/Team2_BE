@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import java.time.Clock;
 import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
-import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsProjectionRepository;
+import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
 import kr.it.pullit.support.annotation.UnitTest;
 import kr.it.pullit.support.config.FixedClockConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -19,13 +19,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @UnitTest
-@ContextConfiguration(classes = {LearnStatsProjectionService.class, FixedClockConfig.class})
-@DisplayName("LearnStatsProjectionService 단위 테스트")
+@ContextConfiguration(classes = {LearnStatsService.class, FixedClockConfig.class})
+@DisplayName("LearnStatsService 단위 테스트")
 class LearnStatsServiceTest {
 
-  @Autowired private LearnStatsProjectionService sut;
+  @Autowired private LearnStatsService sut;
 
-  @MockitoBean private LearnStatsProjectionRepository learnStatsProjectionRepository;
+  @MockitoBean private LearnStatsRepository learnStatsRepository;
 
   @Autowired private Clock clock;
 
@@ -39,14 +39,14 @@ class LearnStatsServiceTest {
       // given
       Long memberId = 1L;
       LearnStats existingProjection = LearnStats.newOf(memberId);
-      given(learnStatsProjectionRepository.findById(memberId))
+      given(learnStatsRepository.findById(memberId))
           .willReturn(Optional.of(existingProjection));
 
       // when
       sut.applyWeeklyReset(memberId);
 
       // then
-      verify(learnStatsProjectionRepository, times(1)).save(existingProjection);
+      verify(learnStatsRepository, times(1)).save(existingProjection);
     }
 
     @Test
@@ -54,13 +54,13 @@ class LearnStatsServiceTest {
     void givenNoProjectionThenCreatesResetsAndSaves() {
       // given
       Long memberId = 1L;
-      given(learnStatsProjectionRepository.findById(memberId)).willReturn(Optional.empty());
+      given(learnStatsRepository.findById(memberId)).willReturn(Optional.empty());
 
       // when
       sut.applyWeeklyReset(memberId);
 
       // then
-      verify(learnStatsProjectionRepository, times(1)).save(any(LearnStats.class));
+      verify(learnStatsRepository, times(1)).save(any(LearnStats.class));
     }
   }
 
@@ -75,14 +75,14 @@ class LearnStatsServiceTest {
       Long memberId = 1L;
       int questionCount = 10;
       LearnStats existingProjection = LearnStats.newOf(memberId);
-      given(learnStatsProjectionRepository.findById(memberId))
+      given(learnStatsRepository.findById(memberId))
           .willReturn(Optional.of(existingProjection));
 
       // when
       sut.applyQuestionSetSolved(memberId, questionCount);
 
       // then
-      verify(learnStatsProjectionRepository, times(1)).save(existingProjection);
+      verify(learnStatsRepository, times(1)).save(existingProjection);
     }
 
     @Test
@@ -91,13 +91,13 @@ class LearnStatsServiceTest {
       // given
       Long memberId = 1L;
       int questionCount = 10;
-      given(learnStatsProjectionRepository.findById(memberId)).willReturn(Optional.empty());
+      given(learnStatsRepository.findById(memberId)).willReturn(Optional.empty());
 
       // when
       sut.applyQuestionSetSolved(memberId, questionCount);
 
       // then
-      verify(learnStatsProjectionRepository, times(1)).save(any(LearnStats.class));
+      verify(learnStatsRepository, times(1)).save(any(LearnStats.class));
     }
   }
 }

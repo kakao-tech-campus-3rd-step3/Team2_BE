@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.it.pullit.modules.projection.learnstats.event.LearnStatsEventType;
 import kr.it.pullit.modules.projection.learnstats.event.dto.MemberIdPayload;
 import kr.it.pullit.modules.projection.learnstats.event.dto.QuestionSetSolvedPayload;
-import kr.it.pullit.modules.projection.learnstats.service.LearnStatsProjectionService;
+import kr.it.pullit.modules.projection.learnstats.service.LearnStatsService;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class LearnStatsEventDispatcher {
 
-  private final LearnStatsProjectionService projectionService;
+  private final LearnStatsService projectionService;
   private final ObjectMapper objectMapper;
 
   public LearnStatsEventDispatcher(
-      LearnStatsProjectionService projectionService, ObjectMapper objectMapper) {
+      LearnStatsService projectionService, ObjectMapper objectMapper) {
     this.projectionService = projectionService;
     this.objectMapper = objectMapper;
   }

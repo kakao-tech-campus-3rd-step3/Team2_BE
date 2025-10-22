@@ -3,7 +3,7 @@ package kr.it.pullit.modules.projection.learnstats.web;
 import java.time.LocalDate;
 import java.util.List;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsProjectionPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.projection.learnstats.web.dto.DailyStatsResponse;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +12,16 @@ import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequiredArgsConstructor
 public class LearnStatsController {
 
-  private final LearnStatsProjectionPublicApi learnStatsPublicApi;
+  private final LearnStatsPublicApi learnStatsPublicApi;
   private final LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
   @GetMapping("/api/members/{memberId}/learn-stats")

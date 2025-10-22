@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsProjectionPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.projection.learnstats.web.dto.DailyStatsResponse;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
@@ -22,7 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @AuthenticatedMvcSliceTest(controllers = LearnStatsController.class)
 class LearnStatsControllerTest extends ControllerTest {
 
-  @MockitoBean private LearnStatsProjectionPublicApi learnStatePublicApi;
+  @MockitoBean private LearnStatsPublicApi learnStatePublicApi;
 
   @MockitoBean private LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 

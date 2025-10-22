@@ -2,7 +2,7 @@ package kr.it.pullit.modules.projection.learnstats.event.handler;
 
 import static org.mockito.Mockito.verify;
 
-import kr.it.pullit.modules.projection.learnstats.service.LearnStatsProjectionService;
+import kr.it.pullit.modules.projection.learnstats.service.LearnStatsService;
 import kr.it.pullit.modules.questionset.service.event.StudySessionFinishedEvent;
 import kr.it.pullit.support.annotation.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +15,7 @@ class LearnStatsEventHandlerTest {
 
   @InjectMocks private LearnStatsEventHandler sut;
 
-  @Mock private LearnStatsProjectionService projectionService;
+  @Mock private LearnStatsService projectionService;
 
   @Test
   @DisplayName("학습 세션 완료 이벤트를 수신하면 학습 시간을 통계에 반영한다")
