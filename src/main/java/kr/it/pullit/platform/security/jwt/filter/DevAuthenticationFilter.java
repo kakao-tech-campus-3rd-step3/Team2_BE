@@ -19,12 +19,11 @@ public class DevAuthenticationFilter extends OncePerRequestFilter {
   private final LocalAuthenticationHandler localAuthenticationHandler;
 
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+      FilterChain filterChain) throws ServletException, IOException {
 
-    localAuthenticationHandler.authenticate(request);
+    HttpServletRequest processedRequest = localAuthenticationHandler.authenticate(request);
 
-    filterChain.doFilter(request, response);
+    filterChain.doFilter(processedRequest, response);
   }
 }
