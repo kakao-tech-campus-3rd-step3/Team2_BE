@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.projection.learnstats.web.dto;
 
+import jakarta.validation.constraints.PositiveOrZero;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,11 +14,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class LearnStatsResponse {
 
-  private int totalQuestionSetCount;
-  private int totalSolvedQuestionSetCount;
-  private long totalSolvedQuestionCount;
-  private int weeklySolvedQuestionCount;
-  private int consecutiveLearningDays;
+  @PositiveOrZero
+  private int totalQuestionSetCount; // 총 문제집 수
+
+  @PositiveOrZero
+  private int totalSolvedQuestionSetCount; // 완료한 문제집 수
+
+  @PositiveOrZero
+  private long totalSolvedQuestionCount; // 총 푼 문제 수
+
+  @PositiveOrZero
+  private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
+
+  @PositiveOrZero
+  private int consecutiveLearningDays; // 연속 학습일
 
   public static LearnStatsResponse of(LearnStats p, int totalQuestionSetCount) {
     if (p == null) {
