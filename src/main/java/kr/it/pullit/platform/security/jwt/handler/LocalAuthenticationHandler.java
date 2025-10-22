@@ -21,8 +21,9 @@ public class LocalAuthenticationHandler {
 
     if (shouldApplyDevAuthentication(authorizationHeader)) {
       SecurityContext context = SecurityContextHolder.createEmptyContext();
-      PullitAuthenticationToken token = new PullitAuthenticationToken(DEFAULT_MEMBER_ID,
-          DEFAULT_MEMBER_EMAIL, null, Role.MEMBER.getAuthorities());
+      PullitAuthenticationToken token =
+          new PullitAuthenticationToken(
+              DEFAULT_MEMBER_ID, DEFAULT_MEMBER_EMAIL, null, Role.MEMBER.getAuthorities());
       context.setAuthentication(token);
       SecurityContextHolder.setContext(context);
 
