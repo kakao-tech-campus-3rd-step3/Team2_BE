@@ -2,7 +2,6 @@ package kr.it.pullit.shared.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
@@ -34,31 +33,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     String message = createDetailedMessageForInvalidEnum(ex.getCause());
 
     log.warn("HttpMessageNotReadableException: {}", ex.getMessage());
-    ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message);
-    problemDetail.setProperty("code", "C_002");
+    ErrorCode errorCode = CommonErrorCode.INVALID_INPUT_VALUE;
+    ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(errorCode.getStatus(), message);
+    problemDetail.setProperty("code", errorCode.getCode());
     return handleExceptionInternal(ex, problemDetail, headers, status, request);
   }
 
   private String createDetailedMessageForInvalidEnum(Throwable cause) {
-    return getTargetEnumClass(cause).map(this::formatEnumErrorMessage).orElse("요청 형식이 잘못되었습니다.");
-  }
-
-  private Optional<Class<?>> getTargetEnumClass(Throwable cause) {
     if (cause instanceof InvalidFormatException ife) {
       Class<?> targetType = ife.getTargetType();
       if (targetType != null && targetType.isEnum()) {
-        return Optional.of(targetType);
+        String allowedValues =
+            Arrays.stream(targetType.getEnumConstants())
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        return "정의되지 않은 enum 타입입니다. 지원되는 타입: " + allowedValues;
       }
     }
-    return Optional.empty();
-  }
-
-  private String formatEnumErrorMessage(Class<?> enumClass) {
-    String allowedValues =
-        Arrays.stream(enumClass.getEnumConstants())
-            .map(Object::toString)
-            .collect(Collectors.joining(", "));
-    return "정의되지 않은 enum 타입입니다. 지원되는 타입: " + allowedValues;
+    return CommonErrorCode.INVALID_INPUT_VALUE.getMessage();
   }
 
   @ExceptionHandler(InvalidRefreshTokenException.class)
