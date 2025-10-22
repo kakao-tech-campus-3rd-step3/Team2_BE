@@ -1,7 +1,8 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
-import kr.it.pullit.modules.notification.api.NotificationPublicApi;
+import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
@@ -29,9 +30,10 @@ public class QuestionGenerationEventHandler {
 
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
-  private final NotificationPublicApi notificationPublicApi;
+  private final NotificationEventPublicApi notificationEventPublicApi;
   private final SourceValidator sourceValidator;
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
+  private final LearnStatsEventPublicApi learnStatsEventPublicApi;
 
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -117,6 +119,7 @@ public class QuestionGenerationEventHandler {
   private void handleSuccess(QuestionSetCreatedEvent event) {
     QuestionSetCreationCompleteResponse responseDto = createSuccessResponse(event);
     publishSuccessNotification(event.ownerId(), responseDto);
+    learnStatsEventPublicApi.publishQuestionSetAssigned(event.ownerId());
     logSuccess(event.questionSetId());
   }
 
@@ -129,7 +132,7 @@ public class QuestionGenerationEventHandler {
 
   private void publishSuccessNotification(
       Long ownerId, QuestionSetCreationCompleteResponse responseDto) {
-    notificationPublicApi.publishQuestionSetCreationComplete(ownerId, responseDto);
+    notificationEventPublicApi.publishQuestionSetCreationComplete(ownerId, responseDto);
   }
 
   private void logSuccess(Long questionSetId) {

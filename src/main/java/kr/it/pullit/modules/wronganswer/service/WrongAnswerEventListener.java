@@ -19,12 +19,12 @@ public class WrongAnswerEventListener {
   @Transactional
   public void handleMarkingCompletedEvent(MarkingCompletedEvent event) {
     List<Long> targetQuestionIds =
-        event.getResults().stream()
+        event.results().stream()
             .filter(result -> isTargetForWrongAnswerUpdate(result.isCorrect(), event.isReviewing()))
             .map(MarkingResult::questionId)
             .toList();
 
-    processMarking(event.getMemberId(), targetQuestionIds, event.isReviewing());
+    processMarking(event.memberId(), targetQuestionIds, event.isReviewing());
   }
 
   private boolean isTargetForWrongAnswerUpdate(boolean isCorrect, boolean isReviewing) {

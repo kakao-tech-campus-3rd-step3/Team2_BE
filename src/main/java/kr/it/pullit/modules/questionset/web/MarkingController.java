@@ -1,9 +1,8 @@
 package kr.it.pullit.modules.questionset.web;
 
-import java.util.List;
 import kr.it.pullit.modules.questionset.service.MarkingService;
-import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
+import kr.it.pullit.modules.questionset.web.dto.request.MarkingSessionRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,12 +30,12 @@ public class MarkingController {
    */
   @PostMapping
   public ResponseEntity<MarkQuestionsResponse> markQuestions(
-      @RequestBody List<MarkingRequest> markingRequest,
+      @RequestBody MarkingSessionRequest request,
       @AuthenticationPrincipal Long memberId,
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
     MarkingServiceRequest markingServiceRequest =
-        MarkingServiceRequest.of(memberId, markingRequest, isReviewing);
+        MarkingServiceRequest.of(memberId, request.answers(), isReviewing);
     MarkQuestionsResponse res = markingService.markQuestions(markingServiceRequest);
     return ResponseEntity.ok(res);
   }
