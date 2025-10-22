@@ -1,9 +1,11 @@
 package kr.it.pullit.modules.commonfolder.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
@@ -14,16 +16,31 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class CommonFolderService {
+public class CommonFolderService implements CommonFolderPublicApi {
 
+  private static final String DEFAULT_FOLDER_NAME = "전체";
   private final CommonFolderRepository commonFolderRepository;
 
+  @Override
   public List<CommonFolderResponse> getQuestionSetFolders() {
     List<CommonFolder> folders =
         commonFolderRepository.findByTypeOrderBySortOrderAsc(CommonFolderType.QUESTION_SET);
     return folders.stream().map(this::toDto).collect(Collectors.toList());
   }
 
+  @Override
+  @Transactional
+  public CommonFolder getOrCreateDefaultQuestionSetFolder() {
+    return commonFolderRepository
+        .findByNameAndType(DEFAULT_FOLDER_NAME, CommonFolderType.QUESTION_SET).orElseGet(() -> {
+          int sortOrder = calculateNextSortOrder();
+          CommonFolder defaultFolder =
+              CommonFolder.create(DEFAULT_FOLDER_NAME, CommonFolderType.QUESTION_SET, sortOrder);
+          return commonFolderRepository.save(defaultFolder);
+        });
+  }
+
+  @Override
   @Transactional
   public CommonFolderResponse createQuestionSetFolder(CommonFolderRequest request) {
     int sortOrder = calculateNextSortOrder();
@@ -39,11 +56,18 @@ public class CommonFolderService {
         .map(folder -> folder.getSortOrder() + 1).orElse(0);
   }
 
+  @Override
   @Transactional(readOnly = true)
   public CommonFolderResponse getFolder(Long id) {
     return toDto(findFolderById(id));
   }
 
+  @Override
+  public Optional<CommonFolder> findFolderEntityById(Long id) {
+    return commonFolderRepository.findById(id);
+  }
+
+  @Override
   @Transactional
   public CommonFolderResponse updateFolder(Long id, CommonFolderRequest request) {
     CommonFolder folder = findFolderById(id);
@@ -51,6 +75,7 @@ public class CommonFolderService {
     return toDto(commonFolderRepository.save(folder));
   }
 
+  @Override
   @Transactional
   public void deleteFolder(Long id) {
     commonFolderRepository.deleteById(id);

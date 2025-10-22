@@ -2,6 +2,11 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -26,15 +31,13 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
+  private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
   private final EventPublisher eventPublisher;
@@ -42,8 +45,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional(readOnly = true)
   public QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId) {
-    return questionSetRepository
-        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+    return questionSetRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
         .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
   }
 
@@ -58,25 +60,20 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private QuestionSetResponse getQuestionSetForFirstSolving(Long id, Long memberId) {
     QuestionSet questionSet =
-        questionSetRepository
-            .findByIdWithQuestionsForFirstSolving(id, memberId)
+        questionSetRepository.findByIdWithQuestionsForFirstSolving(id, memberId)
             .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
 
     return QuestionSetResponse.from(questionSet);
   }
 
   private QuestionSetResponse getQuestionSetForReviewing(Long id, Long memberId) {
-    return questionSetRepository
-        .findQuestionSetForReviewing(id, memberId)
-        .map(QuestionSetResponse::from)
-        .orElseThrow(() -> handleReviewSetNotFound(id, memberId));
+    return questionSetRepository.findQuestionSetForReviewing(id, memberId)
+        .map(QuestionSetResponse::from).orElseThrow(() -> handleReviewSetNotFound(id, memberId));
   }
 
   private RuntimeException handleReviewSetNotFound(Long id, Long memberId) {
-    QuestionSet qs =
-        questionSetRepository
-            .findByIdAndMemberId(id, memberId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
+    QuestionSet qs = questionSetRepository.findByIdAndMemberId(id, memberId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
 
     if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
       return handleQuestionSetStatusException(qs);
@@ -86,10 +83,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   private RuntimeException handleQuestionSetNotFound(Long id, Long memberId) {
-    return questionSetRepository
-        .findByIdAndMemberId(id, memberId)
-        .map(this::handleQuestionSetStatusException)
-        .orElse(QuestionSetNotFoundException.byId(id));
+    return questionSetRepository.findByIdAndMemberId(id, memberId)
+        .map(this::handleQuestionSetStatusException).orElse(QuestionSetNotFoundException.byId(id));
   }
 
   private BusinessException handleQuestionSetStatusException(QuestionSet qs) {
@@ -111,11 +106,41 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     QuestionSet questionSet = QuestionSet.create(ownerId, sources, createParam);
 
+    assignFolderToQuestionSet(request.commonFolderId(), questionSet);
+
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
     eventPublisher.publish(QuestionSetCreatedEvent.from(savedQuestionSet));
 
     return QuestionSetResponse.from(savedQuestionSet);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<MyQuestionSetsResponse> getQuestionSetsByFolder(Long memberId, Long folderId) {
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
+
+    List<QuestionSet> questionSets =
+        questionSetRepository.findByMemberIdAndCommonFolderId(memberId, folderId);
+
+    return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long countByFolderId(Long folderId) {
+    return questionSetRepository.countByCommonFolderId(folderId);
+  }
+
+  private void assignFolderToQuestionSet(Long folderId, QuestionSet questionSet) {
+    if (folderId != null) {
+      CommonFolder folder = commonFolderPublicApi.findFolderEntityById(folderId)
+          .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
+      questionSet.assignToFolder(folder);
+    } else {
+      CommonFolder defaultFolder = commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder();
+      questionSet.assignToFolder(defaultFolder);
+    }
   }
 
   private void validateAllSourcesAreReady(List<Source> sources) {
@@ -129,8 +154,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Transactional(readOnly = true)
-  public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
-      Long memberId, Long cursor, int size) {
+  public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId,
+      Long cursor, int size) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
     List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size);
@@ -190,10 +215,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional
   public void updateTitle(Long questionSetId, String title, Long memberId) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    QuestionSet questionSet = questionSetRepository.findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
@@ -204,11 +227,32 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  public void updateFolder(Long questionSetId, Long commonFolderId, Long memberId) {
+    QuestionSet questionSet = questionSetRepository.findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+
+    if (!questionSet.getOwnerId().equals(memberId)) {
+      throw QuestionSetUnauthorizedException.byId(questionSetId);
+    }
+
+    assignFolderToQuestionSet(commonFolderId, questionSet);
+  }
+
+  @Override
+  @Transactional
+  public void deleteAllByFolderId(Long folderId) {
+    List<QuestionSet> questionSetsToDelete =
+        questionSetRepository.findAllByCommonFolderId(folderId);
+    if (!questionSetsToDelete.isEmpty()) {
+      questionSetRepository.deleteAll(questionSetsToDelete);
+    }
+  }
+
+  @Override
+  @Transactional
   public void delete(Long questionSetId, Long memberId) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    QuestionSet questionSet = questionSetRepository.findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
@@ -224,8 +268,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
-    return questionSetRepository
-        .findById(questionSetId)
+    return questionSetRepository.findById(questionSetId)
         .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
   }
 }

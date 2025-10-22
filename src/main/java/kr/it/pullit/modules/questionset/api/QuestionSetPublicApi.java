@@ -22,14 +22,22 @@ public interface QuestionSetPublicApi {
 
   void updateTitle(Long questionSetId, String title, Long memberId);
 
+  void updateFolder(Long questionSetId, Long commonFolderId, Long memberId);
+
   void delete(Long questionSetId, Long memberId);
+
+  void deleteAllByFolderId(Long folderId);
 
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
-  CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
-      Long memberId, Long cursor, int size);
+  CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId, Long cursor,
+      int size);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
+
+  List<MyQuestionSetsResponse> getQuestionSetsByFolder(Long memberId, Long folderId);
+
+  long countByFolderId(Long folderId);
 
   QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }

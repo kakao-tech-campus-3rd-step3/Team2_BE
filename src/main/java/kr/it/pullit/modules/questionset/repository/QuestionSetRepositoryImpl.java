@@ -2,12 +2,12 @@ package kr.it.pullit.modules.questionset.repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -36,6 +36,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public List<QuestionSet> findByMemberIdAndCommonFolderId(Long memberId, Long commonFolderId) {
+    return questionSetJpaRepository.findByOwnerIdAndCommonFolderId(memberId, commonFolderId);
+  }
+
+  @Override
   public QuestionSet save(QuestionSet questionSet) {
     return questionSetJpaRepository.save(questionSet);
   }
@@ -46,10 +51,9 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(
-      Long id, Long memberId) {
-    return questionSetJpaRepository
-        .findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
+  public Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id,
+      Long memberId) {
+    return questionSetJpaRepository.findQuestionSetWhenHaveNoQuestionsYet(id, memberId)
         .map(QuestionSetResponse::new);
   }
 
@@ -66,5 +70,20 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public void delete(QuestionSet questionSet) {
     questionSetJpaRepository.delete(questionSet);
+  }
+
+  @Override
+  public void deleteAll(List<QuestionSet> questionSets) {
+    questionSetJpaRepository.deleteAll(questionSets);
+  }
+
+  @Override
+  public long countByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
+  }
+
+  @Override
+  public List<QuestionSet> findAllByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.findAllByCommonFolderId(commonFolderId);
   }
 }

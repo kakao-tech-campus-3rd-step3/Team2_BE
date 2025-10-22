@@ -2,16 +2,15 @@ package kr.it.pullit.modules.questionset.repository.adapter.jpa;
 
 import java.util.List;
 import java.util.Optional;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 
 public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Long> {
 
-  @Query(
-      """
+  @Query("""
        SELECT qs
        FROM QuestionSet qs
        LEFT JOIN FETCH qs.questions
@@ -20,8 +19,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """)
   Optional<QuestionSet> findByIdAndMemberId(@Param("id") Long id, @Param("memberId") Long memberId);
 
-  @Query(
-      """
+  @Query("""
        SELECT qs
        FROM QuestionSet qs
        LEFT JOIN FETCH qs.questions
@@ -30,19 +28,23 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
        AND qs.ownerId = :memberId
        AND qs.status = 'COMPLETE'
       """)
-  Optional<QuestionSet> findByIdWithQuestionsForSolve(
-      @Param("id") Long id, @Param("memberId") Long memberId);
+  Optional<QuestionSet> findByIdWithQuestionsForSolve(@Param("id") Long id,
+      @Param("memberId") Long memberId);
 
-  @Query(
-      """
+  @Query("""
       SELECT qs
       FROM QuestionSet qs
       WHERE qs.ownerId = :memberId
       """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
-  @Query(
-      """
+  List<QuestionSet> findByOwnerIdAndCommonFolderId(Long ownerId, Long commonFolderId);
+
+  List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
+
+  long countByCommonFolderId(Long commonFolderId);
+
+  @Query("""
         SELECT DISTINCT qs
         FROM QuestionSet qs
         LEFT JOIN FETCH qs.questions q
@@ -52,13 +54,12 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         AND wa.isReviewed = false
         AND qs.status = 'COMPLETE'
       """)
-  Optional<QuestionSet> findWrongAnswersByIdAndMemberId(
-      @Param("id") Long id, @Param("memberId") Long memberId);
+  Optional<QuestionSet> findWrongAnswersByIdAndMemberId(@Param("id") Long id,
+      @Param("memberId") Long memberId);
 
   Optional<QuestionSet> findByIdAndOwnerId(Long id, Long ownerId);
 
-  @Query(
-      """
+  @Query("""
         SELECT qs
         FROM QuestionSet qs
         WHERE qs.id = :id
@@ -67,14 +68,13 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """)
   Optional<QuestionSet> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
-  @Query(
-      """
+  @Query("""
         SELECT qs
         FROM QuestionSet qs
         WHERE qs.ownerId = :memberId
         AND (:cursor IS NULL OR qs.id < :cursor)
         ORDER BY qs.createdAt DESC, qs.id DESC
       """)
-  List<QuestionSet> findByMemberIdWithCursor(
-      @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
+  List<QuestionSet> findByMemberIdWithCursor(@Param("memberId") Long memberId,
+      @Param("cursor") Long cursor, Pageable pageable);
 }
