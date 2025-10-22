@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class CommonFolderService implements CommonFolderPublicApi {
 
-  private static final String DEFAULT_FOLDER_NAME = "전체";
   private final CommonFolderRepository commonFolderRepository;
 
   @Override
@@ -32,27 +31,25 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Transactional
   public CommonFolder getOrCreateDefaultQuestionSetFolder() {
     return commonFolderRepository
-        .findByNameAndType(DEFAULT_FOLDER_NAME, CommonFolderType.QUESTION_SET).orElseGet(() -> {
-          int sortOrder = calculateNextSortOrder();
-          CommonFolder defaultFolder =
-              CommonFolder.create(DEFAULT_FOLDER_NAME, CommonFolderType.QUESTION_SET, sortOrder);
-          return commonFolderRepository.save(defaultFolder);
-        });
+        .findByNameAndType(CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET)
+        .orElseGet(() -> createNewFolder(CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET));
   }
 
   @Override
   @Transactional
   public CommonFolderResponse createQuestionSetFolder(CommonFolderRequest request) {
-    int sortOrder = calculateNextSortOrder();
-
-    CommonFolder folder =
-        CommonFolder.create(request.name(), CommonFolderType.QUESTION_SET, sortOrder);
-
-    return toDto(commonFolderRepository.save(folder));
+    CommonFolder folder = createNewFolder(request.name(), CommonFolderType.QUESTION_SET);
+    return toDto(folder);
   }
 
-  private int calculateNextSortOrder() {
-    return commonFolderRepository.findFirstByTypeOrderBySortOrderDesc(CommonFolderType.QUESTION_SET)
+  private CommonFolder createNewFolder(String name, CommonFolderType type) {
+    int sortOrder = calculateNextSortOrder(type);
+    CommonFolder folder = CommonFolder.create(name, type, sortOrder);
+    return commonFolderRepository.save(folder);
+  }
+
+  private int calculateNextSortOrder(CommonFolderType type) {
+    return commonFolderRepository.findFirstByTypeOrderBySortOrderDesc(type)
         .map(folder -> folder.getSortOrder() + 1).orElse(0);
   }
 

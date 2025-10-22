@@ -20,6 +20,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "common_folder")
 public class CommonFolder {
 
+  public static final String DEFAULT_NAME = "전체";
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
