@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreRemove;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -115,5 +116,13 @@ public class Source extends BaseEntity {
 
   public void markAsFailed() {
     this.status = SourceStatus.FAILED;
+  }
+
+  @PreRemove
+  private void preRemove() {
+    Set<QuestionSet> questionSetsCopy = new HashSet<>(this.questionSets);
+    for (QuestionSet questionSet : questionSetsCopy) {
+      questionSet.removeSource(this);
+    }
   }
 }
