@@ -21,7 +21,9 @@ public class DevAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      @NotNull HttpServletRequest request, @NotNull HttpServletResponse response, FilterChain filterChain)
+      @NotNull HttpServletRequest request,
+      @NotNull HttpServletResponse response,
+      FilterChain filterChain)
       throws ServletException, IOException {
 
     HttpServletRequest processedRequest = localAuthenticationHandler.authenticate(request);

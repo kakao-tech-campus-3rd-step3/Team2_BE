@@ -4,7 +4,6 @@ import java.util.List;
 import kr.it.pullit.modules.questionset.service.MarkingService;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
-import kr.it.pullit.modules.questionset.web.dto.request.MarkingSessionRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
