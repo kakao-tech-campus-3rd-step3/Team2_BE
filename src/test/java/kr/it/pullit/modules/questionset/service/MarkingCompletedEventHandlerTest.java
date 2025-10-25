@@ -5,7 +5,8 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
 import java.util.List;
-import kr.it.pullit.modules.projection.learnstats.event.publisher.LearnStatsEventPublisher;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEventHandler;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
@@ -20,7 +21,8 @@ class MarkingCompletedEventHandlerTest {
 
   @InjectMocks private MarkingCompletedEventHandler sut;
 
-  @Mock private LearnStatsEventPublisher learnStatsEventPublisher;
+  @Mock private LearnStatsEventPublicApi learnStatsEventPublicApi;
+  @Mock private LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
   @Test
   @DisplayName("채점 완료 시 solvedQuestionCount가 0보다 크면 이벤트를 발행한다")
@@ -34,11 +36,11 @@ class MarkingCompletedEventHandlerTest {
     sut.handleMarkingCompletedEvent(event);
 
     // then
-    verify(learnStatsEventPublisher).publishQuestionSetSolved(memberId, results.size());
+    verify(learnStatsEventPublicApi).publishQuestionSetSolved(memberId, results.size());
   }
 
   @Test
-  @DisplayName("재채점 시에는 이벤트를 발행하지 않는다")
+  @DisplayName("재채점 시에도 이벤트를 발행한다.")
   void shouldNotPublishEventWhenReviewing() {
     // given
     var memberId = 1L;
@@ -49,7 +51,7 @@ class MarkingCompletedEventHandlerTest {
     sut.handleMarkingCompletedEvent(event);
 
     // then
-    verify(learnStatsEventPublisher, never()).publishQuestionSetSolved(memberId, results.size());
+    verify(learnStatsEventPublicApi).publishQuestionSetSolved(memberId, results.size());
   }
 
   @Test
@@ -64,6 +66,6 @@ class MarkingCompletedEventHandlerTest {
     sut.handleMarkingCompletedEvent(event);
 
     // then
-    verify(learnStatsEventPublisher, never()).publishQuestionSetSolved(memberId, results.size());
+    verify(learnStatsEventPublicApi, never()).publishQuestionSetSolved(memberId, results.size());
   }
 }

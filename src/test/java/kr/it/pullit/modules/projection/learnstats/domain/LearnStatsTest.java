@@ -34,7 +34,6 @@ class LearnStatsTest {
   @DisplayName("newOf: 모든 통계치가 초기화된 객체를 생성한다")
   void newOf() {
     assertThat(projection.getMemberId()).isEqualTo(1L);
-    assertThat(projection.getTotalQuestionSetCount()).isZero();
     assertThat(projection.getTotalSolvedQuestionSetCount()).isZero();
     assertThat(projection.getTotalSolvedQuestionCount()).isZero();
   }
@@ -45,14 +44,6 @@ class LearnStatsTest {
     projection.onQuestionSetSolved(10, today);
     projection.onWeeklyReset();
     assertThat(projection.getWeeklySolvedQuestionCount()).isZero();
-    assertThat(projection.getLastLearningDate()).isNull();
-  }
-
-  @Test
-  @DisplayName("onQuestionSetAssigned: 전체 문제집 수가 1 증가한다")
-  void onQuestionSetAssigned() {
-    projection.onQuestionSetAssigned();
-    assertThat(projection.getTotalQuestionSetCount()).isEqualTo(1);
   }
 
   @Nested

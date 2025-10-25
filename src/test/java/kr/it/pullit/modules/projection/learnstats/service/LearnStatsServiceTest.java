@@ -9,6 +9,7 @@ import java.time.Clock;
 import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
+import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.support.annotation.UnitTest;
 import kr.it.pullit.support.config.FixedClockConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,8 @@ class LearnStatsServiceTest {
   @Autowired private LearnStatsService sut;
 
   @MockitoBean private LearnStatsRepository learnStatsRepository;
+
+  @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
 
   @Autowired private Clock clock;
 

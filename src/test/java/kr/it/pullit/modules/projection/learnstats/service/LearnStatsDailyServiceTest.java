@@ -4,6 +4,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsDailyJpaRepository;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsDailyRepository;
 import kr.it.pullit.support.annotation.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,7 @@ class LearnStatsDailyServiceTest {
   @Autowired private LearnStatsDailyService service;
 
   @MockitoBean private LearnStatsDailyRepository learnStatsDailyRepository;
+  @MockitoBean private LearnStatsDailyJpaRepository learnStatsDailyJpaRepository;
 
   @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
