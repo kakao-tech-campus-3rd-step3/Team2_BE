@@ -16,6 +16,9 @@ public class P6spyOutboxEvaluator extends EventEvaluatorBase<ILoggingEvent> {
 
     @Override
     public boolean evaluate(ILoggingEvent event) {
+        //        System.out.println("--- [Evaluator] Logger: " + logger);
+        //        System.out.println("--- [Evaluator] Message: " + (msg != null ? msg.substring(0, Math.min(msg.length(), 100)) + "..." : "null"));
+
         String logger = event.getLoggerName();
         String msg    = event.getFormattedMessage();
 
