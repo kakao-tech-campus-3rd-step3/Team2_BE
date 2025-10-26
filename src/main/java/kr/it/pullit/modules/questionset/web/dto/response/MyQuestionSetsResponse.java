@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionSetStatus;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import lombok.Builder;
 
 @Builder

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import kr.it.pullit.platform.security.jwt.handler.LocalAuthenticationHandler;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +21,9 @@ public class DevAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      @NotNull HttpServletRequest request,
+      @NotNull HttpServletResponse response,
+      FilterChain filterChain)
       throws ServletException, IOException {
 
     HttpServletRequest processedRequest = localAuthenticationHandler.authenticate(request);

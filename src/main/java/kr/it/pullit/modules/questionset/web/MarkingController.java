@@ -31,12 +31,12 @@ public class MarkingController {
    */
   @PostMapping
   public ResponseEntity<MarkQuestionsResponse> markQuestions(
-      @RequestBody List<MarkingRequest> markingRequest,
+      @RequestBody List<MarkingRequest> request,
       @AuthenticationPrincipal Long memberId,
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
     MarkingServiceRequest markingServiceRequest =
-        MarkingServiceRequest.of(memberId, markingRequest, isReviewing);
+        MarkingServiceRequest.of(memberId, request, isReviewing);
     MarkQuestionsResponse res = markingService.markQuestions(markingServiceRequest);
     return ResponseEntity.ok(res);
   }

@@ -3,8 +3,8 @@ package kr.it.pullit.modules.questionset.domain.entity;
 import static kr.it.pullit.modules.questionset.domain.QuestionSetConstants.TITLE_MAX_LENGTH;
 
 import java.util.Objects;
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 
 public record LlmPrompt(String value) {
   public LlmPrompt {

@@ -41,8 +41,6 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
-  List<QuestionSet> findByOwnerIdAndCommonFolderId(Long ownerId, Long commonFolderId);
-
   List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
 
   long countByCommonFolderId(Long commonFolderId);
@@ -87,4 +85,13 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       @Param("folderId") Long folderId,
       @Param("cursor") Long cursor,
       Pageable pageable);
+
+  @Query(
+      """
+            SELECT qs
+            FROM QuestionSet qs
+            LEFT JOIN FETCH qs.questions
+            WHERE qs.ownerId = :memberId AND qs.status = 'COMPLETE'
+      """)
+  List<QuestionSet> findCompletedWithQuestionsByMemberId(@Param("memberId") Long memberId);
 }
