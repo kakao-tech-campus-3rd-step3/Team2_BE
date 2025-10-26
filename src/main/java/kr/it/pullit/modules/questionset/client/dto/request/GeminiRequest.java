@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import kr.it.pullit.modules.questionset.client.GeminiConfigBuilder;
 import kr.it.pullit.modules.questionset.client.exception.LlmException;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 
 public record GeminiRequest(String model, Content content, GenerateContentConfig config) {
 

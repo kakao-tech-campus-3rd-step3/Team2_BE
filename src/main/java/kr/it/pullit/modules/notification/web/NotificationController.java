@@ -1,6 +1,6 @@
 package kr.it.pullit.modules.notification.web;
 
-import kr.it.pullit.modules.notification.api.NotificationPublicApi;
+import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
-  private final NotificationPublicApi notificationPublicApi;
+  private final NotificationEventPublicApi notificationEventPublicApi;
 
   @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter subscribe(
@@ -25,6 +25,6 @@ public class NotificationController {
 
     String lastEventId = headerLastEventId != null ? headerLastEventId : paramLastEventId;
 
-    return notificationPublicApi.subscribe(memberId, lastEventId);
+    return notificationEventPublicApi.subscribe(memberId, lastEventId);
   }
 }

@@ -27,6 +27,8 @@ public interface QuestionSetPublicApi {
 
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
+  List<QuestionSet> findCompletedEntitiesByMemberId(Long memberId);
+
   CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
       Long memberId, Long cursor, int size, Long folderId);
 

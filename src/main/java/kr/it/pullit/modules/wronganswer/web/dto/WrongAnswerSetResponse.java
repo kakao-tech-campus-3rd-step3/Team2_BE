@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.wronganswer.web.dto;
 
 import java.util.List;
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
 import lombok.Builder;
 
 @Builder

@@ -26,23 +26,28 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId) {
+  public Optional<QuestionSet> findWithQuestionsForFirstSolving(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
+  public Optional<QuestionSet> findWithoutQuestions(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
-  }
-
-  @Override
-  public List<QuestionSet> findByMemberIdAndCommonFolderId(Long memberId, Long commonFolderId) {
-    return questionSetJpaRepository.findByOwnerIdAndCommonFolderId(memberId, commonFolderId);
   }
 
   @Override
   public QuestionSet save(QuestionSet questionSet) {
     return questionSetJpaRepository.save(questionSet);
+  }
+
+  @Override
+  public void deleteById(Long questionSetId) {
+    questionSetJpaRepository.deleteById(questionSetId);
+  }
+
+  @Override
+  public void deleteAllByIds(List<Long> questionSetIds) {
+    questionSetJpaRepository.deleteAllById(questionSetIds);
   }
 
   @Override
@@ -71,16 +76,6 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public void delete(QuestionSet questionSet) {
-    questionSetJpaRepository.delete(questionSet);
-  }
-
-  @Override
-  public void deleteAll(List<QuestionSet> questionSets) {
-    questionSetJpaRepository.deleteAll(questionSets);
-  }
-
-  @Override
   public long countByCommonFolderId(Long commonFolderId) {
     return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
   }
@@ -88,5 +83,10 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public List<QuestionSet> findAllByCommonFolderId(Long commonFolderId) {
     return questionSetJpaRepository.findAllByCommonFolderId(commonFolderId);
+  }
+
+  @Override
+  public List<QuestionSet> findCompletedByMemberId(Long memberId) {
+    return questionSetJpaRepository.findCompletedWithQuestionsByMemberId(memberId);
   }
 }

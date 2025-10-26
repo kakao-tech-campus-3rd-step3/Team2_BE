@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.questionset.domain.dto;
 
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 
 public record QuestionSetCreateParam(

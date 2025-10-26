@@ -12,13 +12,11 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId);
 
-  Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId);
+  Optional<QuestionSet> findWithQuestionsForFirstSolving(Long id, Long memberId);
 
-  Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId);
+  Optional<QuestionSet> findWithoutQuestions(Long id, Long memberId);
 
   List<QuestionSet> findByMemberId(Long memberId);
-
-  List<QuestionSet> findByMemberIdAndCommonFolderId(Long memberId, Long commonFolderId);
 
   List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
 
@@ -29,11 +27,13 @@ public interface QuestionSetRepository {
 
   QuestionSet save(QuestionSet questionSet);
 
-  void delete(QuestionSet questionSet);
+  void deleteById(Long questionSetId);
 
-  void deleteAll(List<QuestionSet> questionSets);
+  void deleteAllByIds(List<Long> questionSetIds);
 
   Optional<QuestionSet> findQuestionSetForReviewing(Long questionSetId, Long memberId);
 
   Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
+
+  List<QuestionSet> findCompletedByMemberId(Long memberId);
 }

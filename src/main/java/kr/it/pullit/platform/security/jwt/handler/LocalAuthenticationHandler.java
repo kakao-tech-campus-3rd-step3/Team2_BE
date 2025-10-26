@@ -23,7 +23,7 @@ public class LocalAuthenticationHandler {
       SecurityContext context = SecurityContextHolder.createEmptyContext();
       PullitAuthenticationToken token =
           new PullitAuthenticationToken(
-              DEFAULT_MEMBER_ID, DEFAULT_MEMBER_EMAIL, null, Role.MEMBER.getAuthorities());
+              DEFAULT_MEMBER_ID, DEFAULT_MEMBER_EMAIL, null, Role.ADMIN.getAuthorities());
       context.setAuthentication(token);
       SecurityContextHolder.setContext(context);
 

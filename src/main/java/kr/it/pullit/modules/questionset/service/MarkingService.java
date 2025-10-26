@@ -5,17 +5,19 @@ import java.util.List;
 import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
+import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
-import kr.it.pullit.modules.questionset.service.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
 import kr.it.pullit.shared.event.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MarkingService implements MarkingPublicApi {
 
   private final QuestionPublicApi questionPublicApi;
