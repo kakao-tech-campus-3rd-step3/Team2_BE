@@ -4,11 +4,12 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +30,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class QuestionSetController {
 
   private final QuestionSetPublicApi questionSetPublicApi;
+  private final QuestionSetWithStatsFacade questionSetWithStatsFacade;
 
   /**
    * 문제집의 모든 문제를 조회하는 API
@@ -55,11 +57,14 @@ public class QuestionSetController {
    * @return 회원의 모든 문제집 목록
    */
   @GetMapping
-  public ResponseEntity<CursorPageResponse<MyQuestionSetsResponse>> getMyQuestionSets(
+  public ResponseEntity<MyQuestionSetsWithProgressResponse> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId,
       @RequestParam(required = false) Long cursor,
-      @RequestParam(defaultValue = "10") int size) {
-    return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size));
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(required = false) Long folderId) {
+    return ResponseEntity.ok(
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(
+            memberId, cursor, size, folderId));
   }
 
   @GetMapping("/all")
@@ -91,22 +96,20 @@ public class QuestionSetController {
     return ResponseEntity.created(location).build();
   }
 
-  // TODO: 수정기능이 타이틀만 수정하는 기능임. 명칭오해가 없도록 해야함.
-
   /**
-   * 문제집을 수정하는 API
+   * 문제집을 수정하는 API (제목, 폴더 등)
    *
    * @param memberId 회원 ID
    * @param id 문제집 ID
-   * @param questionSetUpdateRequestDto 문제집 수정 요청
-   * @return 문제집 수정 응답
+   * @param request 문제집 수정 요청
+   * @return 200 OK
    */
   @PatchMapping("/{id}")
   public ResponseEntity<Void> updateQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
-      @Valid @RequestBody QuestionSetUpdateRequestDto questionSetUpdateRequestDto) {
-    questionSetPublicApi.updateTitle(id, questionSetUpdateRequestDto.title(), memberId);
+      @Valid @RequestBody QuestionSetUpdateRequestDto request) {
+    questionSetPublicApi.update(id, request, memberId);
     return ResponseEntity.ok().build();
   }
 

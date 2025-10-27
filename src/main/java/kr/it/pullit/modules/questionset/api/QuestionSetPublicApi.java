@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
@@ -18,18 +19,24 @@ public interface QuestionSetPublicApi {
 
   void markAsFailed(Long questionSetId);
 
-  void updateTitle(Long questionSetId, String title);
-
-  void updateTitle(Long questionSetId, String title, Long memberId);
+  void update(Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId);
 
   void delete(Long questionSetId, Long memberId);
 
+  void deleteAllByFolderId(Long folderId);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
+  List<QuestionSet> findCompletedEntitiesByMemberId(Long memberId);
+
   CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
-      Long memberId, Long cursor, int size);
+      Long memberId, Long cursor, int size, Long folderId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);
+
+  long countByFolderId(Long folderId);
+
+  long countByMemberId(Long memberId);
 
   QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }

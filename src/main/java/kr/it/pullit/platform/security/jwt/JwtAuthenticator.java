@@ -25,7 +25,7 @@ public class JwtAuthenticator {
       return new AuthenticationResult.NoToken();
     }
 
-    TokenValidationResult validationResult = jwtTokenPort.validateToken(token);
+    TokenValidationResult validationResult = jwtTokenPort.validateAccessToken(token);
 
     return handleValidationResult(validationResult);
   }

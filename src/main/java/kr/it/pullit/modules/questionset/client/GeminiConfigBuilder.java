@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.genai.types.GenerateContentConfig;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import org.springframework.stereotype.Component;
 
 /**

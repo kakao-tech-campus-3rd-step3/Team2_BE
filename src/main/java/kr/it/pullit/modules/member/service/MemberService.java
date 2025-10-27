@@ -8,6 +8,8 @@ import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,11 @@ public class MemberService implements MemberPublicApi {
   @Override
   public Optional<Member> findByRefreshToken(String refreshToken) {
     return memberRepository.findByRefreshToken(refreshToken);
+  }
+
+  @Override
+  public Page<Member> findAll(Pageable pageable) {
+    return memberRepository.findAll(pageable);
   }
 
   @Override

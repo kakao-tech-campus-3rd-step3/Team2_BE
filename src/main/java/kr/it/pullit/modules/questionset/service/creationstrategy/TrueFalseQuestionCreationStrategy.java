@@ -4,7 +4,7 @@ import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestion
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.domain.entity.TrueFalseQuestion;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import org.springframework.stereotype.Component;
 
 @Component

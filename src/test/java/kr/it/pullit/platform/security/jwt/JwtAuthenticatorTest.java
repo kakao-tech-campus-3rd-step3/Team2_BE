@@ -41,7 +41,7 @@ class JwtAuthenticatorTest {
     String token = "valid-token";
     String expectedEmail = "tester@pullit.kr";
 
-    when(jwtTokenProvider.validateToken(token))
+    when(jwtTokenProvider.validateAccessToken(token))
         .thenReturn(new TokenValidationResult.Valid(decodedJwt));
     when(decodedJwt.getClaim("memberId")).thenReturn(memberIdClaim);
     when(memberIdClaim.asLong()).thenReturn(1L);
@@ -64,7 +64,8 @@ class JwtAuthenticatorTest {
   void shouldThrowExceptionWhenTokenIsExpired() {
     // given
     String token = "expired-token";
-    when(jwtTokenProvider.validateToken(token)).thenReturn(new TokenValidationResult.Expired());
+    when(jwtTokenProvider.validateAccessToken(token))
+        .thenReturn(new TokenValidationResult.Expired());
 
     // when & then
     assertThatThrownBy(() -> jwtAuthenticator.authenticate(token))
@@ -79,7 +80,7 @@ class JwtAuthenticatorTest {
     String token = "invalid-token";
     String errorMessage = "유효하지 않은 토큰입니다.";
     var cause = new RuntimeException("underlying cause");
-    when(jwtTokenProvider.validateToken(token))
+    when(jwtTokenProvider.validateAccessToken(token))
         .thenReturn(new TokenValidationResult.Invalid(errorMessage, cause));
 
     // when & then
