@@ -178,8 +178,4 @@ springdoc:
   paths-to-match:
     - /api/**
     - /auth/**
-<<<<<<< HEAD
-    - /data/migration/**
-=======
     - /admin/**
->>>>>>> choi/btsk-90/test-code-and-swagger
