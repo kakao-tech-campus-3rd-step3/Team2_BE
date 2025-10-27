@@ -12,6 +12,7 @@ public final class AuthorizationRules {
   public static final String[] PUBLIC_ENDPOINTS = {
     "/",
     "/api/health",
+    "/api-docs.yaml",
     "/login/oauth2/code/**",
     "/oauth/authorize/**",
     "/oauth2/authorization/**",
