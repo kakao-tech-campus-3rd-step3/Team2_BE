@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.member.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Member Admin API", description = "관리자용 회원 관리 API")
 @RestController
 @RequestMapping("/api/admin/members")
 @RequiredArgsConstructor

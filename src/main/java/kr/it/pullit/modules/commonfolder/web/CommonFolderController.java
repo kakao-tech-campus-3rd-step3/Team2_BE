@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.commonfolder.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Common Folder API", description = "공통 폴더 관리 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/common-folders")

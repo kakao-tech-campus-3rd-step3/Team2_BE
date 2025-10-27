@@ -1,15 +1,16 @@
 package kr.it.pullit.platform.security.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Duration;
 import java.util.Collections;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @MockitoUnitTest
 @DisplayName("JwtTokenProviderImpl 단위 테스트")
