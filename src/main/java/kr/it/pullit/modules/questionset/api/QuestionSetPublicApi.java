@@ -36,5 +36,7 @@ public interface QuestionSetPublicApi {
 
   long countByFolderId(Long folderId);
 
+  long countByMemberId(Long memberId);
+
   QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 }
