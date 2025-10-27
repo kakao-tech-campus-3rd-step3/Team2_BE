@@ -2,18 +2,19 @@ package kr.it.pullit.modules.questionset.service;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEventHandler;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 @MockitoUnitTest
 class MarkingCompletedEventHandlerTest {

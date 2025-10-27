@@ -1,10 +1,11 @@
 package kr.it.pullit.modules.projection.learnstats.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.LocalDate;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import kr.it.pullit.support.annotation.MockitoUnitTest;
 
 @MockitoUnitTest
 @DisplayName("LearnStatsDaily 단위 테스트")
