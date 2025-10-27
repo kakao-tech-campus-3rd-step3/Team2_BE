@@ -178,4 +178,4 @@ springdoc:
   paths-to-match:
     - /api/**
     - /auth/**
-    - /data/migration/**
+    - /admin/**
