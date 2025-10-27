@@ -6,14 +6,14 @@ import java.time.Clock;
 import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsDailyJpaRepository;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsDailyRepository;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@UnitTest
+@SpringUnitTest
 @DisplayName("LearnStatsDailyService 단위 테스트")
 @ContextConfiguration(classes = {LearnStatsDailyService.class})
 class LearnStatsDailyServiceTest {

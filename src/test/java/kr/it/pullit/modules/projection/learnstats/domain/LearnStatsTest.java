@@ -6,14 +6,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Clock;
 import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@UnitTest
+@SpringUnitTest
 @DisplayName("LearnStats 단위 테스트")
 class LearnStatsTest {
 

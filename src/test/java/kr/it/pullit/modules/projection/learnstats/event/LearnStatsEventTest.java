@@ -15,7 +15,7 @@ import kr.it.pullit.modules.projection.learnstats.event.publisher.LearnStatsEven
 import kr.it.pullit.modules.projection.learnstats.service.LearnStatsService;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import kr.it.pullit.modules.projection.outbox.publisher.OutboxEventPublisher;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@UnitTest
+@SpringUnitTest
 @DisplayName("LearnStatsEvent 단위 테스트")
 @Import(LearnStatsEventTest.Config.class)
 class LearnStatsEventTest {
