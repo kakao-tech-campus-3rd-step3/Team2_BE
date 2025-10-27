@@ -225,3 +225,53 @@ jacocoTestCoverageVerification {
 tasks.named('check') {
     dependsOn jacocoTestCoverageVerification
 }
+
+// Function to create a Jacoco report task for a specific domain
+def createJacocoDomainReportTask(String domainName, String domainPath) {
+    tasks.create("jacoco${domainName.capitalize()}Report", JacocoReport) {
+        description = "Generate Jacoco test coverage report for the $domainName domain."
+
+        dependsOn test
+
+        sourceSets sourceSets.main
+
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, include: [domainPath])
+        }))
+
+        executionData.setFrom(fileTree(dir: "$buildDir/jacoco", includes: ["*.exec"]))
+
+        reports {
+            xml.required = true
+            html.required = true
+            csv.required = true
+            html.outputLocation = layout.buildDirectory.dir("reports/jacoco/$domainName")
+        }
+    }
+}
+
+// Define domains and their paths
+def domains = [
+    auth: "kr/it/pullit/modules/auth/**",
+    commonfolder: "kr/it/pullit/modules/commonfolder/**",
+    home: "kr/it/pullit/modules/home/**",
+    learningsource: "kr/it/pullit/modules/learningsource/**",
+    member: "kr/it/pullit/modules/member/**",
+    notification: "kr/it/pullit/modules/notification/**",
+    learnstats: "kr/it/pullit/modules/projection/learnstats/**",
+    outbox: "kr/it/pullit/modules/projection/outbox/**",
+    questionset: "kr/it/pullit/modules/questionset/**",
+    wronganswer: "kr/it/pullit/modules/wronganswer/**"
+]
+
+// Create tasks for each domain
+domains.each { domainName, domainPath ->
+    createJacocoDomainReportTask(domainName, domainPath)
+}
+
+// Create an aggregate task that runs all domain reports
+tasks.register("jacocoAllDomainReports") {
+    group = "verification"
+    description = "Generate Jacoco test coverage reports for all domains."
+    dependsOn domains.keySet().collect { "jacoco${it.capitalize()}Report" }
+}
