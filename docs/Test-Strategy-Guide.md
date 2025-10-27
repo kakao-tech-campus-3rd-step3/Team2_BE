@@ -32,7 +32,7 @@
 package kr.it.pullit.platform.security.jwt;
 
 // ... import 생략 ...
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

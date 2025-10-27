@@ -3,22 +3,21 @@ package kr.it.pullit.platform.security.jwt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
-
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Optional;
-import kr.it.pullit.modules.member.repository.MemberRepository;
-import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
-import kr.it.pullit.platform.security.jwt.exception.TokenErrorCode;
-import kr.it.pullit.platform.security.jwt.exception.TokenException;
-import kr.it.pullit.support.annotation.UnitTest;
-import kr.it.pullit.support.fixture.MemberFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import kr.it.pullit.modules.member.repository.MemberRepository;
+import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
+import kr.it.pullit.platform.security.jwt.exception.TokenErrorCode;
+import kr.it.pullit.platform.security.jwt.exception.TokenException;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
+import kr.it.pullit.support.fixture.MemberFixtures;
 
-@UnitTest
+@MockitoUnitTest
 @DisplayName("JwtAuthenticator 단위 테스트")
 class JwtAuthenticatorTest {
 

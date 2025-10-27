@@ -17,7 +17,7 @@ import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepositor
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import kr.it.pullit.support.fixture.QuestionSetFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@UnitTest
+@SpringUnitTest
 @ContextConfiguration(classes = {LearnStatsRecalibrationService.class})
 @DisplayName("LearnStatsRecalibrationService 단위 테스트")
 class LearnStatsRecalibrationServiceTest {
