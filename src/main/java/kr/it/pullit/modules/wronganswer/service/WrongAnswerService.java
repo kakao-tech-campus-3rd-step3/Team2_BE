@@ -17,8 +17,6 @@ import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,23 +34,12 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
   @Transactional(readOnly = true)
   public CursorPageResponse<WrongAnswerSetResponse> getMyWrongAnswers(
       Long memberId, Long cursor, int size) {
-    List<WrongAnswerSetDto> results = fetchWrongAnswerSets(memberId, cursor, size);
+    List<WrongAnswerSetDto> results =
+        wrongAnswerRepository.findWrongAnswerSetWithCursor(memberId, cursor, size);
 
-    boolean hasNext = results.size() > size;
-    List<WrongAnswerSetResponse> content = toContent(results, size);
-    Long nextCursor = calculateNextCursor(results, size, hasNext);
+    List<WrongAnswerSetResponse> content = results.stream().map(this::toResponse).toList();
 
-    return CursorPageResponse.of(content, nextCursor, hasNext);
-  }
-
-  private List<WrongAnswerSetDto> fetchWrongAnswerSets(Long memberId, Long cursor, int size) {
-    Pageable pageableWithOneExtra = PageRequest.of(0, size + 1);
-    return wrongAnswerRepository.findWrongAnswerSetWithCursor(
-        memberId, cursor, pageableWithOneExtra);
-  }
-
-  private List<WrongAnswerSetResponse> toContent(List<WrongAnswerSetDto> results, int size) {
-    return results.stream().limit(size).map(this::toResponse).collect(Collectors.toList());
+    return CursorPageResponse.of(content, size, WrongAnswerSetResponse::lastWrongAnswerId);
   }
 
   // TODO: 카테고리 추가 필요.
@@ -68,14 +55,8 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
         questionSet.getDifficulty(),
         questionSet.getTitle(),
         dto.count(),
-        null);
-  }
-
-  private Long calculateNextCursor(List<WrongAnswerSetDto> results, int size, boolean hasNext) {
-    if (!hasNext) {
-      return null;
-    }
-    return results.get(size - 1).lastWrongAnswerId();
+        null,
+        dto.lastWrongAnswerId());
   }
 
   @Override

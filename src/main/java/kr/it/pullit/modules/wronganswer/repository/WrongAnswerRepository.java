@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto;
-import org.springframework.data.domain.Pageable;
 
 public interface WrongAnswerRepository {
   WrongAnswer save(WrongAnswer wrongAnswer);
@@ -17,6 +16,5 @@ public interface WrongAnswerRepository {
 
   List<WrongAnswerSetDto> findAllWrongAnswerSetAndCountByMemberId(Long memberId);
 
-  List<WrongAnswerSetDto> findWrongAnswerSetWithCursor(
-      Long memberId, Long cursor, Pageable pageable);
+  List<WrongAnswerSetDto> findWrongAnswerSetWithCursor(Long memberId, Long cursor, int size);
 }

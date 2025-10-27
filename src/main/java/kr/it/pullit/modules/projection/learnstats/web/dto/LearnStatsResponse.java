@@ -36,4 +36,11 @@ public class LearnStatsResponse {
         .consecutiveLearningDays(p.getConsecutiveLearningDays())
         .build();
   }
+
+  public int calculateLearningProgress(long totalQuestionSetCount) {
+    if (totalQuestionSetCount == 0) {
+      return 0;
+    }
+    return (int) (((double) totalSolvedQuestionSetCount / totalQuestionSetCount) * 100);
+  }
 }

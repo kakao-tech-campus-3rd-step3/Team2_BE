@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import org.springframework.data.domain.Pageable;
 
 public interface QuestionSetRepository {
 
@@ -22,8 +21,8 @@ public interface QuestionSetRepository {
 
   long countByCommonFolderId(Long commonFolderId);
 
-  List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
-      Long memberId, Long folderId, Long cursor, Pageable pageable);
+  List<QuestionSet> findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+      Long memberId, Long folderId, Long cursor, int size);
 
   QuestionSet save(QuestionSet questionSet);
 
@@ -36,4 +35,6 @@ public interface QuestionSetRepository {
   Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
   List<QuestionSet> findCompletedByMemberId(Long memberId);
+
+  long countByOwnerId(Long memberId);
 }
