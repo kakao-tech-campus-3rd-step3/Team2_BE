@@ -11,7 +11,7 @@ import kr.it.pullit.modules.questionset.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import lombok.Builder;
 
-public record TestQuestionSetBuilder2() {
+public record TestQuestionSetBuilder() {
 
   @Builder(builderMethodName = "internalBuilder")
   private static QuestionSet build(
