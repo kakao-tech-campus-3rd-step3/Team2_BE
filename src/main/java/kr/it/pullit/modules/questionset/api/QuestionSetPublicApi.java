@@ -6,8 +6,8 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
-import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 
 public interface QuestionSetPublicApi {
 
@@ -29,7 +29,7 @@ public interface QuestionSetPublicApi {
 
   List<QuestionSet> findCompletedEntitiesByMemberId(Long memberId);
 
-  MyQuestionSetsWithProgressResponse getMemberQuestionSets(
+  CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
       Long memberId, Long cursor, int size, Long folderId);
 
   List<MyQuestionSetsResponse> getMemberQuestionSets(Long memberId);

@@ -2,14 +2,13 @@ package kr.it.pullit.modules.projection.learnstats.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
-import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
-import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -17,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 public class LearnStatsService implements LearnStatsPublicApi {
 
   private final LearnStatsRepository repo;
-  private final QuestionSetPublicApi questionSetPublicApi;
   private final Clock clock;
 
   @Override
@@ -36,11 +34,7 @@ public class LearnStatsService implements LearnStatsPublicApi {
 
   @Override
   @Transactional(readOnly = true)
-  public LearnStatsResponse getLearnStats(Long memberId) {
-    LearnStats projection = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
-
-    int totalQuestionSetCount = (int) questionSetPublicApi.countByMemberId(memberId);
-
-    return LearnStatsResponse.of(projection, totalQuestionSetCount);
+  public Optional<LearnStats> getLearnStats(Long memberId) {
+    return repo.findById(memberId);
   }
 }

@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.projection.learnstats.api;
 
-import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
+import java.util.Optional;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 
 public interface LearnStatsPublicApi {
 
@@ -8,5 +9,5 @@ public interface LearnStatsPublicApi {
 
   void applyQuestionSetSolved(Long memberId, int questionCount);
 
-  LearnStatsResponse getLearnStats(Long memberId);
+  Optional<LearnStats> getLearnStats(Long memberId);
 }
