@@ -9,6 +9,8 @@ import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
+import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -23,13 +25,13 @@ import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
 import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
+  private final LearnStatsPublicApi learnStatsPublicApi;
   private final EventPublisher eventPublisher;
 
   @Override
@@ -155,17 +158,25 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional(readOnly = true)
-  public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
+  public MyQuestionSetsWithProgressResponse getMemberQuestionSets(
       Long memberId, Long cursor, int size, Long folderId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size, folderId);
+    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
 
-    boolean hasNext = results.size() > size;
-    List<MyQuestionSetsResponse> content = toContent(results, size);
-    Long nextCursor = calculateNextCursor(results, size, hasNext);
+    List<QuestionSet> results =
+        questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+            memberId, targetFolderId, cursor, size);
 
-    return CursorPageResponse.of(content, nextCursor, hasNext);
+    List<MyQuestionSetsResponse> myQuestionSetsResponses =
+        results.stream().map(MyQuestionSetsResponse::from).toList();
+
+    var questionSets =
+        CursorPageResponse.of(myQuestionSetsResponses, size, MyQuestionSetsResponse::questionSetId);
+
+    int learningProgress = calculateLearningProgress(memberId);
+
+    return new MyQuestionSetsWithProgressResponse(questionSets, learningProgress);
   }
 
   @Override
@@ -176,22 +187,15 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
   }
 
-  private List<QuestionSet> fetchQuestionSets(Long memberId, Long cursor, int size, Long folderId) {
-    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
-    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
-    return questionSetRepository.findByMemberIdAndFolderIdWithCursor(
-        memberId, targetFolderId, cursor, pageableWithOneExtra);
-  }
+  private int calculateLearningProgress(Long memberId) {
+    LearnStatsResponse learnStats = learnStatsPublicApi.getLearnStats(memberId);
+    long totalQuestionSetCount = questionSetRepository.countByOwnerId(memberId);
 
-  private List<MyQuestionSetsResponse> toContent(List<QuestionSet> results, int size) {
-    return results.stream().limit(size).map(MyQuestionSetsResponse::from).toList();
-  }
-
-  private Long calculateNextCursor(List<QuestionSet> results, int size, boolean hasNext) {
-    if (!hasNext) {
-      return null;
+    if (totalQuestionSetCount == 0) {
+      return 0;
     }
-    return results.get(size - 1).getId();
+
+    return learnStats.calculateLearningProgress(totalQuestionSetCount);
   }
 
   @Override
@@ -257,21 +261,18 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSetRepository.findCompletedByMemberId(memberId);
   }
 
-  private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
-    return questionSetRepository
-        .findById(questionSetId)
-        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
-  }
-
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
     return questionSet;
+  }
+
+  private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
+    return questionSetRepository
+        .findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
   }
 }
