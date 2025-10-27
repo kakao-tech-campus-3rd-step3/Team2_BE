@@ -18,7 +18,7 @@ import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.support.annotation.SpringUnitTest;
-import kr.it.pullit.support.fixture.QuestionSetFixtures2;
+import kr.it.pullit.support.fixture.QuestionSetFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -52,8 +52,8 @@ class LearnStatsRecalibrationServiceTest {
     PageImpl<Member> memberPage = new PageImpl<>(List.of(member1, member2));
 
     QuestionSet qs1 =
-        QuestionSetFixtures2.withQuestions(List.of(mock(Question.class), mock(Question.class)));
-    QuestionSet qs2 = QuestionSetFixtures2.withQuestions(List.of(mock(Question.class)));
+        QuestionSetFixtures.withQuestions(List.of(mock(Question.class), mock(Question.class)));
+    QuestionSet qs2 = QuestionSetFixtures.withQuestions(List.of(mock(Question.class)));
 
     LearnStats stats1 = LearnStats.newOf(1L);
 
