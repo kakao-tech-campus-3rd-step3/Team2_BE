@@ -39,7 +39,7 @@ import lombok.Setter;
 public class QuestionSet extends BaseEntity {
 
   @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
-  private final List<Question> questions = new ArrayList<>();
+  private List<Question> questions = new ArrayList<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
