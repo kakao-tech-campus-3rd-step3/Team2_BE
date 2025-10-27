@@ -1,14 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.web;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
-import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
-import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
-import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
-import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
-import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,11 +10,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
+import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Learning Source API", description = "학습 자료 소스 관리 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/source")
+@RequestMapping("/api/learning/source")
 public class SourceController {
 
   private final SourcePublicApi sourcePublicApi;
