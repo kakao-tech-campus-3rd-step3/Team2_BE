@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
@@ -29,6 +30,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class QuestionSetController {
 
   private final QuestionSetPublicApi questionSetPublicApi;
+  private final QuestionSetWithStatsFacade questionSetWithStatsFacade;
 
   /**
    * 문제집의 모든 문제를 조회하는 API
@@ -61,7 +63,8 @@ public class QuestionSetController {
       @RequestParam(defaultValue = "10") int size,
       @RequestParam(required = false) Long folderId) {
     return ResponseEntity.ok(
-        questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId));
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(
+            memberId, cursor, size, folderId));
   }
 
   @GetMapping("/all")
