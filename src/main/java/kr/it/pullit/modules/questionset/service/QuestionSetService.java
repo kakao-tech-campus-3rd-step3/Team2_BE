@@ -29,7 +29,6 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -159,13 +158,17 @@ public class QuestionSetService implements QuestionSetPublicApi {
       Long memberId, Long cursor, int size, Long folderId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    List<QuestionSet> results = fetchQuestionSets(memberId, cursor, size, folderId);
+    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
 
-    boolean hasNext = results.size() > size;
-    List<MyQuestionSetsResponse> content = toContent(results, size);
-    Long nextCursor = calculateNextCursor(results, size, hasNext);
+    List<QuestionSet> results =
+        questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+            memberId, targetFolderId, cursor, size);
 
-    return CursorPageResponse.of(content, nextCursor, hasNext);
+    List<MyQuestionSetsResponse> myQuestionSetsResponses =
+        results.stream().map(MyQuestionSetsResponse::from).toList();
+
+    return CursorPageResponse.of(
+        myQuestionSetsResponses, size, MyQuestionSetsResponse::questionSetId);
   }
 
   @Override
@@ -176,22 +179,9 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSets.stream().map(MyQuestionSetsResponse::from).toList();
   }
 
-  private List<QuestionSet> fetchQuestionSets(Long memberId, Long cursor, int size, Long folderId) {
-    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
-    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
-    return questionSetRepository.findByMemberIdAndFolderIdWithCursor(
-        memberId, targetFolderId, cursor, pageableWithOneExtra);
-  }
-
-  private List<MyQuestionSetsResponse> toContent(List<QuestionSet> results, int size) {
-    return results.stream().limit(size).map(MyQuestionSetsResponse::from).toList();
-  }
-
-  private Long calculateNextCursor(List<QuestionSet> results, int size, boolean hasNext) {
-    if (!hasNext) {
-      return null;
-    }
-    return results.get(size - 1).getId();
+  @Override
+  public long countByMemberId(Long memberId) {
+    return questionSetRepository.countByOwnerId(memberId);
   }
 
   @Override
@@ -257,21 +247,18 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSetRepository.findCompletedByMemberId(memberId);
   }
 
-  private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
-    return questionSetRepository
-        .findById(questionSetId)
-        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
-  }
-
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {
-    QuestionSet questionSet =
-        questionSetRepository
-            .findById(questionSetId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
+    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
     return questionSet;
+  }
+
+  private QuestionSet findQuestionSetOrThrow(Long questionSetId) {
+    return questionSetRepository
+        .findById(questionSetId)
+        .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
   }
 }
