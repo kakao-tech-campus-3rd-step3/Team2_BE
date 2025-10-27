@@ -30,7 +30,7 @@ class QuestionSetRepositoryTest {
     void findByIdAndMemberId() {
       Long ownerId = 11L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("내 문제집").build());
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("내 문제집").build());
 
       Optional<QuestionSet> found = repository.findByIdAndMemberId(saved.getId(), ownerId);
 
@@ -44,7 +44,8 @@ class QuestionSetRepositoryTest {
     void findByIdAndMemberId_notOwner() {
       Long ownerId = 13L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("소유자만 조회").build());
+          repository.save(
+              TestQuestionSetBuilder.builder().ownerId(ownerId).title("소유자만 조회").build());
 
       Optional<QuestionSet> found = repository.findByIdAndMemberId(saved.getId(), 999L);
 
@@ -61,9 +62,9 @@ class QuestionSetRepositoryTest {
     void findByMemberId() {
       Long ownerId = 20L;
 
-      repository.save(TestQuestionSetBuilder.builder(ownerId).title("A").build());
-      repository.save(TestQuestionSetBuilder.builder(ownerId).title("B").build());
-      repository.save(TestQuestionSetBuilder.builder(ownerId).title("C").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("A").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("B").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("C").build());
 
       List<QuestionSet> result = repository.findByMemberId(ownerId);
 
@@ -76,9 +77,12 @@ class QuestionSetRepositoryTest {
     void findByMemberIdWithCursor() {
       Long ownerId = 30L;
 
-      QuestionSet q1 = repository.save(TestQuestionSetBuilder.builder(ownerId).title("1").build());
-      QuestionSet q2 = repository.save(TestQuestionSetBuilder.builder(ownerId).title("2").build());
-      QuestionSet q3 = repository.save(TestQuestionSetBuilder.builder(ownerId).title("3").build());
+      QuestionSet q1 =
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("1").build());
+      QuestionSet q2 =
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("2").build());
+      QuestionSet q3 =
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("3").build());
 
       // 커서를 가장 뒤(id가 가장 큰)로 주고 2개만
       List<QuestionSet> page =
@@ -105,7 +109,8 @@ class QuestionSetRepositoryTest {
     void saveAndFind() {
       Long ownerId = 40L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("저장 테스트").build());
+          repository.save(
+              TestQuestionSetBuilder.builder().ownerId(ownerId).title("저장 테스트").build());
 
       Optional<QuestionSet> found = repository.findById(saved.getId());
 
@@ -118,7 +123,7 @@ class QuestionSetRepositoryTest {
     void delete() {
       Long ownerId = 41L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("삭제 대상").build());
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("삭제 대상").build());
 
       repository.delete(saved);
 
@@ -136,7 +141,7 @@ class QuestionSetRepositoryTest {
     void findByIdWithQuestionsForFirstSolving() {
       Long ownerId = 50L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("첫 풀이").build());
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("첫 풀이").build());
 
       var found = repository.findByIdWithQuestionsForFirstSolving(saved.getId(), ownerId);
 
@@ -149,7 +154,7 @@ class QuestionSetRepositoryTest {
     void findQuestionSetForReviewing() {
       Long ownerId = 60L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("복습 대상").build());
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("복습 대상").build());
 
       var found = repository.findQuestionSetForReviewing(saved.getId(), ownerId);
 
@@ -167,7 +172,7 @@ class QuestionSetRepositoryTest {
     void findQuestionSetWhenHaveNoQuestionsYet() {
       Long ownerId = 70L;
       QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder(ownerId).title("생성 직후").build());
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("생성 직후").build());
 
       var projection = repository.findQuestionSetWhenHaveNoQuestionsYet(saved.getId(), ownerId);
 

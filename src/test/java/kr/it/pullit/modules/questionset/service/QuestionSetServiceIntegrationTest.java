@@ -24,7 +24,7 @@ class QuestionSetServiceIntegrationTest {
     // given
     Long ownerId = 101L;
     QuestionSet saved =
-        repository.save(TestQuestionSetBuilder.builder(ownerId).title("old").build());
+        repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("old").build());
 
     // when
     publicApi.updateTitle(saved.getId(), "new-title", ownerId);
@@ -40,7 +40,8 @@ class QuestionSetServiceIntegrationTest {
     // given
     Long ownerId = 102L;
     QuestionSet saved =
-        repository.save(TestQuestionSetBuilder.builder(ownerId).title("to-delete").build());
+        repository.save(
+            TestQuestionSetBuilder.builder().ownerId(ownerId).title("to-delete").build());
 
     // when
     publicApi.delete(saved.getId(), ownerId);
