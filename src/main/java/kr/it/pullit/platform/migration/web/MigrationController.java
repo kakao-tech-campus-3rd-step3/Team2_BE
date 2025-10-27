@@ -1,5 +1,6 @@
 package kr.it.pullit.platform.migration.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.platform.migration.api.MigrationPublicApi;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Migration API", description = "데이터베이스 마이그레이션 API (내부용)")
 @RestController
 @RequestMapping("/api/admin/migrations")
 @RequiredArgsConstructor

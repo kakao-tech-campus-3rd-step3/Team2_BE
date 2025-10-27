@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -18,9 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Learning Source API", description = "학습 자료 소스 관리 API")
 @RestController
-@RequestMapping("/api/learning/source")
 @RequiredArgsConstructor
+@RequestMapping("/api/learning/source")
 public class SourceController {
 
   private final SourcePublicApi sourcePublicApi;

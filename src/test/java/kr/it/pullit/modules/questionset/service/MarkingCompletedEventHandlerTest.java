@@ -10,13 +10,13 @@ import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEventHandler;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-@UnitTest
+@MockitoUnitTest
 class MarkingCompletedEventHandlerTest {
 
   @InjectMocks private MarkingCompletedEventHandler sut;

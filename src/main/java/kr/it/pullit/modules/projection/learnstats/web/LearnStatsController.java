@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.projection.learnstats.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Learn Stats API", description = "학습 통계 조회 API")
 @RestController
 @RequiredArgsConstructor
 public class LearnStatsController {

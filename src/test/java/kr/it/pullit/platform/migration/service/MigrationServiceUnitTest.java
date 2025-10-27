@@ -6,13 +6,13 @@ import static org.mockito.Mockito.when;
 
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.platform.migration.repository.MigrationHistoryRepository;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-@UnitTest
+@MockitoUnitTest
 @DisplayName("MigrationService 단위 테스트")
 class MigrationServiceUnitTest {
 

@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+@Tag(name = "Question Set API", description = "문제집 관리 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/question-set")
