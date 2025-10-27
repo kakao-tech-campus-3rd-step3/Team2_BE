@@ -1,17 +1,18 @@
 package kr.it.pullit.modules.questionset.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 import java.util.Optional;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.support.annotation.JpaSliceTest;
+import kr.it.pullit.support.builder.TestQuestionSetBuilder;
+import kr.it.pullit.support.fixture.QuestionSetFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.support.annotation.JpaSliceTest;
-import kr.it.pullit.support.builder.TestQuestionSetBuilder;
-import kr.it.pullit.support.fixture.QuestionSetFixtures;
 
 @JpaSliceTest
 @Import(QuestionSetRepositoryImpl.class)
@@ -29,8 +30,7 @@ class QuestionSetRepositoryTest {
     void findByIdAndMemberId() {
       Long ownerId = 11L;
       QuestionSet saved =
-          repository.save(
-              TestQuestionSetBuilder.builder().ownerId(ownerId).title("내 문제집").build());
+          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("내 문제집").build());
 
       Optional<QuestionSet> found = repository.findByIdAndMemberId(saved.getId(), ownerId);
 
@@ -142,8 +142,7 @@ class QuestionSetRepositoryTest {
     @DisplayName("문제집이 COMPLETE가 아니면 첫 풀이용 조회는 비어 있다")
     void findByIdWithQuestionsForFirstSolving() {
       Long ownerId = 50L;
-      QuestionSet saved =
-          repository.save(QuestionSetFixtures.withOwner(ownerId));
+      QuestionSet saved = repository.save(QuestionSetFixtures.withOwner(ownerId));
 
       var found = repository.findWithQuestionsForFirstSolving(saved.getId(), ownerId);
 
@@ -155,8 +154,7 @@ class QuestionSetRepositoryTest {
     @DisplayName("복습 조건(틀린문제 미복습)이 없으면 복습 모드 조회는 비어 있다")
     void findQuestionSetForReviewing() {
       Long ownerId = 60L;
-      QuestionSet saved =
-          repository.save(QuestionSetFixtures.withOwner(ownerId));
+      QuestionSet saved = repository.save(QuestionSetFixtures.withOwner(ownerId));
 
       var found = repository.findQuestionSetForReviewing(saved.getId(), ownerId);
 
@@ -173,8 +171,7 @@ class QuestionSetRepositoryTest {
     @DisplayName("문제가 아직 생성되지 않은 상태로 조회할 수 있다")
     void findQuestionSetWhenHaveNoQuestionsYet() {
       Long ownerId = 70L;
-      QuestionSet saved =
-          repository.save(QuestionSetFixtures.withOwner(ownerId));
+      QuestionSet saved = repository.save(QuestionSetFixtures.withOwner(ownerId));
 
       var projection = repository.findQuestionSetWhenHaveNoQuestionsYet(saved.getId(), ownerId);
 
