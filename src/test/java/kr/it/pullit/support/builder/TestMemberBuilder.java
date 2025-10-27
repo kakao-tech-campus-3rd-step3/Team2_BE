@@ -5,7 +5,6 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.domain.entity.Role;
 import lombok.Builder;
 
-// record는 빌더 로직을 담는 '네임스페이스' 역할을 합니다.
 public record TestMemberBuilder() {
 
   private static final AtomicLong kakaoIdSequence = new AtomicLong(System.currentTimeMillis());
