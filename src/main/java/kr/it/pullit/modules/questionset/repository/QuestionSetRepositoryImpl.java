@@ -6,7 +6,7 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -69,10 +69,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
-      Long memberId, Long folderId, Long cursor, Pageable pageable) {
+  public List<QuestionSet> findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+      Long memberId, Long folderId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
     return questionSetJpaRepository.findByMemberIdAndFolderIdWithCursor(
-        memberId, folderId, cursor, pageable);
+        memberId, folderId, cursor, pageableWithOneExtra);
   }
 
   @Override
@@ -88,5 +89,10 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public List<QuestionSet> findCompletedByMemberId(Long memberId) {
     return questionSetJpaRepository.findCompletedWithQuestionsByMemberId(memberId);
+  }
+
+  @Override
+  public long countByOwnerId(Long memberId) {
+    return questionSetJpaRepository.countByOwnerId(memberId);
   }
 }

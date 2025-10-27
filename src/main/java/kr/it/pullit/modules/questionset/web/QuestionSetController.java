@@ -4,11 +4,12 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +30,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class QuestionSetController {
 
   private final QuestionSetPublicApi questionSetPublicApi;
+  private final QuestionSetWithStatsFacade questionSetWithStatsFacade;
 
   /**
    * 문제집의 모든 문제를 조회하는 API
@@ -55,13 +57,14 @@ public class QuestionSetController {
    * @return 회원의 모든 문제집 목록
    */
   @GetMapping
-  public ResponseEntity<CursorPageResponse<MyQuestionSetsResponse>> getMyQuestionSets(
+  public ResponseEntity<MyQuestionSetsWithProgressResponse> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId,
       @RequestParam(required = false) Long cursor,
       @RequestParam(defaultValue = "10") int size,
       @RequestParam(required = false) Long folderId) {
     return ResponseEntity.ok(
-        questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId));
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(
+            memberId, cursor, size, folderId));
   }
 
   @GetMapping("/all")

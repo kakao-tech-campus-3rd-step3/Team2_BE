@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsFacade;
 import kr.it.pullit.modules.projection.learnstats.web.dto.DailyStatsResponse;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
@@ -22,7 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @AuthenticatedMvcSliceTest(controllers = LearnStatsController.class)
 class LearnStatsControllerTest extends ControllerTest {
 
-  @MockitoBean private LearnStatsPublicApi learnStatePublicApi;
+  @MockitoBean private LearnStatsFacade learnStatsFacade;
 
   @MockitoBean private LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
@@ -41,7 +41,7 @@ class LearnStatsControllerTest extends ControllerTest {
             .consecutiveLearningDays(3)
             .build();
 
-    given(learnStatePublicApi.getLearnStats(memberId)).willReturn(response);
+    given(learnStatsFacade.getLearnStats(memberId)).willReturn(response);
 
     // when & then
     mockMvc
@@ -61,7 +61,7 @@ class LearnStatsControllerTest extends ControllerTest {
     // given
     var memberId = 2L; // New user
     var emptyResponse = new LearnStatsResponse(); // All fields are 0 by default
-    given(learnStatePublicApi.getLearnStats(memberId)).willReturn(emptyResponse);
+    given(learnStatsFacade.getLearnStats(memberId)).willReturn(emptyResponse);
 
     // when & then
     mockMvc

@@ -94,4 +94,6 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
             WHERE qs.ownerId = :memberId AND qs.status = 'COMPLETE'
       """)
   List<QuestionSet> findCompletedWithQuestionsByMemberId(@Param("memberId") Long memberId);
+
+  long countByOwnerId(Long memberId);
 }
