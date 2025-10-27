@@ -1,84 +1,50 @@
 package kr.it.pullit.support.builder;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
+import lombok.Builder;
 
-public final class TestQuestionSetBuilder {
+public record TestQuestionSetBuilder() {
 
-  private Long ownerId = 1L;
-  private String title = "문제집";
-  private DifficultyType difficulty = DifficultyType.EASY;
-  private QuestionType type = QuestionType.MULTIPLE_CHOICE;
-  private Integer questionLength = 3;
+  @Builder(builderMethodName = "internalBuilder")
+  private static QuestionSet build(
+      Long ownerId,
+      Set<Source> sources,
+      String title,
+      DifficultyType difficulty,
+      QuestionType type,
+      List<Question> questions) {
 
-  private boolean markComplete = false;
-  private boolean markFailed = false;
-
-  private TestQuestionSetBuilder() {}
-
-  public static TestQuestionSetBuilder builder() {
-    return new TestQuestionSetBuilder();
-  }
-
-  public TestQuestionSetBuilder ownerId(Long ownerId) {
-    this.ownerId = ownerId;
-    return this;
-  }
-
-  public TestQuestionSetBuilder title(String title) {
-    this.title = title;
-    return this;
-  }
-
-  public TestQuestionSetBuilder difficulty(DifficultyType difficulty) {
-    this.difficulty = difficulty;
-    return this;
-  }
-
-  public TestQuestionSetBuilder type(QuestionType type) {
-    this.type = type;
-    return this;
-  }
-
-  public TestQuestionSetBuilder questionLength(int length) {
-    this.questionLength = length;
-    return this;
-  }
-
-  public TestQuestionSetBuilder statusPending() {
-    this.markComplete = false;
-    this.markFailed = false;
-    return this;
-  }
-
-  public TestQuestionSetBuilder statusComplete() {
-    this.markComplete = true;
-    this.markFailed = false;
-    return this;
-  }
-
-  public TestQuestionSetBuilder statusFailed() {
-    this.markComplete = false;
-    this.markFailed = true;
-    return this;
-  }
-
-  public QuestionSet build() {
-    QuestionSet qs =
+    QuestionSet questionSet =
         QuestionSet.builder()
             .ownerId(ownerId)
+            .sources(sources)
             .title(title)
             .difficulty(difficulty)
             .type(type)
-            .questionLength(questionLength)
+            .questionLength(questions != null ? questions.size() : 0)
             .build();
 
-    if (markComplete) {
-      qs.completeProcessing();
-    } else if (markFailed) {
-      qs.failProcessing();
+    if (questions != null) {
+      questions.forEach(questionSet::addQuestion);
     }
-    return qs;
+    return questionSet;
+  }
+
+  public static QuestionSetBuilder builder() {
+    return internalBuilder()
+        .ownerId(1L)
+        .sources(new HashSet<>())
+        .title("기본 문제집")
+        .difficulty(DifficultyType.EASY)
+        .type(QuestionType.MULTIPLE_CHOICE)
+        .questions(new ArrayList<>());
   }
 }

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ class QuestionSetServiceIntegrationTest {
         repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("old").build());
 
     // when
-    publicApi.updateTitle(saved.getId(), "new-title", ownerId);
+    publicApi.update(saved.getId(), new QuestionSetUpdateRequestDto("new-title", null), ownerId);
 
     // then
     QuestionSet updated = repository.findById(saved.getId()).orElseThrow();

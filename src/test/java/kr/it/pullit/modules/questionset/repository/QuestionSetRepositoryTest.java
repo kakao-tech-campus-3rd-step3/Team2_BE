@@ -7,12 +7,12 @@ import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
+import kr.it.pullit.support.fixture.QuestionSetFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
 
 @JpaSliceTest
 @Import(QuestionSetRepositoryImpl.class)
@@ -86,14 +86,16 @@ class QuestionSetRepositoryTest {
 
       // 커서를 가장 뒤(id가 가장 큰)로 주고 2개만
       List<QuestionSet> page =
-          repository.findByMemberIdWithCursor(ownerId, q3.getId(), PageRequest.of(0, 2));
+          repository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+              ownerId, null, q3.getId(), 2);
 
       assertThat(page.size()).isLessThanOrEqualTo(2);
       assertThat(page).allMatch(q -> q.getOwnerId().equals(ownerId));
 
       // 더 이전 커서로 다시 조회
       List<QuestionSet> page2 =
-          repository.findByMemberIdWithCursor(ownerId, q1.getId(), PageRequest.of(0, 2));
+          repository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+              ownerId, null, q1.getId(), 2);
 
       assertThat(page2).isNotNull();
       assertThat(page2).allMatch(q -> q.getOwnerId().equals(ownerId));
@@ -125,7 +127,7 @@ class QuestionSetRepositoryTest {
       QuestionSet saved =
           repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("삭제 대상").build());
 
-      repository.delete(saved);
+      repository.deleteById(saved.getId());
 
       Optional<QuestionSet> found = repository.findById(saved.getId());
       assertThat(found).isEmpty();
@@ -140,10 +142,9 @@ class QuestionSetRepositoryTest {
     @DisplayName("문제집이 COMPLETE가 아니면 첫 풀이용 조회는 비어 있다")
     void findByIdWithQuestionsForFirstSolving() {
       Long ownerId = 50L;
-      QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("첫 풀이").build());
+      QuestionSet saved = repository.save(QuestionSetFixtures.withOwner(ownerId));
 
-      var found = repository.findByIdWithQuestionsForFirstSolving(saved.getId(), ownerId);
+      var found = repository.findWithQuestionsForFirstSolving(saved.getId(), ownerId);
 
       // 현재 기본 상태는 PENDING이라 쿼리 전제조건을 만족하지 못함 → empty
       assertThat(found).isEmpty();
@@ -153,8 +154,7 @@ class QuestionSetRepositoryTest {
     @DisplayName("복습 조건(틀린문제 미복습)이 없으면 복습 모드 조회는 비어 있다")
     void findQuestionSetForReviewing() {
       Long ownerId = 60L;
-      QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("복습 대상").build());
+      QuestionSet saved = repository.save(QuestionSetFixtures.withOwner(ownerId));
 
       var found = repository.findQuestionSetForReviewing(saved.getId(), ownerId);
 
@@ -171,8 +171,7 @@ class QuestionSetRepositoryTest {
     @DisplayName("문제가 아직 생성되지 않은 상태로 조회할 수 있다")
     void findQuestionSetWhenHaveNoQuestionsYet() {
       Long ownerId = 70L;
-      QuestionSet saved =
-          repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("생성 직후").build());
+      QuestionSet saved = repository.save(QuestionSetFixtures.withOwner(ownerId));
 
       var projection = repository.findQuestionSetWhenHaveNoQuestionsYet(saved.getId(), ownerId);
 

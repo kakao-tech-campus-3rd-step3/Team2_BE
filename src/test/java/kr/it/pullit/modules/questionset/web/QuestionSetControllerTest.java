@@ -1,11 +1,11 @@
 package kr.it.pullit.modules.questionset.web;
 
 import static org.hamcrest.Matchers.endsWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,10 +19,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
+import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
@@ -40,6 +43,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class QuestionSetControllerTest extends ControllerTest {
 
   @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
+  @MockitoBean private QuestionSetWithStatsFacade questionSetWithStatsFacade;
 
   @Nested
   @DisplayName("생성")
@@ -73,17 +77,10 @@ class QuestionSetControllerTest extends ControllerTest {
           .andExpect(header().string(LOCATION, endsWith("/api/question-set/" + newId)));
 
       // verify param binding
-      ArgumentCaptor<QuestionSetCreateRequestDto> dtoCap =
-          ArgumentCaptor.forClass(QuestionSetCreateRequestDto.class);
-      ArgumentCaptor<Long> memberIdCap = ArgumentCaptor.forClass(Long.class);
-      verify(questionSetPublicApi).create(dtoCap.capture(), memberIdCap.capture());
-
-      QuestionSetCreateRequestDto dto = dtoCap.getValue();
-      assert dto.difficulty() == DifficultyType.EASY;
-      assert dto.questionCount() == 3;
-      assert dto.type() == QuestionType.MULTIPLE_CHOICE;
-      assert dto.sourceIds().equals(List.of(1L, 2L));
-      assert memberIdCap.getValue() == 5L;
+      var expectedDto =
+          new QuestionSetCreateRequestDto(
+              DifficultyType.EASY, 3, QuestionType.MULTIPLE_CHOICE, List.of(1L, 2L), null);
+      verify(questionSetPublicApi).create(expectedDto, 5L);
     }
   }
 
@@ -139,14 +136,16 @@ class QuestionSetControllerTest extends ControllerTest {
     void getMyQuestionSetsWithCursor() throws Exception {
       @SuppressWarnings("unchecked")
       CursorPageResponse<MyQuestionSetsResponse> page = mock(CursorPageResponse.class);
-      given(questionSetPublicApi.getMemberQuestionSets(anyLong(), any(), anyInt()))
-          .willReturn(page);
+      given(
+              questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(
+                  anyLong(), any(), anyInt(), any()))
+          .willReturn(new MyQuestionSetsWithProgressResponse(page, 0));
 
       mockMvc
           .perform(get("/api/question-set").param("cursor", "11").param("size", "2"))
           .andExpect(status().isOk());
 
-      verify(questionSetPublicApi).getMemberQuestionSets(20L, 11L, 2);
+      verify(questionSetWithStatsFacade).getMemberQuestionSetsWithProgress(20L, 11L, 2, null);
     }
 
     @Test
@@ -181,7 +180,7 @@ class QuestionSetControllerTest extends ControllerTest {
                   .content(body))
           .andExpect(status().isOk());
 
-      verify(questionSetPublicApi).updateTitle(77L, "새 제목", 7L);
+      verify(questionSetPublicApi).update(77L, new QuestionSetUpdateRequestDto("새 제목", null), 7L);
     }
 
     @Test
