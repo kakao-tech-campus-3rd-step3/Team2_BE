@@ -8,6 +8,7 @@ plugins {
     id 'checkstyle'
     id "io.sentry.jvm.gradle" version "5.12.0"
     id 'jacoco'
+    id 'org.springdoc.openapi-gradle-plugin' version '1.9.0'
 }
 
 sentry {
@@ -224,4 +225,93 @@ jacocoTestCoverageVerification {
 
 tasks.named('check') {
     dependsOn jacocoTestCoverageVerification
+}
+
+// Function to create a Jacoco report task for a specific domain
+def createJacocoDomainReportTask(String domainName, String domainPath) {
+    tasks.create("jacoco${domainName.capitalize()}Report", JacocoReport) {
+        description = "Generate Jacoco test coverage report for the $domainName domain."
+
+        dependsOn test
+
+        sourceSets sourceSets.main
+
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, include: [domainPath])
+        }))
+
+        executionData.setFrom(fileTree(dir: "$buildDir/jacoco", includes: ["*.exec"]))
+
+        reports {
+            xml.required = true
+            html.required = true
+            csv.required = true
+            html.outputLocation = layout.buildDirectory.dir("reports/jacoco/$domainName")
+        }
+    }
+}
+
+// Define domains and their paths
+def domains = [
+    auth: "kr/it/pullit/modules/auth/**",
+    commonfolder: "kr/it/pullit/modules/commonfolder/**",
+    home: "kr/it/pullit/modules/home/**",
+    learningsource: "kr/it/pullit/modules/learningsource/**",
+    member: "kr/it/pullit/modules/member/**",
+    notification: "kr/it/pullit/modules/notification/**",
+    learnstats: "kr/it/pullit/modules/projection/learnstats/**",
+    outbox: "kr/it/pullit/modules/projection/outbox/**",
+    questionset: "kr/it/pullit/modules/questionset/**",
+    wronganswer: "kr/it/pullit/modules/wronganswer/**"
+]
+
+// Create tasks for each domain
+domains.each { domainName, domainPath ->
+    createJacocoDomainReportTask(domainName, domainPath)
+}
+
+// Create an aggregate task that runs all domain reports
+tasks.register("jacocoAllDomainReports") {
+    group = "verification"
+    description = "Generate Jacoco test coverage reports for all domains."
+    dependsOn domains.keySet().collect { "jacoco${it.capitalize()}Report" }
+}
+
+// springdoc-openapi-gradle-plugin 설정
+openApi {
+    outputDir = file("docs/api")
+    outputFileName = "spec.yaml"
+
+    // 플러그인이 연결할 URL을 명시적으로 지정합니다. (HTTP, 8088 포트)
+    apiDocsUrl = "http://localhost:8088/api-docs"
+
+    // 문서 생성 태스크를 위한 별도의 실행 설정을 정의합니다.
+    customBootRun {
+        // Docker Compose가 프로젝트 루트의 compose.yaml 파일을 찾도록 작업 디렉터리를 설정합니다.
+        workingDir = project.projectDir
+
+        // .env 파일을 읽어 모든 속성을 시스템 속성으로 동적으로 주입합니다.
+        def envFile = new File(project.projectDir, ".env")
+        if (envFile.exists()) {
+            envFile.eachLine { line ->
+                // 주석이나 빈 줄은 건너뜁니다.
+                if (line.trim() && !line.trim().startsWith("#")) {
+                    def parts = line.split("=", 2)
+                    if (parts.length == 2) {
+                        def key = parts[0].trim()
+                        def value = parts[1].trim()
+                        // 따옴표 제거 (선택 사항이지만 권장)
+                        if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.substring(1, value.length() - 1)
+                        }
+                        systemProperties.put(key, value)
+                    }
+                }
+            }
+        }
+
+        // 임시 서버가 HTTPS 대신 HTTP를 사용하고, 8088 포트를 사용하도록 강제합니다.
+        systemProperties.put("server.port", "8088")
+        systemProperties.put("server.ssl.enabled", "false")
+    }
 }

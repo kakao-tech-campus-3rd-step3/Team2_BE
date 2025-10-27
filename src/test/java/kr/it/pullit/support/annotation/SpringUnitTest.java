@@ -16,4 +16,4 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @Import({FixedClockConfig.class, SequentialIdGeneratorConfig.class})
-public @interface UnitTest {}
+public @interface SpringUnitTest {}

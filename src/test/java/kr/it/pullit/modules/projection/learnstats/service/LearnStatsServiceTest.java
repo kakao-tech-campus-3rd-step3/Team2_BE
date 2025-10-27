@@ -10,7 +10,7 @@ import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import kr.it.pullit.support.config.FixedClockConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@UnitTest
+@SpringUnitTest
 @ContextConfiguration(classes = {LearnStatsService.class, FixedClockConfig.class})
 @DisplayName("LearnStatsService 단위 테스트")
 class LearnStatsServiceTest {

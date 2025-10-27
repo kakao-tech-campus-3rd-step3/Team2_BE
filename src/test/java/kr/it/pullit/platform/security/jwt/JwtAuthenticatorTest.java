@@ -11,14 +11,14 @@ import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
 import kr.it.pullit.platform.security.jwt.exception.TokenErrorCode;
 import kr.it.pullit.platform.security.jwt.exception.TokenException;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import kr.it.pullit.support.fixture.MemberFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-@UnitTest
+@MockitoUnitTest
 @DisplayName("JwtAuthenticator 단위 테스트")
 class JwtAuthenticatorTest {
 

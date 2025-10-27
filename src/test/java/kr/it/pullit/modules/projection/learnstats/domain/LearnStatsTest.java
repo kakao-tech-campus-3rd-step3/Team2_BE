@@ -6,14 +6,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Clock;
 import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
-import kr.it.pullit.support.annotation.UnitTest;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@UnitTest
+@SpringUnitTest
 @DisplayName("LearnStats 단위 테스트")
 class LearnStatsTest {
 
@@ -69,6 +69,45 @@ class LearnStatsTest {
           .isInstanceOf(InvalidSolvedQuestionCountException.class);
       assertThatThrownBy(() -> projection.onQuestionSetSolved(-1, today))
           .isInstanceOf(InvalidSolvedQuestionCountException.class);
+    }
+
+    @Test
+    @DisplayName("같은 날 여러번 풀어도 연속 학습일은 1을 유지한다")
+    void withMultipleSolvesOnSameDay_maintainsConsecutiveDays() {
+      // when
+      projection.onQuestionSetSolved(10, today);
+      projection.onQuestionSetSolved(5, today);
+
+      // then
+      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
+      assertThat(projection.getTotalSolvedQuestionSetCount()).isEqualTo(2);
+      assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("다음 날 풀면 연속 학습일이 증가한다")
+    void withSolveOnNextDay_incrementsConsecutiveDays() {
+      // given
+      projection.onQuestionSetSolved(10, today);
+
+      // when
+      projection.onQuestionSetSolved(5, today.plusDays(1));
+
+      // then
+      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("이틀 이상 뒤에 풀면 연속 학습일이 1로 초기화된다")
+    void withSolveAfterGap_resetsConsecutiveDays() {
+      // given
+      projection.onQuestionSetSolved(10, today);
+
+      // when
+      projection.onQuestionSetSolved(5, today.plusDays(3));
+
+      // then
+      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
     }
   }
 }
