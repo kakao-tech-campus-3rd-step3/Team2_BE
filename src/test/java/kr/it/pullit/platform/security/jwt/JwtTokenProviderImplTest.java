@@ -40,7 +40,7 @@ class JwtTokenProviderImplTest {
 
   @Test
   @DisplayName("고정된 시각을 기준으로 액세스 토큰을 생성하면, 정확한 만료 시간이 설정된다")
-  void createAccessToken_WithFixedClock_ShouldSetCorrectTimestamps() {
+  void createAccessTokenWithFixedClockShouldSetCorrectTimestamps() {
     // given
     TokenCreationSubject subject = TokenCreationSubject.of(1L, "test@pullit.kr", Role.MEMBER);
 
@@ -51,12 +51,12 @@ class JwtTokenProviderImplTest {
     String accessToken = jwtTokenProvider.createAccessToken(subject);
 
     // then
-    DecodedJWT decodedJWT = JWT.decode(accessToken);
+    DecodedJWT decodedJwt = JWT.decode(accessToken);
 
-    assertThat(decodedJWT.getIssuedAt()).isEqualTo(expectedIssuedAt);
-    assertThat(decodedJWT.getExpiresAt()).isEqualTo(expectedExpiresAt);
-    assertThat(decodedJWT.getClaim("memberId").asLong()).isEqualTo(1L);
-    assertThat(decodedJWT.getClaim("email").asString()).isEqualTo("test@pullit.kr");
-    assertThat(decodedJWT.getClaim("role").asString()).isEqualTo("MEMBER");
+    assertThat(decodedJwt.getIssuedAt()).isEqualTo(expectedIssuedAt);
+    assertThat(decodedJwt.getExpiresAt()).isEqualTo(expectedExpiresAt);
+    assertThat(decodedJwt.getClaim("memberId").asLong()).isEqualTo(1L);
+    assertThat(decodedJwt.getClaim("email").asString()).isEqualTo("test@pullit.kr");
+    assertThat(decodedJwt.getClaim("role").asString()).isEqualTo("MEMBER");
   }
 }
