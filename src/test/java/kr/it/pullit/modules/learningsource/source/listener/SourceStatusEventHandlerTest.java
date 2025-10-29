@@ -114,7 +114,8 @@ class SourceStatusEventHandlerTest {
     void ignoreMissingSourceOnFailure() {
       when(sourceRepository.findById(eq(11L))).thenReturn(Optional.empty());
 
-      eventHandler.handleSourceExtractionFailure(new SourceExtractionFailureEvent(11L, new RuntimeException("boom")));
+      eventHandler.handleSourceExtractionFailure(
+          new SourceExtractionFailureEvent(11L, new RuntimeException("boom")));
 
       verify(sourceRepository).findById(11L);
       verifyNoMoreInteractions(sourceRepository);

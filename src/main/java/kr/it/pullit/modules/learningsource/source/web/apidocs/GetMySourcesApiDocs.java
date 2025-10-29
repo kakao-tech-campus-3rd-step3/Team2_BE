@@ -19,10 +19,7 @@ import org.springframework.http.ProblemDetail;
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(
     summary = "내 학습 소스 목록 조회",
-    description =
-        "사용자가 업로드한 학습 소스 목록을 최신 순으로 조회합니다.\n\n"
-            + "[Request]\n"
-            + "- 인증 토큰 필요 (Bearer)",
+    description = "사용자가 업로드한 학습 소스 목록을 최신 순으로 조회합니다.\n\n" + "[Request]\n" + "- 인증 토큰 필요 (Bearer)",
     security = @SecurityRequirement(name = "bearerAuth"))
 @ApiResponses({
   @ApiResponse(

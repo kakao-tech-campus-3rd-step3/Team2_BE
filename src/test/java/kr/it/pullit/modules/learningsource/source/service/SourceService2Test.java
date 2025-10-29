@@ -1,8 +1,18 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
@@ -13,28 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-
 @ActiveProfiles({"mock-auth", "real-env"})
 @IntegrationTest
 public class SourceService2Test {
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-  @Autowired
-  private SourcePublicApi sourcePublicApi;
+  @Autowired private SourcePublicApi sourcePublicApi;
 
-  @MockitoBean
-  private S3PublicApi s3PublicApi;
+  @MockitoBean private S3PublicApi s3PublicApi;
 
   private PresignedUrlResponse createResponse(String fileName, Long memberId) {
     String filePath = "learning-sources/%d/%s".formatted(memberId, fileName);
@@ -81,7 +78,7 @@ public class SourceService2Test {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("PDF 파일만 업로드 가능합니다.");
   }
@@ -165,7 +162,7 @@ public class SourceService2Test {
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("유효하지 않은 파일 크기입니다.");
   }
@@ -179,13 +176,11 @@ public class SourceService2Test {
     Long memberId = 1L;
 
     given(s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-        .willThrow(
-            new IllegalArgumentException(
-                "파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다."));
+        .willThrow(new IllegalArgumentException("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다."));
 
     // when & then
     assertThatThrownBy(
-        () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
+            () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
   }

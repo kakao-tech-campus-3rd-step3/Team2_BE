@@ -52,8 +52,7 @@ class SourceRepositoryImplTest {
   @Test
   @DisplayName("findByMemberIdOrderByCreatedAtDesc는 정렬된 결과를 반환한다")
   void findByMemberIdOrderByCreatedAtDescDelegates() {
-    given(sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(2L))
-        .willReturn(List.of(source));
+    given(sourceJpaRepository.findByMemberIdOrderByCreatedAtDesc(2L)).willReturn(List.of(source));
 
     List<Source> result = repository().findByMemberIdOrderByCreatedAtDesc(2L);
 

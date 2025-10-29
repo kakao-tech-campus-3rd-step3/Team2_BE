@@ -1,7 +1,15 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.List;
+import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
@@ -20,35 +28,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willDoNothing;
-
 @IntegrationTest
 @DisplayName("SourceService 통합 테스트")
 class SourceServiceIntegrationTest {
 
-  @Autowired
-  private SourceService sourceService;
+  @Autowired private SourceService sourceService;
 
-  @Autowired
-  private SourceRepository sourceRepository;
+  @Autowired private SourceRepository sourceRepository;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
-  @MockitoBean
-  private S3PublicApi s3PublicApi;
+  @MockitoBean private S3PublicApi s3PublicApi;
 
-  @MockitoBean
-  private MemberPublicApi memberPublicApi;
+  @MockitoBean private MemberPublicApi memberPublicApi;
 
-  @MockitoBean
-  private SourceFolderPublicApi sourceFolderPublicApi;
+  @MockitoBean private SourceFolderPublicApi sourceFolderPublicApi;
 
   private SourceFolder persistDefaultFolder(Long memberId) {
     SourceFolder folder = SourceFolder.createDefaultFolder(memberId);
@@ -116,9 +110,9 @@ class SourceServiceIntegrationTest {
     void updateExistingSourceWhenAlreadyExists() {
       Long memberId = 102L;
       SourceFolder folder = persistDefaultFolder(memberId);
-      Source existing =
-          persistSource(
-              memberId, "learning-sources/existing.pdf", folder, SourceStatus.UPLOADED);
+      // [Checkstyle] 'final' 키워드를 추가하여 경고 해결
+      final Source existing =
+          persistSource(memberId, "learning-sources/existing.pdf", folder, SourceStatus.UPLOADED);
       flushAndClear();
 
       SourceUploadCompleteRequest request =
@@ -153,8 +147,7 @@ class SourceServiceIntegrationTest {
 
       given(s3PublicApi.fileExists(request.getFilePath())).willReturn(false);
 
-      org.assertj.core.api.Assertions.assertThatThrownBy(
-              () -> sourceService.processUploadComplete(request, memberId))
+      assertThatThrownBy(() -> sourceService.processUploadComplete(request, memberId))
           .isInstanceOf(IllegalArgumentException.class)
           .hasMessageContaining("S3에 해당 파일이 존재하지 않습니다.");
     }
@@ -185,9 +178,10 @@ class SourceServiceIntegrationTest {
   void migrateUploadedSourcesToReady() {
     Long memberId = 105L;
     SourceFolder folder = persistDefaultFolder(memberId);
-    Source shouldBeMigrated =
-        persistSource(memberId, "learning-sources/migrate-ready.pdf", folder, SourceStatus.UPLOADED);
-    Source shouldStayUploaded =
+    final Source shouldBeMigrated =
+        persistSource(
+            memberId, "learning-sources/migrate-ready.pdf", folder, SourceStatus.UPLOADED);
+    final Source shouldStayUploaded =
         persistSource(memberId, "learning-sources/migrate-skip.pdf", folder, SourceStatus.UPLOADED);
     persistSource(memberId, "learning-sources/already-ready.pdf", folder, SourceStatus.READY);
     flushAndClear();

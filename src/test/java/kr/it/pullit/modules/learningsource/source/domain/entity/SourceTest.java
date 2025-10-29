@@ -47,13 +47,7 @@ class SourceTest {
 
     Source source =
         constructor.newInstance(
-            7L,
-            null,
-            "원본.pdf",
-            "application/pdf",
-            "learning-sources/default.pdf",
-            4096L,
-            null);
+            7L, null, "원본.pdf", "application/pdf", "learning-sources/default.pdf", 4096L, null);
 
     assertThat(source.getStatus()).isEqualTo(SourceStatus.UPLOADED);
   }
@@ -109,8 +103,7 @@ class SourceTest {
     newer.addSource(source);
 
     assertThat(source.getQuestionSets()).hasSize(2);
-    assertThat(source.getRecentQuestionGeneratedAt())
-        .isEqualTo(LocalDateTime.of(2024, 2, 1, 0, 0));
+    assertThat(source.getRecentQuestionGeneratedAt()).isEqualTo(LocalDateTime.of(2024, 2, 1, 0, 0));
   }
 
   @Test

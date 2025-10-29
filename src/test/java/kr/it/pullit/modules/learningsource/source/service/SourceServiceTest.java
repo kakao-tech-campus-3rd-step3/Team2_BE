@@ -136,10 +136,14 @@ class SourceServiceTest {
     given(s3PublicApi.fileExists(request.getFilePath())).willReturn(true);
     given(sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath()))
         .willReturn(Optional.empty());
-    given(memberPublicApi.findById(memberId)).willReturn(Optional.of(org.mockito.Mockito.mock(kr.it.pullit.modules.member.domain.entity.Member.class)));
+    given(memberPublicApi.findById(memberId))
+        .willReturn(
+            Optional.of(
+                org.mockito.Mockito.mock(kr.it.pullit.modules.member.domain.entity.Member.class)));
     SourceFolder folder = SourceFolder.createDefaultFolder(memberId);
     given(sourceFolderPublicApi.findOrCreateDefaultFolder(memberId)).willReturn(folder);
-    given(sourceRepository.save(any(Source.class))).willAnswer(invocation -> invocation.getArgument(0));
+    given(sourceRepository.save(any(Source.class)))
+        .willAnswer(invocation -> invocation.getArgument(0));
 
     sourceService.processUploadComplete(request, memberId);
 
@@ -199,7 +203,11 @@ class SourceServiceTest {
     Long memberId = 14L;
     SourceUploadCompleteRequest request =
         new SourceUploadCompleteRequest(
-            "upload-4", "learning-sources/missing-member.pdf", "missing.pdf", "application/pdf", 512L);
+            "upload-4",
+            "learning-sources/missing-member.pdf",
+            "missing.pdf",
+            "application/pdf",
+            512L);
 
     given(s3PublicApi.fileExists(request.getFilePath())).willReturn(true);
     given(sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath()))
@@ -290,7 +298,8 @@ class SourceServiceTest {
   @Test
   @DisplayName("성공 - UPLOADED 상태의 소스만 READY로 마이그레이션한다")
   void migrateUploadedSourcesToReady() {
-    Source needsMigration = createSource(27L, "learning-sources/migrate.pdf", SourceStatus.UPLOADED);
+    Source needsMigration =
+        createSource(27L, "learning-sources/migrate.pdf", SourceStatus.UPLOADED);
     Source staysUploaded = createSource(27L, "learning-sources/skip.pdf", SourceStatus.UPLOADED);
     given(sourceRepository.findByStatus(SourceStatus.UPLOADED))
         .willReturn(List.of(needsMigration, staysUploaded));
@@ -312,8 +321,7 @@ class SourceServiceTest {
   void migrateUploadedSourcesContinuesWhenS3LookupFails() {
     Source problematic =
         createSource(31L, "learning-sources/problematic.pdf", SourceStatus.UPLOADED);
-    given(sourceRepository.findByStatus(SourceStatus.UPLOADED))
-        .willReturn(List.of(problematic));
+    given(sourceRepository.findByStatus(SourceStatus.UPLOADED)).willReturn(List.of(problematic));
     given(s3PublicApi.fileExists("learning-sources/problematic.pdf"))
         .willThrow(new RuntimeException("s3 down"));
 

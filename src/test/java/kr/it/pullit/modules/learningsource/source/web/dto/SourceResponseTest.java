@@ -15,7 +15,8 @@ class SourceResponseTest {
   void fromReturnsNullFolderNameWhenSourceHasNoFolder() {
     Source source =
         Source.create(
-            new SourceCreationParam(1L, "sample.pdf", "learning-sources/sample.pdf", "application/pdf", 2048L),
+            new SourceCreationParam(
+                1L, "sample.pdf", "learning-sources/sample.pdf", "application/pdf", 2048L),
             1L,
             null);
 
@@ -30,7 +31,8 @@ class SourceResponseTest {
     SourceFolder folder = SourceFolder.createDefaultFolder(2L);
     Source source =
         Source.create(
-            new SourceCreationParam(2L, "other.pdf", "learning-sources/other.pdf", "application/pdf", 1024L),
+            new SourceCreationParam(
+                2L, "other.pdf", "learning-sources/other.pdf", "application/pdf", 1024L),
             2L,
             folder);
 

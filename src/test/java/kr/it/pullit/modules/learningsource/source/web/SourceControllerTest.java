@@ -17,8 +17,8 @@ import java.util.List;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
-import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
 import kr.it.pullit.support.security.WithMockMember;
@@ -139,9 +139,10 @@ public class SourceControllerTest extends ControllerTest {
     then(sourcePublicApi)
         .should()
         .processUploadComplete(
-            argThat(r ->
-                r.getUploadId().equals("upload-1")
-                    && r.getFilePath().equals("learning-sources/completed.pdf")),
+            argThat(
+                r ->
+                    r.getUploadId().equals("upload-1")
+                        && r.getFilePath().equals("learning-sources/completed.pdf")),
             eq(1L));
   }
 
@@ -206,7 +207,8 @@ public class SourceControllerTest extends ControllerTest {
     willDoNothing().given(sourcePublicApi).deleteSource(5L, 1L);
 
     // when & then
-    mockMvc.perform(delete("/api/learning/source/{sourceId}", 5L))
+    mockMvc
+        .perform(delete("/api/learning/source/{sourceId}", 5L))
         .andExpect(status().isNoContent());
 
     then(sourcePublicApi).should().deleteSource(5L, 1L);

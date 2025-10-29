@@ -113,7 +113,8 @@ class SourceRepositoryTest {
                 assertThat(source.getSourceFolder().getName()).isEqualTo(folder.getName());
               });
       assertThat(sources)
-          .isSortedAccordingTo((left, right) -> right.getCreatedAt().compareTo(left.getCreatedAt()));
+          .isSortedAccordingTo(
+              (left, right) -> right.getCreatedAt().compareTo(left.getCreatedAt()));
     }
 
     @Test
@@ -141,12 +142,15 @@ class SourceRepositoryTest {
       Long memberId = 50L;
       SourceFolder folder = persistDefaultFolder(memberId);
       Source first = saveSource(memberId, "learning-sources/first.pdf", folder, SourceStatus.READY);
-      Source second = saveSource(memberId, "learning-sources/second.pdf", folder, SourceStatus.READY);
+      Source second =
+          saveSource(memberId, "learning-sources/second.pdf", folder, SourceStatus.READY);
       flushAndClear();
 
       List<Source> found = sourceRepository.findByIdIn(List.of(first.getId(), second.getId()));
 
-      assertThat(found).extracting(Source::getId).containsExactlyInAnyOrder(first.getId(), second.getId());
+      assertThat(found)
+          .extracting(Source::getId)
+          .containsExactlyInAnyOrder(first.getId(), second.getId());
     }
   }
 }
