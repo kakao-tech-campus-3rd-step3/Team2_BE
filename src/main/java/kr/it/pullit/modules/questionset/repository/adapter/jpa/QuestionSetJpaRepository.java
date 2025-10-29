@@ -88,6 +88,17 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
+        SELECT qs
+        FROM QuestionSet qs
+        WHERE qs.ownerId = :memberId
+        AND (:cursor IS NULL OR qs.id < :cursor)
+        ORDER BY qs.createdAt DESC, qs.id DESC
+      """)
+  List<QuestionSet> findByMemberIdWithCursor(
+      @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
+
+  @Query(
+      """
             SELECT qs
             FROM QuestionSet qs
             LEFT JOIN FETCH qs.questions

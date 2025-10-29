@@ -158,11 +158,15 @@ public class QuestionSetService implements QuestionSetPublicApi {
       Long memberId, Long cursor, int size, Long folderId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
-
-    List<QuestionSet> results =
-        questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
-            memberId, targetFolderId, cursor, size);
+    List<QuestionSet> results;
+    if (folderId == null || folderId.equals(1L)) {
+      results =
+          questionSetRepository.findByMemberIdWithCursorAndNextPageCheck(memberId, cursor, size);
+    } else {
+      results =
+          questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+              memberId, folderId, cursor, size);
+    }
 
     List<MyQuestionSetsResponse> myQuestionSetsResponses =
         results.stream().map(MyQuestionSetsResponse::from).toList();

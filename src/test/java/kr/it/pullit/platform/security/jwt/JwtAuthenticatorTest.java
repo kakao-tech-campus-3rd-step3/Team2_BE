@@ -9,8 +9,8 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Optional;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
+import kr.it.pullit.platform.security.jwt.exception.JwtAuthenticationException;
 import kr.it.pullit.platform.security.jwt.exception.TokenErrorCode;
-import kr.it.pullit.platform.security.jwt.exception.TokenException;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import kr.it.pullit.support.fixture.MemberFixtures;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class JwtAuthenticatorTest {
   @Mock private MemberRepository memberRepository;
 
   @Test
-  @DisplayName("유효한 토큰이 제공되면 Success 결과를 반환한다")
+  @DisplayName("유효한 토큰이 제공되면 PullitAuthenticationToken을 반환한다")
   void shouldReturnSuccessWhenTokenIsValid() {
     // given
     String token = "valid-token";
@@ -50,17 +50,16 @@ class JwtAuthenticatorTest {
     when(memberRepository.findById(1L)).thenReturn(Optional.of(MemberFixtures.basicUser()));
 
     // when
-    AuthenticationResult result = jwtAuthenticator.authenticate(token);
+    PullitAuthenticationToken result = jwtAuthenticator.authenticate(token);
 
     // then
-    assertThat(result).isInstanceOf(AuthenticationResult.Success.class);
-    var successResult = (AuthenticationResult.Success) result;
-    assertThat(successResult.authentication().getPrincipal()).isEqualTo(1L);
-    assertThat(successResult.authentication().getEmail()).isEqualTo(expectedEmail);
+    assertThat(result).isNotNull();
+    assertThat(result.getPrincipal()).isEqualTo(1L);
+    assertThat(result.getEmail()).isEqualTo(expectedEmail);
   }
 
   @Test
-  @DisplayName("만료된 토큰이 제공되면 TokenException(EXPIRED)을 던진다")
+  @DisplayName("만료된 토큰이 제공되면 JwtAuthenticationException(EXPIRED)을 던진다")
   void shouldThrowExceptionWhenTokenIsExpired() {
     // given
     String token = "expired-token";
@@ -69,12 +68,12 @@ class JwtAuthenticatorTest {
 
     // when & then
     assertThatThrownBy(() -> jwtAuthenticator.authenticate(token))
-        .isInstanceOf(TokenException.class)
+        .isInstanceOf(JwtAuthenticationException.class)
         .hasFieldOrPropertyWithValue("errorCode", TokenErrorCode.TOKEN_EXPIRED);
   }
 
   @Test
-  @DisplayName("유효하지 않은 토큰이 제공되면 TokenException(INVALID)을 던진다")
+  @DisplayName("유효하지 않은 토큰이 제공되면 JwtAuthenticationException(INVALID)을 던진다")
   void shouldThrowExceptionWhenTokenIsInvalid() {
     // given
     String token = "invalid-token";
@@ -85,19 +84,18 @@ class JwtAuthenticatorTest {
 
     // when & then
     assertThatThrownBy(() -> jwtAuthenticator.authenticate(token))
-        .isInstanceOf(TokenException.class)
+        .isInstanceOf(JwtAuthenticationException.class)
         .hasFieldOrPropertyWithValue("errorCode", TokenErrorCode.TOKEN_INVALID)
-        .hasMessage(errorMessage)
-        .hasCause(cause);
+        .hasMessage(errorMessage);
   }
 
   @Test
-  @DisplayName("토큰이 없으면 NoToken 결과를 반환한다")
-  void shouldReturnNoTokenWhenTokenIsNull() {
+  @DisplayName("토큰이 없으면 null을 반환한다")
+  void shouldReturnNullWhenTokenIsNull() {
     // when
-    AuthenticationResult result = jwtAuthenticator.authenticate(null);
+    PullitAuthenticationToken result = jwtAuthenticator.authenticate(null);
 
     // then
-    assertThat(result).isInstanceOf(AuthenticationResult.NoToken.class);
+    assertThat(result).isNull();
   }
 }
