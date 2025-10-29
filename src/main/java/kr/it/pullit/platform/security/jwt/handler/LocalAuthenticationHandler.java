@@ -34,7 +34,8 @@ public class LocalAuthenticationHandler {
   }
 
   private boolean shouldApplyDevAuthentication(String authorizationHeader) {
-    return authorizationHeader == null || "1".equals(getTokenFromHeader(authorizationHeader));
+    String token = getTokenFromHeader(authorizationHeader);
+    return "1".equals(token);
   }
 
   private String getTokenFromHeader(String authorizationHeader) {

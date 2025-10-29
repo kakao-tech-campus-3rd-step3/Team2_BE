@@ -77,6 +77,14 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public List<QuestionSet> findByMemberIdWithCursorAndNextPageCheck(
+      Long memberId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
+    return questionSetJpaRepository.findByMemberIdWithCursor(
+        memberId, cursor, pageableWithOneExtra);
+  }
+
+  @Override
   public long countByCommonFolderId(Long commonFolderId) {
     return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
   }

@@ -3,6 +3,7 @@ package kr.it.pullit.platform.security.config;
 import java.util.Optional;
 import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
 import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
+import kr.it.pullit.platform.security.jwt.exception.JwtAuthenticationEntryPoint;
 import kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter;
 import kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter;
 import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
@@ -12,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -20,7 +20,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -47,6 +46,7 @@ public class SecurityConfig {
   private final CorsConfigurationSource corsConfigurationSource;
   private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final OAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
   private final Optional<DevAuthenticationFilter> devAuthenticationFilter;
 
@@ -105,8 +105,7 @@ public class SecurityConfig {
     http.securityMatcher("/api/**");
     applyCommon(http);
 
-    http.exceptionHandling(
-        ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+    http.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
     http.authorizeHttpRequests(AuthorizationRules.authenticated());
     http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -133,19 +132,32 @@ public class SecurityConfig {
   }
 
   @Bean
+  @Order(1)
   @Profile("local")
-  public SecurityFilterChain localChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain apiChainForLocal(HttpSecurity http) throws Exception {
+    http.securityMatcher("/api/**");
     applyCommon(http);
-    configureOAuth2Login(http);
-    http.authorizeHttpRequests(
-        authorize ->
-            authorize
-                .requestMatchers(AuthorizationRules.PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .permitAll());
+
+    http.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+
+    http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
     devAuthenticationFilter.ifPresent(
         filter -> http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class));
+    http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
+  @Profile("local")
+  public SecurityFilterChain webChainForLocal(HttpSecurity http) throws Exception {
+    http.securityMatcher("/**");
+    applyCommon(http);
+    configureOAuth2Login(http);
+
+    http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
     return http.build();
   }
 }
