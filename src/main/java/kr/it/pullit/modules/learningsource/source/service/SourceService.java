@@ -1,5 +1,8 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -20,10 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +46,7 @@ public class SourceService implements SourcePublicApi {
         response.uploadUrl(), response.filePath(), fileName, fileSize, contentType);
   }
 
-  /**
-   * 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다.
-   */
+  /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */
   // TODO: 리팩토링 대상.
   @Override
   public void processUploadComplete(SourceUploadCompleteRequest request, Long memberId) {

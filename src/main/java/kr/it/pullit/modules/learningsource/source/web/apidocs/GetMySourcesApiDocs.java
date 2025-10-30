@@ -8,13 +8,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
-import org.springframework.http.ProblemDetail;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
+import org.springframework.http.ProblemDetail;
 
 // TODO: 상태코드 정상화
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
@@ -24,19 +23,19 @@ import java.lang.annotation.Target;
     description = "사용자가 업로드한 학습 소스 목록을 최신 순으로 조회합니다.\n\n" + "[Request]\n" + "- 인증 토큰 필요 (Bearer)",
     security = @SecurityRequirement(name = "bearerAuth"))
 @ApiResponses({
-    @ApiResponse(
-        responseCode = "200",
-        description = "소스 목록 조회 성공",
-        content =
-        @Content(
-            mediaType = "application/json",
-            array = @ArraySchema(schema = @Schema(implementation = SourceResponse.class)),
-            examples =
-            @ExampleObject(
-                name = "성공",
-                summary = "소스 목록 조회",
-                value =
-                    """
+  @ApiResponse(
+      responseCode = "200",
+      description = "소스 목록 조회 성공",
+      content =
+          @Content(
+              mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = SourceResponse.class)),
+              examples =
+                  @ExampleObject(
+                      name = "성공",
+                      summary = "소스 목록 조회",
+                      value =
+                          """
                         [
                           {
                             \"id\": 1,
@@ -51,19 +50,19 @@ import java.lang.annotation.Target;
                           }
                         ]
                         """))),
-    @ApiResponse(
-        responseCode = "400",
-        description = "요청 정보가 유효하지 않음",
-        content =
-        @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = ProblemDetail.class),
-            examples =
-            @ExampleObject(
-                name = "잘못된 요청",
-                summary = "인증 실패",
-                value =
-                    """
+  @ApiResponse(
+      responseCode = "400",
+      description = "요청 정보가 유효하지 않음",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ProblemDetail.class),
+              examples =
+                  @ExampleObject(
+                      name = "잘못된 요청",
+                      summary = "인증 실패",
+                      value =
+                          """
                         {
                           \"type\": \"about:blank\",
                           \"title\": \"Bad Request\",
@@ -73,5 +72,4 @@ import java.lang.annotation.Target;
                         }
                         """)))
 })
-public @interface GetMySourcesApiDocs {
-}
+public @interface GetMySourcesApiDocs {}
