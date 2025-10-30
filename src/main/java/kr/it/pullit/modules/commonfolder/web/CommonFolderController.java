@@ -7,6 +7,12 @@ import java.util.List;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.api.FolderFacade;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.web.apidocs.CreateCommonFolderApiDocs;
+import kr.it.pullit.modules.commonfolder.web.apidocs.DeleteCommonFolderApiDocs;
+import kr.it.pullit.modules.commonfolder.web.apidocs.GetCommonFolderApiDocs;
+import kr.it.pullit.modules.commonfolder.web.apidocs.GetCommonFoldersApiDocs;
+import kr.it.pullit.modules.commonfolder.web.apidocs.GetFolderDeleteWarningApiDocs;
+import kr.it.pullit.modules.commonfolder.web.apidocs.UpdateCommonFolderApiDocs;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.FolderDeleteWarningResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
@@ -31,35 +37,41 @@ public class CommonFolderController {
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final FolderFacade folderFacade;
 
+  @GetCommonFoldersApiDocs
   @GetMapping
   public ResponseEntity<List<CommonFolderResponse>> getQuestionSetFolders(
       @RequestParam("type") CommonFolderType type) {
     return ResponseEntity.ok(commonFolderPublicApi.getFolders(type));
   }
 
+  @GetCommonFolderApiDocs
   @GetMapping("/{id}")
   public ResponseEntity<CommonFolderResponse> getQuestionSetFolderById(@PathVariable Long id) {
     return ResponseEntity.ok(commonFolderPublicApi.getFolder(id));
   }
 
+  @CreateCommonFolderApiDocs
   @PostMapping
   public ResponseEntity<Void> createFolder(@Valid @RequestBody QuestionSetFolderRequest request) {
     CommonFolderResponse response = commonFolderPublicApi.createFolder(request);
     return ResponseEntity.created(URI.create("/api/common-folders/" + response.id())).build();
   }
 
+  @UpdateCommonFolderApiDocs
   @PatchMapping("/{id}")
   public ResponseEntity<CommonFolderResponse> updateFolder(
       @PathVariable Long id, @Valid @RequestBody QuestionSetFolderRequest request) {
     return ResponseEntity.ok(commonFolderPublicApi.updateFolder(id, request));
   }
 
+  @GetFolderDeleteWarningApiDocs
   @GetMapping("/{id}/delete-warning")
   public ResponseEntity<FolderDeleteWarningResponse> getFolderDeleteWarning(@PathVariable Long id) {
     long count = folderFacade.getQuestionSetCountInFolder(id);
     return ResponseEntity.ok(new FolderDeleteWarningResponse(count));
   }
 
+  @DeleteCommonFolderApiDocs
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteFolder(@PathVariable Long id) {
     folderFacade.deleteFolderAndContents(id);
