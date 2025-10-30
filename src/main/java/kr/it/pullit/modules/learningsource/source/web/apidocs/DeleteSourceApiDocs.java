@@ -7,11 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.ProblemDetail;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.ProblemDetail;
 
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
@@ -24,30 +25,31 @@ import org.springframework.http.ProblemDetail;
             + "- 경로 변수로 삭제할 소스 ID를 전달합니다.",
     security = @SecurityRequirement(name = "bearerAuth"))
 @ApiResponses({
-  @ApiResponse(
-      responseCode = "200",
-      description = "소스 삭제 성공",
-      content = @Content(schema = @Schema(hidden = true))),
-  @ApiResponse(
-      responseCode = "400",
-      description = "소스 삭제 요청이 유효하지 않음",
-      content =
-          @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "잘못된 요청",
-                      summary = "삭제 권한 없음",
-                      value =
-                          """
-                                {
-                                  \"type\": \"about:blank\",
-                                  \"title\": \"Bad Request\",
-                                  \"status\": 400,
-                                  \"detail\": \"요청한 소스를 삭제할 수 없습니다\",
-                                  \"code\": \"C_001\"
-                                }
-                                """)))
+    @ApiResponse(
+        responseCode = "204",
+        description = "소스 삭제 성공",
+        content = @Content(schema = @Schema(hidden = true))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "소스 삭제 요청이 유효하지 않음",
+        content =
+        @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ProblemDetail.class),
+            examples =
+            @ExampleObject(
+                name = "잘못된 요청",
+                summary = "삭제 권한 없음",
+                value =
+                    """
+                        {
+                          \"type\": \"about:blank\",
+                          \"title\": \"Bad Request\",
+                          \"status\": 400,
+                          \"detail\": \"요청한 소스를 삭제할 수 없습니다\",
+                          \"code\": \"C_001\"
+                        }
+                        """)))
 })
-public @interface DeleteSourceApiDocs {}
+public @interface DeleteSourceApiDocs {
+}

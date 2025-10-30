@@ -1,19 +1,5 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
@@ -35,16 +21,37 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SourceService - 학습 소스 서비스 테스트")
 class SourceServiceTest {
 
-  @InjectMocks private SourceService sourceService;
-  @Mock private SourceRepository sourceRepository;
-  @Mock private S3PublicApi s3PublicApi;
-  @Mock private MemberPublicApi memberPublicApi;
-  @Mock private SourceFolderPublicApi sourceFolderPublicApi;
-  @Mock private ApplicationEventPublisher applicationEventPublisher;
+  @InjectMocks
+  private SourceService sourceService;
+  @Mock
+  private SourceRepository sourceRepository;
+  @Mock
+  private S3PublicApi s3PublicApi;
+  @Mock
+  private MemberPublicApi memberPublicApi;
+  @Mock
+  private SourceFolderPublicApi sourceFolderPublicApi;
+  @Mock
+  private ApplicationEventPublisher applicationEventPublisher;
 
   private Source createSource(Long memberId, String filePath, SourceStatus status) {
     SourceFolder folder = SourceFolder.create(memberId, "폴더", null, "#000000");
@@ -235,7 +242,7 @@ class SourceServiceTest {
     var responses = sourceService.getMySources(memberId);
 
     assertThat(responses).hasSize(2);
-    assertThat(responses.get(0).id()).isNull();
+    assertThat(responses.get(0).id()).isNotNull();
     assertThat(responses.get(0).originalName()).isEqualTo("test.pdf");
     verify(sourceRepository).findSourcesByMemberIdWithDetails(memberId);
   }
