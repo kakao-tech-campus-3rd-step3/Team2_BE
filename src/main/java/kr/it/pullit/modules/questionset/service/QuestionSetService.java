@@ -85,7 +85,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
       return handleQuestionSetStatusException(qs);
     }
 
-    return WrongAnswerNotFoundException.withMessage("복습할 오답이 없습니다.");
+    return WrongAnswerNotFoundException.noWrongAnswersToReview();
   }
 
   private RuntimeException handleQuestionSetNotFound(Long id, Long memberId) {

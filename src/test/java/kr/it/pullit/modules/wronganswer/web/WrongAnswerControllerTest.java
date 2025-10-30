@@ -7,9 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
+import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
 import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
+import kr.it.pullit.support.apidocs.ProblemDetailTestUtils;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
 import org.junit.jupiter.api.DisplayName;
@@ -69,5 +71,33 @@ class WrongAnswerControllerTest extends ControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].questionSetTitle").value("OS 정리"))
         .andExpect(jsonPath("$[0].incorrectCount").value(5));
+  }
+
+  @Test
+  @WithMockMember(memberId = 91L)
+  @DisplayName("오답집 커서 조회 API는 존재하지 않는 오답일 때 ApiDocs 예시와 일치한다")
+  void shouldMatchApiDocsWhenWrongAnswerNotFound() throws Exception {
+    given(wrongAnswerPublicApi.getMyWrongAnswers(91L, null, 20))
+        .willThrow(WrongAnswerNotFoundException.byMemberAndQuestion(91L, 100L));
+
+    mockMvc
+        .perform(get("/api/wrong-answers"))
+        .andExpect(
+            ProblemDetailTestUtils.conformToApiDocs(
+                "/api/wrong-answers", "WRONG_ANSWER_NOT_FOUND"));
+  }
+
+  @Test
+  @WithMockMember(memberId = 92L)
+  @DisplayName("오답집 커서 조회 API는 복습할 오답이 없을 때 ApiDocs 예시와 일치한다")
+  void shouldMatchApiDocsWhenNoWrongAnswersToReview() throws Exception {
+    given(wrongAnswerPublicApi.getMyWrongAnswers(92L, null, 20))
+        .willThrow(WrongAnswerNotFoundException.noWrongAnswersToReview());
+
+    mockMvc
+        .perform(get("/api/wrong-answers"))
+        .andExpect(
+            ProblemDetailTestUtils.conformToApiDocs(
+                "/api/wrong-answers", "NO_WRONG_ANSWERS_TO_REVIEW"));
   }
 }
