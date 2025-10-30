@@ -14,6 +14,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+// TODO: 상태코드 정상화
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(
@@ -26,11 +27,11 @@ import java.lang.annotation.Target;
     security = @SecurityRequirement(name = "bearerAuth"))
 @ApiResponses({
     @ApiResponse(
-        responseCode = "204",
+        responseCode = "200",
         description = "소스 삭제 성공",
         content = @Content(schema = @Schema(hidden = true))),
     @ApiResponse(
-        responseCode = "401",
+        responseCode = "400",
         description = "소스 삭제 요청이 유효하지 않음",
         content =
         @Content(
