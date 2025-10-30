@@ -260,10 +260,10 @@ class SourceServiceTest {
   @DisplayName("성공 - 소스 ID와 회원 ID로 조회한다")
   void findByIdAndMemberId() {
     Source source = createSource(19L, "learning-sources/owner.pdf", SourceStatus.READY);
-    given(sourceRepository.findByIdAndMemberId(5L, 5L)).willReturn(Optional.of(source));
+    given(sourceRepository.findByIdAndMemberId(5L, 3L)).willReturn(Optional.of(source));
 
-    assertThat(sourceService.findByIdAndMemberId(5L)).contains(source);
-    verify(sourceRepository).findByIdAndMemberId(5L, 5L);
+    assertThat(sourceService.findByIdAndMemberId(5L, 3L)).contains(source);
+    verify(sourceRepository).findByIdAndMemberId(5L, 3L);
   }
 
   @Test

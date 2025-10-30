@@ -1,12 +1,13 @@
 package kr.it.pullit.modules.learningsource.source.api;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
 
 public interface SourcePublicApi {
 
@@ -21,8 +22,7 @@ public interface SourcePublicApi {
 
   Optional<Source> findById(Long id);
 
-  @SuppressWarnings("unused")
-  Optional<Source> findByIdAndMemberId(Long id);
+  Optional<Source> findByIdAndMemberId(Long id, Long memberId);
 
   List<Source> findByIdIn(List<Long> ids);
 
