@@ -2,12 +2,12 @@ package kr.it.pullit.modules.questionset.repository;
 
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,7 +43,9 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public void deleteById(Long questionSetId) {
     QuestionSet questionSet =
-        questionSetJpaRepository.findById(questionSetId).orElseThrow(() -> new RuntimeException("문제집을 찾을 수 없습니다: " + questionSetId));
+        questionSetJpaRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> new RuntimeException("문제집을 찾을 수 없습니다: " + questionSetId));
     questionSetJpaRepository.delete(questionSet);
   }
 

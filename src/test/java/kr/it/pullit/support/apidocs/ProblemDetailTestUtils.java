@@ -3,27 +3,28 @@ package kr.it.pullit.support.apidocs;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.jayway.jsonpath.JsonPath;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.Arrays;
 import java.util.Optional;
+import kr.it.pullit.shared.apidocs.ApiDocsGroup;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
-import com.jayway.jsonpath.JsonPath;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import kr.it.pullit.shared.apidocs.ApiDocsGroup;
 
 /**
  * API 응답이 OpenAPI 문서의 ExampleObject와 일치하는지 검증하는 유틸리티 클래스입니다.
  *
- * <p>이 클래스는 테스트에서 실제 API 응답(ProblemDetail 형식)이 API 문서에 명시된 ExampleObject와
- * 일치하는지 자동으로 검증합니다. ExampleObject는 {@link ApiDocsGroup} 어노테이션이 적용된 클래스에서
- * 자동으로 스캔됩니다.
+ * <p>이 클래스는 테스트에서 실제 API 응답(ProblemDetail 형식)이 API 문서에 명시된 ExampleObject와 일치하는지 자동으로 검증합니다.
+ * ExampleObject는 {@link ApiDocsGroup} 어노테이션이 적용된 클래스에서 자동으로 스캔됩니다.
  *
  * <p>사용 예시:
+ *
  * <pre>{@code
  * mockMvc.perform(get("/api/common-folders/999"))
  *     .andExpect(
@@ -33,10 +34,11 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
  * }</pre>
  *
  * <p>위 예시는 다음과 같이 동작합니다:
+ *
  * <ol>
- *   <li>exampleName("폴더 조회 실패")으로 ExampleObject를 찾습니다</li>
- *   <li>ExampleObject의 instance 필드를 instanceUrl로 치환합니다</li>
- *   <li>실제 응답의 status, content-type, body를 ExampleObject와 비교합니다</li>
+ *   <li>exampleName("폴더 조회 실패")으로 ExampleObject를 찾습니다
+ *   <li>ExampleObject의 instance 필드를 instanceUrl로 치환합니다
+ *   <li>실제 응답의 status, content-type, body를 ExampleObject와 비교합니다
  * </ol>
  *
  * @author Hyeonjun0527
@@ -80,8 +82,7 @@ public class ProblemDetailTestUtils {
     /**
      * ExampleObject의 JSON에서 instance 필드를 테스트에서 사용하는 실제 instanceUrl로 치환합니다.
      *
-     * <p>ExampleObject에는 특정 경로가 하드코딩되어 있지만, 테스트마다 다른 ID나 경로를 사용할 수 있기
-     * 때문에 치환이 필요합니다.
+     * <p>ExampleObject에는 특정 경로가 하드코딩되어 있지만, 테스트마다 다른 ID나 경로를 사용할 수 있기 때문에 치환이 필요합니다.
      *
      * @param spec ExampleObject
      * @return instance 필드가 instanceUrl로 치환된 JSON 문자열
