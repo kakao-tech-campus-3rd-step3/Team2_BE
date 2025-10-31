@@ -35,7 +35,7 @@ class FolderFacadeImplTest {
 
     @Test
     @DisplayName("성공 - 문제집을 기본 폴더로 이동시킨 후, 폴더를 삭제한다")
-    void deleteFolderAndRelocate_Success() {
+    void deleteFolderAndRelocateSuccess() {
       // given
       Long folderIdToDelete = 2L;
 

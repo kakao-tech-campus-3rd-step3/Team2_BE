@@ -75,8 +75,8 @@ public class ProblemDetailTestUtils {
           .orElseThrow(
               () ->
                   new AssertionError(
-                      "예시 이름 '%s'에 해당하는 @ExampleObject를 @ApiDocsGroup 어노테이션이나 컨트롤러 메서드의 ApiDocs 어노테이션에서 찾을 수 없습니다."
-                          .formatted(exampleName)));
+                      "예시 이름 '%s'에 해당하는 @ExampleObject를 @ApiDocsGroup 어노테이션이나"
+                          + " 컨트롤러 메서드의 ApiDocs 어노테이션에서 찾을 수 없습니다.".formatted(exampleName)));
     }
 
     /**

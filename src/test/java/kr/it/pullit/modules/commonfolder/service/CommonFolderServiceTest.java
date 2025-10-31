@@ -117,7 +117,7 @@ class CommonFolderServiceTest {
   class CreateFolder {
     @Test
     @DisplayName("성공 - 기존 폴더가 있을 때 다음 순서로 새로운 폴더를 생성하고 저장한다")
-    void createFolder_Success_WithExistingFolders() {
+    void createFolderSuccessWithExistingFolders() {
       // given
       Long ownerId = 1L;
       QuestionSetFolderRequest request = new QuestionSetFolderRequest("새 폴더", QUESTION_SET);
@@ -148,7 +148,7 @@ class CommonFolderServiceTest {
 
     @Test
     @DisplayName("실패 - 존재하지 않는 폴더를 수정하려 하면 FolderNotFoundException이 발생한다")
-    void updateFolder_Fail_WhenFolderNotFound() {
+    void updateFolderFailWhenFolderNotFound() {
       // given
       Long ownerId = 1L;
       Long folderId = 999L;
@@ -162,7 +162,7 @@ class CommonFolderServiceTest {
 
     @Test
     @DisplayName("실패 - 다른 사람의 폴더를 수정하려 하면 FolderNotFoundException이 발생한다")
-    void updateFolder_Fail_WhenFolderOwnedByAnother() {
+    void updateFolderFailWhenFolderOwnedByAnother() {
       // given
       Long ownerId = 1L;
       Long folderId = 2L;
@@ -178,7 +178,7 @@ class CommonFolderServiceTest {
 
     @Test
     @DisplayName("실패 - 기본 폴더의 이름을 변경하려 하면 InvalidFolderOperationException이 발생한다")
-    void updateDefaultFolderName_shouldThrowException() {
+    void updateDefaultFolderNameshouldThrowException() {
       // given
       Long ownerId = 1L;
       Long folderId = 2L;
@@ -197,7 +197,7 @@ class CommonFolderServiceTest {
   class DeleteFolder {
     @Test
     @DisplayName("실패 - 다른 사용자의 폴더는 삭제할 수 없다 (FolderNotFoundException 발생)")
-    void deleteFolder_Fail_WhenFolderOwnedByAnother() {
+    void deleteFolderFailWhenFolderOwnedByAnother() {
       // given
       Long ownerId = 1L;
       Long folderId = 10L;
@@ -213,7 +213,7 @@ class CommonFolderServiceTest {
 
     @Test
     @DisplayName("실패 - 기본 폴더는 삭제할 수 없다")
-    void deleteFolder_Fail_WhenDeletingDefaultFolder() {
+    void deleteFolderFailWhenDeletingDefaultFolder() {
       // given
       Long ownerId = 1L;
       Long folderId = CommonFolder.DEFAULT_FOLDER_ID;
