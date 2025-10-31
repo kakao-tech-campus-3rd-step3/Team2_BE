@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.commonfolder.api;
 
 public interface FolderFacade {
-  void deleteFolderAndContents(Long folderId);
+  void deleteFolderAndContents(Long ownerId, Long folderId);
 
-  long getQuestionSetCountInFolder(Long folderId);
+  long getQuestionSetCountInFolder(Long ownerId, Long folderId);
 }

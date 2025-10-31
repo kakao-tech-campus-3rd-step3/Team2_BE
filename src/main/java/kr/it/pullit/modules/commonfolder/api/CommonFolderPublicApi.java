@@ -9,17 +9,17 @@ import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
 
 public interface CommonFolderPublicApi {
 
-  List<CommonFolderResponse> getFolders(CommonFolderType type);
+  List<CommonFolderResponse> getFolders(Long ownerId, CommonFolderType type);
 
-  CommonFolder getOrCreateDefaultQuestionSetFolder();
+  CommonFolder getOrCreateDefaultQuestionSetFolder(Long ownerId);
 
-  Optional<CommonFolder> findFolderEntityById(Long id);
+  Optional<CommonFolder> findFolderEntityById(Long ownerId, Long id);
 
-  CommonFolderResponse getFolder(Long id);
+  CommonFolderResponse getFolder(Long ownerId, Long id);
 
-  CommonFolderResponse createFolder(QuestionSetFolderRequest request);
+  CommonFolderResponse createFolder(Long ownerId, QuestionSetFolderRequest request);
 
-  CommonFolderResponse updateFolder(Long id, QuestionSetFolderRequest request);
+  CommonFolderResponse updateFolder(Long ownerId, Long id, QuestionSetFolderRequest request);
 
-  void deleteFolder(Long id);
+  void deleteFolder(Long ownerId, Long id);
 }

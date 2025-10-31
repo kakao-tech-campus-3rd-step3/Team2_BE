@@ -20,53 +20,22 @@ SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0;
 -- Table structure for table `common_folder`
 --
 
-DROP TABLE IF EXISTS `common_folder`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `common_folder` (
-                                 `sort_order` int(11) NOT NULL,
-                                 `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                 `name` varchar(255) NOT NULL,
-                                 `type` enum('QUESTION_SET') NOT NULL,
-                                 PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 --
 -- Dumping data for table `common_folder`
 --
 
 LOCK TABLES `common_folder` WRITE;
 /*!40000 ALTER TABLE `common_folder` DISABLE KEYS */;
-INSERT INTO `common_folder` (`sort_order`, `id`, `name`, `type`) VALUES (0,1,'전체','QUESTION_SET'),
-                                                                        (1,2,'디지털영상처리','QUESTION_SET'),
-                                                                        (2,3,'시스템프로그래밍','QUESTION_SET'),
-                                                                        (3,4,'인공지능','QUESTION_SET');
+INSERT INTO `common_folder` (`sort_order`, `id`,`owner_id`, `name`, `type`) VALUES (0,1,1,'전체','QUESTION_SET'),
+                                                                        (1,2,1,'디지털영상처리','QUESTION_SET'),
+                                                                        (2,3,1,'시스템프로그래밍','QUESTION_SET'),
+                                                                        (3,4,1,'인공지능','QUESTION_SET');
 /*!40000 ALTER TABLE `common_folder` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
 -- Table structure for table `member`
 --
-
-DROP TABLE IF EXISTS `member`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `member` (
-                          `created_at` datetime(6) NOT NULL,
-                          `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                          `kakao_id` bigint(20) DEFAULT NULL,
-                          `updated_at` datetime(6) NOT NULL,
-                          `refresh_token` varchar(512) DEFAULT NULL,
-                          `email` varchar(255) NOT NULL,
-                          `name` varchar(255) DEFAULT NULL,
-                          `role` enum('ADMIN','MEMBER') NOT NULL,
-                          `status` enum('ACTIVE','BANNED','INACTIVE') DEFAULT NULL,
-                          PRIMARY KEY (`id`),
-                          UNIQUE KEY `UKmbmcqelty0fbrvxp1q58dn57t` (`email`),
-                          UNIQUE KEY `UKtqi1nx9ul3nx7guxpqycuvgue` (`kakao_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `member`
@@ -82,19 +51,6 @@ UNLOCK TABLES;
 -- Table structure for table `migration_history`
 --
 
-DROP TABLE IF EXISTS `migration_history`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `migration_history` (
-                                     `created_at` datetime(6) NOT NULL,
-                                     `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                     `updated_at` datetime(6) NOT NULL,
-                                     `migration_name` varchar(255) NOT NULL,
-                                     PRIMARY KEY (`id`),
-                                     UNIQUE KEY `UKmvh5rqlacqimatqgv28j2wiml` (`migration_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 --
 -- Dumping data for table `migration_history`
 --
@@ -107,23 +63,6 @@ UNLOCK TABLES;
 --
 -- Table structure for table `question`
 --
-
-DROP TABLE IF EXISTS `question`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question` (
-                            `created_at` datetime(6) NOT NULL,
-                            `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                            `question_set_id` bigint(20) DEFAULT NULL,
-                            `updated_at` datetime(6) NOT NULL,
-                            `dtype` varchar(31) NOT NULL,
-                            `explanation` text DEFAULT NULL,
-                            `question_text` text DEFAULT NULL,
-                            PRIMARY KEY (`id`),
-                            KEY `FKd2w5k3smcsfn7dcjiq5kxseq2` (`question_set_id`),
-                            CONSTRAINT `FKd2w5k3smcsfn7dcjiq5kxseq2` FOREIGN KEY (`question_set_id`) REFERENCES `question_set` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `question`
@@ -163,22 +102,8 @@ INSERT INTO `question` (`created_at`, `id`, `question_set_id`, `updated_at`, `dt
                                                                                                                              ('2025-10-22 21:41:33.136111',30,3,'2025-10-22 21:41:33.136111','ShortAnswerQuestion','표본 추출은 주어진 확률 분포를 따르는 데이터의 일부를 뽑아내는 과정을 말합니다.','주어진 확률 분포에서 확률 변수의 값(또는 표본)을 추출하는 과정을 무엇이라고 하는가?');
 /*!40000 ALTER TABLE `question` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
 -- Table structure for table `question_multiple_choice`
 --
-
-DROP TABLE IF EXISTS `question_multiple_choice`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question_multiple_choice` (
-                                            `id` bigint(20) NOT NULL,
-                                            `answer` varchar(255) DEFAULT NULL,
-                                            PRIMARY KEY (`id`),
-                                            CONSTRAINT `FK7y2qqxvjta4akuk8v7y7xyvgc` FOREIGN KEY (`id`) REFERENCES `question` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 --
 -- Dumping data for table `question_multiple_choice`
 --
@@ -201,17 +126,6 @@ UNLOCK TABLES;
 --
 -- Table structure for table `question_options`
 --
-
-DROP TABLE IF EXISTS `question_options`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question_options` (
-                                    `question_id` bigint(20) NOT NULL,
-                                    `option_text` varchar(255) DEFAULT NULL,
-                                    KEY `FKaewurtlqda0y6wcg9jeylyg6a` (`question_id`),
-                                    CONSTRAINT `FKaewurtlqda0y6wcg9jeylyg6a` FOREIGN KEY (`question_id`) REFERENCES `question_multiple_choice` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `question_options`
@@ -266,26 +180,6 @@ UNLOCK TABLES;
 -- Table structure for table `question_set`
 --
 
-DROP TABLE IF EXISTS `question_set`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question_set` (
-                                `question_length` int(11) DEFAULT NULL,
-                                `common_folder_id` bigint(20) DEFAULT NULL,
-                                `created_at` datetime(6) NOT NULL,
-                                `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                `owner_id` bigint(20) NOT NULL,
-                                `updated_at` datetime(6) NOT NULL,
-                                `title` varchar(150) DEFAULT NULL,
-                                `difficulty` enum('EASY','HARD') DEFAULT NULL,
-                                `status` enum('COMPLETE','FAILED','PENDING') DEFAULT NULL,
-                                `type` enum('MULTIPLE_CHOICE','SHORT_ANSWER','SUBJECTIVE','TRUE_FALSE') DEFAULT NULL,
-                                PRIMARY KEY (`id`),
-                                KEY `FKklqs1htxnwjhgi6vn16u1kd82` (`common_folder_id`),
-                                CONSTRAINT `FKklqs1htxnwjhgi6vn16u1kd82` FOREIGN KEY (`common_folder_id`) REFERENCES `common_folder` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 --
 -- Dumping data for table `question_set`
 --
@@ -302,18 +196,6 @@ UNLOCK TABLES;
 -- Table structure for table `question_set_source`
 --
 
-DROP TABLE IF EXISTS `question_set_source`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question_set_source` (
-                                       `question_set_id` bigint(20) NOT NULL,
-                                       `source_id` bigint(20) NOT NULL,
-                                       PRIMARY KEY (`question_set_id`,`source_id`),
-                                       KEY `FKk8jramh7amnwnvhftj6p9a1kw` (`source_id`),
-                                       CONSTRAINT `FKk8jramh7amnwnvhftj6p9a1kw` FOREIGN KEY (`source_id`) REFERENCES `source` (`id`),
-                                       CONSTRAINT `FKsgwhvpdkwp6641ui7vp51j8dm` FOREIGN KEY (`question_set_id`) REFERENCES `question_set` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `question_set_source`
@@ -331,16 +213,6 @@ UNLOCK TABLES;
 -- Table structure for table `question_short_answer`
 --
 
-DROP TABLE IF EXISTS `question_short_answer`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question_short_answer` (
-                                         `id` bigint(20) NOT NULL,
-                                         `answer` varchar(255) DEFAULT NULL,
-                                         PRIMARY KEY (`id`),
-                                         CONSTRAINT `FKssoff9cf0px1usmsn0d1v4dr9` FOREIGN KEY (`id`) REFERENCES `question` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `question_short_answer`
@@ -365,16 +237,6 @@ UNLOCK TABLES;
 -- Table structure for table `question_true_false`
 --
 
-DROP TABLE IF EXISTS `question_true_false`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `question_true_false` (
-                                       `answer` bit(1) NOT NULL,
-                                       `id` bigint(20) NOT NULL,
-                                       PRIMARY KEY (`id`),
-                                       CONSTRAINT `FK9gjexpb42svh57saot0k9y0ht` FOREIGN KEY (`id`) REFERENCES `question` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `question_true_false`
@@ -399,26 +261,6 @@ UNLOCK TABLES;
 -- Table structure for table `source`
 --
 
-DROP TABLE IF EXISTS `source`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `source` (
-                          `page_count` int(11) DEFAULT NULL,
-                          `created_at` datetime(6) NOT NULL,
-                          `file_size_bytes` bigint(20) NOT NULL,
-                          `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                          `member_id` bigint(20) NOT NULL,
-                          `source_folder_id` bigint(20) DEFAULT NULL,
-                          `updated_at` datetime(6) NOT NULL,
-                          `content_type` varchar(255) NOT NULL,
-                          `file_path` varchar(255) NOT NULL,
-                          `original_name` varchar(255) NOT NULL,
-                          `status` enum('FAILED','PROCESSING','READY','UPLOADED') NOT NULL,
-                          PRIMARY KEY (`id`),
-                          KEY `FKmcc76l1b8ujhbvdjjc31o492t` (`source_folder_id`),
-                          CONSTRAINT `FKmcc76l1b8ujhbvdjjc31o492t` FOREIGN KEY (`source_folder_id`) REFERENCES `source_folder` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `source`
@@ -434,21 +276,6 @@ UNLOCK TABLES;
 -- Table structure for table `source_folder`
 --
 
-DROP TABLE IF EXISTS `source_folder`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `source_folder` (
-                                 `created_at` datetime(6) NOT NULL,
-                                 `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                 `member_id` bigint(20) NOT NULL,
-                                 `updated_at` datetime(6) NOT NULL,
-                                 `color` varchar(255) DEFAULT NULL,
-                                 `description` varchar(255) DEFAULT NULL,
-                                 `name` varchar(255) NOT NULL,
-                                 PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 --
 -- Dumping data for table `source_folder`
 --
@@ -462,23 +289,6 @@ UNLOCK TABLES;
 --
 -- Table structure for table `wrong_answer`
 --
-
-DROP TABLE IF EXISTS `wrong_answer`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `wrong_answer` (
-                                `is_reviewed` bit(1) DEFAULT NULL,
-                                `created_at` datetime(6) NOT NULL,
-                                `id` bigint(20) NOT NULL AUTO_INCREMENT,
-                                `member_id` bigint(20) DEFAULT NULL,
-                                `question_id` bigint(20) DEFAULT NULL,
-                                `updated_at` datetime(6) NOT NULL,
-                                PRIMARY KEY (`id`),
-                                UNIQUE KEY `UKk52s1oc2m2dbrrui4w2e749jt` (`member_id`,`question_id`),
-                                UNIQUE KEY `UKti433dnayhh5p3qhbwqu1cv27` (`question_id`),
-                                CONSTRAINT `FKovvauh9ri5jp9f22tkbkcqyvs` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `wrong_answer`
