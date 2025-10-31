@@ -29,7 +29,7 @@ public class FolderFacadeImpl implements FolderFacade {
     if (folderId.equals(CommonFolder.DEFAULT_FOLDER_ID)) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER);
     }
-    questionSetPublicApi.relocateQuestionSetsToDefaultFolder(folderId);
+    questionSetPublicApi.relocateQuestionSetsToDefaultFolder(ownerId, folderId);
     commonFolderPublicApi.deleteFolder(ownerId, folderId);
   }
 }

@@ -7,6 +7,7 @@ import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
+import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
@@ -99,16 +100,14 @@ public class CommonFolderService implements CommonFolderPublicApi {
   }
 
   private CommonFolder findFolderById(Long id) {
-    return commonFolderRepository
-        .findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
+    return commonFolderRepository.findById(id).orElseThrow(() -> FolderNotFoundException.byId(id));
   }
 
   private CommonFolder findFolderByIdAndOwner(Long id, Long ownerId) {
     return commonFolderRepository
         .findById(id)
         .filter(folder -> folder.getOwnerId().equals(ownerId))
-        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없거나 접근 권한이 없습니다."));
+        .orElseThrow(() -> FolderNotFoundException.byId(id));
   }
 
   private CommonFolderResponse toDto(CommonFolder folder) {

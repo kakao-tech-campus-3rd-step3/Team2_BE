@@ -1,9 +1,9 @@
 package kr.it.pullit.modules.commonfolder.exception;
 
-import org.springframework.http.HttpStatus;
 import kr.it.pullit.shared.error.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor

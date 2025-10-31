@@ -31,6 +31,8 @@ class FolderFacadeImplTest {
   @Nested
   @DisplayName("폴더와 내용 삭제 기능")
   class DeleteFolderAndContents {
+    private final Long ownerId = 1L;
+
     @Test
     @DisplayName("성공 - 문제집을 기본 폴더로 이동시킨 후, 폴더를 삭제한다")
     void deleteFolderAndRelocate_Success() {
@@ -38,27 +40,31 @@ class FolderFacadeImplTest {
       Long folderIdToDelete = 2L;
 
       // when
-      folderFacade.deleteFolderAndContents(folderIdToDelete);
+      folderFacade.deleteFolderAndContents(ownerId, folderIdToDelete);
 
       // then
       InOrder inOrder = inOrder(questionSetPublicApi, commonFolderPublicApi);
-      inOrder.verify(questionSetPublicApi).relocateQuestionSetsToDefaultFolder(folderIdToDelete);
-      inOrder.verify(commonFolderPublicApi).deleteFolder(folderIdToDelete);
+      inOrder
+          .verify(questionSetPublicApi)
+          .relocateQuestionSetsToDefaultFolder(ownerId, folderIdToDelete);
+      inOrder.verify(commonFolderPublicApi).deleteFolder(ownerId, folderIdToDelete);
     }
 
     @Test
     @DisplayName("실패 - 기본 폴더는 삭제할 수 없다")
-    void deleteFolderAndRelocateFailCannotDeleteDefault() {
+    void deleteFolderFailWhenDeletingDefaultFolder() {
       // given
       Long defaultFolderId = CommonFolder.DEFAULT_FOLDER_ID;
 
       // when & then
-      assertThatThrownBy(() -> folderFacade.deleteFolderAndContents(defaultFolderId))
+      assertThatThrownBy(() -> folderFacade.deleteFolderAndContents(ownerId, defaultFolderId))
           .isInstanceOf(InvalidFolderOperationException.class)
           .hasMessage("기본 폴더는 삭제할 수 없습니다.");
 
-      verify(questionSetPublicApi, never()).relocateQuestionSetsToDefaultFolder(anyLong());
-      verify(commonFolderPublicApi, never()).deleteFolder(anyLong());
+      // then
+      verify(questionSetPublicApi, never())
+          .relocateQuestionSetsToDefaultFolder(anyLong(), anyLong());
+      verify(commonFolderPublicApi, never()).deleteFolder(anyLong(), anyLong());
     }
   }
 }

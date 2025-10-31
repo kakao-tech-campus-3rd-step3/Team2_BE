@@ -114,7 +114,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     QuestionSet questionSet = QuestionSet.create(ownerId, sources, createParam);
 
-    assignFolderToQuestionSet(request.commonFolderId(), questionSet);
+    assignFolderToQuestionSet(request.commonFolderId(), questionSet, ownerId);
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
@@ -129,15 +129,16 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSetRepository.countByCommonFolderId(folderId);
   }
 
-  private void assignFolderToQuestionSet(Long folderId, QuestionSet questionSet) {
+  private void assignFolderToQuestionSet(Long folderId, QuestionSet questionSet, Long ownerId) {
     if (folderId != null) {
       CommonFolder folder =
           commonFolderPublicApi
-              .findFolderEntityById(folderId)
+              .findFolderEntityById(ownerId, folderId)
               .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
       questionSet.assignToFolder(folder);
     } else {
-      CommonFolder defaultFolder = commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder();
+      CommonFolder defaultFolder =
+          commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(ownerId);
       questionSet.assignToFolder(defaultFolder);
     }
   }
@@ -212,7 +213,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
     }
 
     if (request.commonFolderId() != null) {
-      assignFolderToQuestionSet(request.commonFolderId(), questionSet);
+      assignFolderToQuestionSet(request.commonFolderId(), questionSet, memberId);
     }
   }
 
@@ -227,8 +228,9 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
-  public void relocateQuestionSetsToDefaultFolder(Long folderId) {
-    CommonFolder defaultFolder = commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder();
+  public void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId) {
+    CommonFolder defaultFolder =
+        commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);
     List<QuestionSet> questionSets = questionSetRepository.findAllByCommonFolderId(folderId);
     questionSets.forEach(questionSet -> questionSet.assignToFolder(defaultFolder));
   }
