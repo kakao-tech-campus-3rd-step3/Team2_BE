@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import org.springframework.http.ProblemDetail;
 
-// TODO: 상태코드 정상화
+// TODO: 상태코드 정상화. 실제 응답으로 ExampleObject작성 필요.
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(

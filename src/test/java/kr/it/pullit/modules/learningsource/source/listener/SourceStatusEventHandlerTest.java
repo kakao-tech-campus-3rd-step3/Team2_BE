@@ -15,15 +15,14 @@ import kr.it.pullit.modules.learningsource.source.event.SourceExtractionFailureE
 import kr.it.pullit.modules.learningsource.source.event.SourceExtractionStartEvent;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
+@MockitoUnitTest
 @DisplayName("SourceStatusEventHandler - 소스 상태 이벤트 핸들러")
 class SourceStatusEventHandlerTest {
 

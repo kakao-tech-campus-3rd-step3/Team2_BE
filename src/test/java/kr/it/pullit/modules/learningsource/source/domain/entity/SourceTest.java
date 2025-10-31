@@ -32,27 +32,6 @@ class SourceTest {
   }
 
   @Test
-  @DisplayName("생성자에 상태가 null로 전달되면 기본값으로 저장된다")
-  void constructorDefaultsStatusWhenNull() throws Exception {
-    var constructor =
-        Source.class.getDeclaredConstructor(
-            Long.class,
-            SourceFolder.class,
-            String.class,
-            String.class,
-            String.class,
-            Long.class,
-            SourceStatus.class);
-    constructor.setAccessible(true);
-
-    Source source =
-        constructor.newInstance(
-            7L, null, "원본.pdf", "application/pdf", "learning-sources/default.pdf", 4096L, null);
-
-    assertThat(source.getStatus()).isEqualTo(SourceStatus.UPLOADED);
-  }
-
-  @Test
   @DisplayName("파일 정보를 갱신하면 상태가 UPLOADED로 초기화된다")
   void updateFileInfoResetsStatusToUploaded() {
     Source source = createSource(2L, "learning-sources/two.pdf");

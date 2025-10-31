@@ -2,9 +2,11 @@ package kr.it.pullit.modules.learningsource.source.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@MockitoUnitTest
 @DisplayName("SourceExceptions - 예외 유틸리티")
 class SourceExceptionTest {
 
