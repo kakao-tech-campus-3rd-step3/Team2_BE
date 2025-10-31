@@ -42,12 +42,17 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
 
   @Override
   public void deleteById(Long questionSetId) {
-    questionSetJpaRepository.deleteById(questionSetId);
+    QuestionSet questionSet =
+        questionSetJpaRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> new RuntimeException("문제집을 찾을 수 없습니다: " + questionSetId));
+    questionSetJpaRepository.delete(questionSet);
   }
 
   @Override
   public void deleteAllByIds(List<Long> questionSetIds) {
-    questionSetJpaRepository.deleteAllById(questionSetIds);
+    List<QuestionSet> questionSets = questionSetJpaRepository.findAllById(questionSetIds);
+    questionSetJpaRepository.deleteAll(questionSets);
   }
 
   @Override
@@ -77,6 +82,14 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public List<QuestionSet> findByMemberIdWithCursorAndNextPageCheck(
+      Long memberId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
+    return questionSetJpaRepository.findByMemberIdWithCursor(
+        memberId, cursor, pageableWithOneExtra);
+  }
+
+  @Override
   public long countByCommonFolderId(Long commonFolderId) {
     return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
   }
@@ -87,8 +100,8 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findCompletedByMemberId(Long memberId) {
-    return questionSetJpaRepository.findCompletedWithQuestionsByMemberId(memberId);
+  public long countCompletedQuestionsByMemberId(Long memberId) {
+    return questionSetJpaRepository.countCompletedQuestionsByMemberId(memberId);
   }
 
   @Override

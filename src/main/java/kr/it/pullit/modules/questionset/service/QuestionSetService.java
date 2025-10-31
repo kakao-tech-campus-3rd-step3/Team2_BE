@@ -114,7 +114,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     QuestionSet questionSet = QuestionSet.create(ownerId, sources, createParam);
 
-    assignFolderToQuestionSet(request.commonFolderId(), questionSet);
+    assignFolderToQuestionSet(request.commonFolderId(), questionSet, ownerId);
 
     QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
 
@@ -129,15 +129,16 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSetRepository.countByCommonFolderId(folderId);
   }
 
-  private void assignFolderToQuestionSet(Long folderId, QuestionSet questionSet) {
+  private void assignFolderToQuestionSet(Long folderId, QuestionSet questionSet, Long ownerId) {
     if (folderId != null) {
       CommonFolder folder =
           commonFolderPublicApi
-              .findFolderEntityById(folderId)
+              .findFolderEntityById(ownerId, folderId)
               .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없습니다."));
       questionSet.assignToFolder(folder);
     } else {
-      CommonFolder defaultFolder = commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder();
+      CommonFolder defaultFolder =
+          commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(ownerId);
       questionSet.assignToFolder(defaultFolder);
     }
   }
@@ -158,11 +159,15 @@ public class QuestionSetService implements QuestionSetPublicApi {
       Long memberId, Long cursor, int size, Long folderId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    long targetFolderId = (folderId == null) ? CommonFolder.DEFAULT_FOLDER_ID : folderId;
-
-    List<QuestionSet> results =
-        questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
-            memberId, targetFolderId, cursor, size);
+    List<QuestionSet> results;
+    if (folderId == null || folderId.equals(1L)) {
+      results =
+          questionSetRepository.findByMemberIdWithCursorAndNextPageCheck(memberId, cursor, size);
+    } else {
+      results =
+          questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+              memberId, folderId, cursor, size);
+    }
 
     List<MyQuestionSetsResponse> myQuestionSetsResponses =
         results.stream().map(MyQuestionSetsResponse::from).toList();
@@ -208,7 +213,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
     }
 
     if (request.commonFolderId() != null) {
-      assignFolderToQuestionSet(request.commonFolderId(), questionSet);
+      assignFolderToQuestionSet(request.commonFolderId(), questionSet, memberId);
     }
   }
 
@@ -219,6 +224,20 @@ public class QuestionSetService implements QuestionSetPublicApi {
         questionSetRepository.findAllByCommonFolderId(folderId);
     List<Long> questionSetIds = questionSetsToDelete.stream().map(QuestionSet::getId).toList();
     questionSetRepository.deleteAllByIds(questionSetIds);
+  }
+
+  @Override
+  @Transactional
+  public void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId) {
+    CommonFolder defaultFolder =
+        commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);
+    List<QuestionSet> questionSets = questionSetRepository.findAllByCommonFolderId(folderId);
+    questionSets.forEach(questionSet -> questionSet.assignToFolder(defaultFolder));
+  }
+
+  @Override
+  public List<QuestionSet> findAllByFolderId(Long folderId) {
+    return questionSetRepository.findAllByCommonFolderId(folderId);
   }
 
   @Override
@@ -243,8 +262,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  public List<QuestionSet> findCompletedEntitiesByMemberId(Long memberId) {
-    return questionSetRepository.findCompletedByMemberId(memberId);
+  public long countCompletedQuestionsByMemberId(Long memberId) {
+    return questionSetRepository.countCompletedQuestionsByMemberId(memberId);
   }
 
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {

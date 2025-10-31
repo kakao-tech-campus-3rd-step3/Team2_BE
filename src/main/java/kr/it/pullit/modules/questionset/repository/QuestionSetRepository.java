@@ -24,6 +24,8 @@ public interface QuestionSetRepository {
   List<QuestionSet> findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
       Long memberId, Long folderId, Long cursor, int size);
 
+  List<QuestionSet> findByMemberIdWithCursorAndNextPageCheck(Long memberId, Long cursor, int size);
+
   QuestionSet save(QuestionSet questionSet);
 
   void deleteById(Long questionSetId);
@@ -34,7 +36,7 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
-  List<QuestionSet> findCompletedByMemberId(Long memberId);
+  long countCompletedQuestionsByMemberId(Long memberId);
 
   long countByOwnerId(Long memberId);
 }
