@@ -19,17 +19,17 @@ public class FolderFacadeImpl implements FolderFacade {
 
   @Override
   @Transactional(readOnly = true)
-  public long getQuestionSetCountInFolder(Long folderId) {
+  public long getQuestionSetCountInFolder(Long ownerId, Long folderId) {
     return questionSetPublicApi.countByFolderId(folderId);
   }
 
   @Override
   @Transactional
-  public void deleteFolderAndContents(Long folderId) {
+  public void deleteFolderAndContents(Long ownerId, Long folderId) {
     if (folderId.equals(CommonFolder.DEFAULT_FOLDER_ID)) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER);
     }
     questionSetPublicApi.relocateQuestionSetsToDefaultFolder(folderId);
-    commonFolderPublicApi.deleteFolder(folderId);
+    commonFolderPublicApi.deleteFolder(ownerId, folderId);
   }
 }

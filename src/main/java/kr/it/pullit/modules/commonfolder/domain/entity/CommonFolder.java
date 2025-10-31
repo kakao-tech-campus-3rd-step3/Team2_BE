@@ -37,15 +37,25 @@ public class CommonFolder {
   @Column(nullable = false)
   private int sortOrder;
 
+  @Column(name = "owner_id", nullable = false)
+  private Long ownerId;
+
   @Builder(access = AccessLevel.PRIVATE)
-  public CommonFolder(String name, CommonFolderType type, int sortOrder) {
+  public CommonFolder(String name, CommonFolderType type, int sortOrder, Long ownerId) {
     this.name = name;
     this.type = type;
     this.sortOrder = sortOrder;
+    this.ownerId = ownerId;
   }
 
-  public static CommonFolder create(String name, CommonFolderType type, int sortOrder) {
-    return CommonFolder.builder().name(name).type(type).sortOrder(sortOrder).build();
+  public static CommonFolder create(
+      String name, CommonFolderType type, int sortOrder, Long ownerId) {
+    return CommonFolder.builder()
+        .name(name)
+        .type(type)
+        .sortOrder(sortOrder)
+        .ownerId(ownerId)
+        .build();
   }
 
   public void update(String name) {
