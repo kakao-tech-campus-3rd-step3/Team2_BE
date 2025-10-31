@@ -15,10 +15,7 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.domain.entity.Question;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.support.annotation.SpringUnitTest;
-import kr.it.pullit.support.fixture.QuestionSetFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -51,15 +48,12 @@ class LearnStatsRecalibrationServiceTest {
 
     PageImpl<Member> memberPage = new PageImpl<>(List.of(member1, member2));
 
-    QuestionSet qs1 =
-        QuestionSetFixtures.withQuestions(List.of(mock(Question.class), mock(Question.class)));
-    QuestionSet qs2 = QuestionSetFixtures.withQuestions(List.of(mock(Question.class)));
-
     LearnStats stats1 = LearnStats.newOf(1L);
 
     given(memberPublicApi.findAll(any(PageRequest.class))).willReturn(memberPage);
-    given(questionSetPublicApi.findCompletedEntitiesByMemberId(1L)).willReturn(List.of(qs1, qs2));
-    given(questionSetPublicApi.findCompletedEntitiesByMemberId(2L)).willReturn(List.of(qs2));
+    given(questionSetPublicApi.countCompletedQuestionsByMemberId(1L))
+        .willReturn(3L); // qs1(2) + qs2(1)
+    given(questionSetPublicApi.countCompletedQuestionsByMemberId(2L)).willReturn(1L); // qs2(1)
     given(learnStatsRepository.findById(1L)).willReturn(Optional.of(stats1));
     given(learnStatsRepository.findById(2L)).willReturn(Optional.empty());
 

@@ -247,8 +247,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  public List<QuestionSet> findCompletedEntitiesByMemberId(Long memberId) {
-    return questionSetRepository.findCompletedByMemberId(memberId);
+  public long countCompletedQuestionsByMemberId(Long memberId) {
+    return questionSetRepository.countCompletedQuestionsByMemberId(memberId);
   }
 
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {
