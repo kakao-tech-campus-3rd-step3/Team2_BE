@@ -3,6 +3,7 @@ package kr.it.pullit.modules.wronganswer.web;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
+import kr.it.pullit.modules.wronganswer.web.apidocs.WrongAnswerApiDocs;
 import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/wrong-answers")
+@WrongAnswerApiDocs
 public class WrongAnswerController {
 
   private final WrongAnswerPublicApi wrongAnswerPublicApi;
