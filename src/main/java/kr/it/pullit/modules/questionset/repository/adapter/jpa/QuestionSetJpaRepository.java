@@ -99,12 +99,11 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-            SELECT qs
+            SELECT COALESCE(SUM(qs.questionLength), 0)
             FROM QuestionSet qs
-            LEFT JOIN FETCH qs.questions
             WHERE qs.ownerId = :memberId AND qs.status = 'COMPLETE'
       """)
-  List<QuestionSet> findCompletedWithQuestionsByMemberId(@Param("memberId") Long memberId);
+  long countCompletedQuestionsByMemberId(@Param("memberId") Long memberId);
 
   long countByOwnerId(Long memberId);
 }

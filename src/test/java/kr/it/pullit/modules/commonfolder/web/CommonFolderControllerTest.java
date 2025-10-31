@@ -1,12 +1,8 @@
 package kr.it.pullit.modules.commonfolder.web;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.endsWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpHeaders.LOCATION;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -18,17 +14,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.api.FolderFacade;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
+import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
+import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
+import kr.it.pullit.support.apidocs.ProblemDetailTestUtils;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @AuthenticatedMvcSliceTest(controllers = CommonFolderController.class)
@@ -39,136 +38,203 @@ class CommonFolderControllerTest extends ControllerTest {
 
   @MockitoBean private FolderFacade folderFacade;
 
-  @Nested
-  @DisplayName("폴더 조회")
-  class DescribeGetFolders {
+  @Test
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 자신의 폴더 목록을 성공적으로 조회한다")
+  void shouldSuccessfullyRetrieveFoldersWhenLoggedIn() throws Exception {
+    // given
+    var folder1 = new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, 0);
+    var folder2 = new CommonFolderResponse(2L, "폴더2", CommonFolderType.QUESTION_SET, 1);
+    given(commonFolderPublicApi.getFolders(1L, CommonFolderType.QUESTION_SET))
+        .willReturn(List.of(folder1, folder2));
 
-    @Test
-    @DisplayName("타입으로 조회하면 폴더 목록을 반환한다")
-    @WithMockMember
-    void getQuestionSetFolders() throws Exception {
-      given(commonFolderPublicApi.getFolders(CommonFolderType.QUESTION_SET))
-          .willReturn(
-              List.of(
-                  new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, 0),
-                  new CommonFolderResponse(2L, "폴더2", CommonFolderType.QUESTION_SET, 1)));
+    // when & then
+    mockMvc
+        .perform(get("/api/common-folders").param("type", CommonFolderType.QUESTION_SET.name()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(1L))
+        .andExpect(jsonPath("$[0].name").value("폴더1"))
+        .andExpect(jsonPath("$[1].id").value(2L))
+        .andExpect(jsonPath("$[1].name").value("폴더2"));
+  }
 
-      mockMvc
-          .perform(get("/api/common-folders").param("type", "QUESTION_SET"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$[0].name").value("폴더1"))
-          .andExpect(jsonPath("$[1].sortOrder").value(1));
+  @Test
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 특정 폴더를 성공적으로 조회한다")
+  void shouldSuccessfullyRetrieveFolderByIdWhenLoggedIn() throws Exception {
+    // given
+    var folder = new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, 0);
+    given(commonFolderPublicApi.getFolder(1L, 1L)).willReturn(folder);
 
-      verify(commonFolderPublicApi).getFolders(CommonFolderType.QUESTION_SET);
-    }
+    // when & then
+    mockMvc
+        .perform(get("/api/common-folders/1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L))
+        .andExpect(jsonPath("$.name").value("폴더1"));
+  }
 
-    @Test
-    @DisplayName("ID로 조회하면 단일 폴더를 반환한다")
-    @WithMockMember
-    void getQuestionSetFolderById() throws Exception {
-      given(commonFolderPublicApi.getFolder(3L))
-          .willReturn(new CommonFolderResponse(3L, "단일", CommonFolderType.QUESTION_SET, 0));
+  @Test
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 새 폴더를 성공적으로 생성한다")
+  void shouldSuccessfullyCreateFolderWhenLoggedIn() throws Exception {
+    // given
+    var request = new QuestionSetFolderRequest("새 폴더", CommonFolderType.QUESTION_SET);
+    var response = new CommonFolderResponse(1L, "새 폴더", CommonFolderType.QUESTION_SET, 0);
+    given(commonFolderPublicApi.createFolder(1L, request)).willReturn(response);
 
-      mockMvc
-          .perform(get("/api/common-folders/{id}", 3L))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.id").value(3L))
-          .andExpect(jsonPath("$.name").value("단일"));
+    // when & then
+    mockMvc
+        .perform(
+            post("/api/common-folders")
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated())
+        .andExpect(header().string("Location", "/api/common-folders/1"));
+  }
 
-      verify(commonFolderPublicApi).getFolder(3L);
-    }
+  @Test
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 자신의 폴더를 성공적으로 수정한다")
+  void shouldSuccessfullyUpdateFolderWhenLoggedIn() throws Exception {
+    // given
+    var request = new QuestionSetFolderRequest("수정된 폴더", CommonFolderType.QUESTION_SET);
+    var response = new CommonFolderResponse(1L, "수정된 폴더", CommonFolderType.QUESTION_SET, 0);
+    given(commonFolderPublicApi.updateFolder(1L, 1L, request)).willReturn(response);
+
+    // when & then
+    mockMvc
+        .perform(
+            patch("/api/common-folders/1")
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L))
+        .andExpect(jsonPath("$.name").value("수정된 폴더"));
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 폴더 삭제 경고 정보를 성공적으로 조회한다")
+  void shouldSuccessfullyRetrieveDeleteWarningWhenLoggedIn() throws Exception {
+    // given
+    given(folderFacade.getQuestionSetCountInFolder(1L, 1L)).willReturn(5L);
+
+    // when & then
+    mockMvc
+        .perform(get("/api/common-folders/1/delete-warning"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.questionSetCount").value(5L));
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName("로그인한 사용자는 자신의 폴더를 성공적으로 삭제한다")
+  void shouldSuccessfullyDeleteFolderWhenLoggedIn() throws Exception {
+    // given
+
+    // when & then
+    mockMvc.perform(delete("/api/common-folders/1")).andExpect(status().isNoContent());
+
+    // verify
+    org.mockito.Mockito.verify(folderFacade).deleteFolderAndContents(1L, 1L);
   }
 
   @Nested
-  @DisplayName("폴더 생성")
-  class DescribeCreateFolder {
+  @DisplayName("에러 응답 검증")
+  class ErrorResponse {
 
     @Test
-    @DisplayName("생성하면 201과 Location 헤더를 반환한다")
     @WithMockMember
-    void createFolder() throws Exception {
-      given(commonFolderPublicApi.createFolder(any(QuestionSetFolderRequest.class)))
-          .willReturn(new CommonFolderResponse(10L, "새 폴더", CommonFolderType.QUESTION_SET, 0));
+    @DisplayName("존재하지 않는 폴더 조회 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenFolderNotFound() throws Exception {
+      // given
+      doThrow(FolderNotFoundException.byId(999L)).when(commonFolderPublicApi).getFolder(1L, 999L);
 
-      QuestionSetFolderRequest request =
-          new QuestionSetFolderRequest("새 폴더", CommonFolderType.QUESTION_SET);
+      // when & then
+      mockMvc
+          .perform(get("/api/common-folders/999"))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs("/api/common-folders/999", "폴더 조회 실패"));
+    }
 
+    @Test
+    @WithMockMember
+    @DisplayName("기본 폴더 수정 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenUpdatingDefaultFolder() throws Exception {
+      // given
+      var request = new QuestionSetFolderRequest("다른 이름", CommonFolderType.QUESTION_SET);
+      doThrow(
+              new InvalidFolderOperationException(
+                  CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER))
+          .when(commonFolderPublicApi)
+          .updateFolder(1L, CommonFolder.DEFAULT_FOLDER_ID, request);
+
+      // when & then
       mockMvc
           .perform(
-              post("/api/common-folders")
-                  .contentType(MediaType.APPLICATION_JSON)
+              patch("/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID)
+                  .contentType(APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isCreated())
-          .andExpect(header().string(LOCATION, endsWith("/api/common-folders/10")));
-
-      ArgumentCaptor<QuestionSetFolderRequest> captor =
-          ArgumentCaptor.forClass(QuestionSetFolderRequest.class);
-      verify(commonFolderPublicApi).createFolder(captor.capture());
-      assertThat(captor.getValue().name()).isEqualTo("새 폴더");
-      assertThat(captor.getValue().type()).isEqualTo(CommonFolderType.QUESTION_SET);
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs(
+                  "/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID, "기본 폴더 수정 시도"));
     }
-  }
-
-  @Nested
-  @DisplayName("폴더 수정")
-  class DescribeUpdateFolder {
 
     @Test
-    @DisplayName("수정하면 200과 수정된 내용을 반환한다")
     @WithMockMember
-    void updateFolder() throws Exception {
-      given(commonFolderPublicApi.updateFolder(eq(5L), any(QuestionSetFolderRequest.class)))
-          .willReturn(new CommonFolderResponse(5L, "수정", CommonFolderType.QUESTION_SET, 0));
+    @DisplayName("기본 폴더 삭제 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenDeletingDefaultFolder() throws Exception {
+      // given
+      doThrow(
+              new InvalidFolderOperationException(
+                  CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER))
+          .when(folderFacade)
+          .deleteFolderAndContents(1L, CommonFolder.DEFAULT_FOLDER_ID);
 
-      QuestionSetFolderRequest request =
-          new QuestionSetFolderRequest("수정", CommonFolderType.QUESTION_SET);
+      // when & then
+      mockMvc
+          .perform(delete("/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs(
+                  "/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID, "기본 폴더 삭제 시도"));
+    }
 
+    @Test
+    @WithMockMember
+    @DisplayName("존재하지 않는 폴더 수정 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenUpdatingNonExistentFolder() throws Exception {
+      // given
+      var request = new QuestionSetFolderRequest("새 이름", CommonFolderType.QUESTION_SET);
+      doThrow(FolderNotFoundException.byId(999L))
+          .when(commonFolderPublicApi)
+          .updateFolder(1L, 999L, request);
+
+      // when & then
       mockMvc
           .perform(
-              patch("/api/common-folders/{id}", 5L)
-                  .contentType(MediaType.APPLICATION_JSON)
+              patch("/api/common-folders/999")
+                  .contentType(APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.name").value("수정"));
-
-      ArgumentCaptor<QuestionSetFolderRequest> captor =
-          ArgumentCaptor.forClass(QuestionSetFolderRequest.class);
-      verify(commonFolderPublicApi).updateFolder(eq(5L), captor.capture());
-      assertThat(captor.getValue().name()).isEqualTo("수정");
-      assertThat(captor.getValue().type()).isEqualTo(CommonFolderType.QUESTION_SET);
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs("/api/common-folders/999", "폴더 조회 실패"));
     }
-  }
-
-  @Nested
-  @DisplayName("삭제 경고")
-  class DescribeGetFolderDeleteWarning {
 
     @Test
-    @DisplayName("폴더에 속한 문제집 수를 반환한다")
     @WithMockMember
-    void getFolderDeleteWarning() throws Exception {
-      given(folderFacade.getQuestionSetCountInFolder(7L)).willReturn(3L);
+    @DisplayName("존재하지 않는 폴더의 삭제 경고 조회 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenGetDeleteWarningForNonExistentFolder() throws Exception {
+      // given
+      doThrow(FolderNotFoundException.byId(999L))
+          .when(folderFacade)
+          .getQuestionSetCountInFolder(1L, 999L);
 
+      // when & then
       mockMvc
-          .perform(get("/api/common-folders/{id}/delete-warning", 7L))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.questionSetCount").value(3L));
-
-      verify(folderFacade).getQuestionSetCountInFolder(7L);
-    }
-  }
-
-  @Nested
-  @DisplayName("폴더 삭제")
-  class DescribeDeleteFolder {
-
-    @Test
-    @DisplayName("삭제하면 204를 반환한다")
-    @WithMockMember
-    void deleteFolder() throws Exception {
-      mockMvc.perform(delete("/api/common-folders/{id}", 9L)).andExpect(status().isNoContent());
-
-      verify(folderFacade).deleteFolderAndContents(9L);
+          .perform(get("/api/common-folders/999/delete-warning"))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs(
+                  "/api/common-folders/999/delete-warning", "폴더 조회 실패"));
     }
   }
 }
