@@ -9,15 +9,14 @@ import java.util.List;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 @DisplayName("WrongAnswerEventListener 단위 테스트")
+@MockitoUnitTest
 class WrongAnswerEventListenerTest {
 
   private static final long MEMBER_ID = 55L;

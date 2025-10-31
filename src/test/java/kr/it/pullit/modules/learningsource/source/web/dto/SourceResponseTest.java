@@ -5,9 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@MockitoUnitTest
 class SourceResponseTest {
 
   @Test

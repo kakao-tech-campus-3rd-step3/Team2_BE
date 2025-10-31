@@ -3,10 +3,12 @@ package kr.it.pullit.modules.commonfolder.exception;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import kr.it.pullit.shared.error.ErrorCode;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+@MockitoUnitTest
 class InvalidFolderOperationExceptionTest {
 
   @Test
