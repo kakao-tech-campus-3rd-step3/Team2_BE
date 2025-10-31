@@ -25,6 +25,7 @@ class CommonFolderServiceIntegrationTest {
   @Autowired private CommonFolderService commonFolderService;
 
   @Autowired private CommonFolderRepository commonFolderRepository;
+  private final Long ownerId = 1L;
 
   @Nested
   @DisplayName("폴더 조회")
@@ -34,11 +35,11 @@ class CommonFolderServiceIntegrationTest {
     @DisplayName("타입으로 조회하면 정렬 순서대로 DTO를 반환한다")
     void getFolders() {
       CommonFolderType type = CommonFolderType.QUESTION_SET;
-      commonFolderRepository.save(CommonFolder.create("B", type, 2));
-      commonFolderRepository.save(CommonFolder.create("A", type, 0));
-      commonFolderRepository.save(CommonFolder.create("C", type, 1));
+      commonFolderRepository.save(CommonFolder.create("B", type, 2, ownerId));
+      commonFolderRepository.save(CommonFolder.create("A", type, 0, ownerId));
+      commonFolderRepository.save(CommonFolder.create("C", type, 1, ownerId));
 
-      List<CommonFolderResponse> responses = commonFolderService.getFolders(type);
+      List<CommonFolderResponse> responses = commonFolderService.getFolders(ownerId, type);
 
       assertThat(responses).hasSize(3);
       assertThat(responses).extracting(CommonFolderResponse::sortOrder).containsExactly(0, 1, 2);
@@ -48,9 +49,10 @@ class CommonFolderServiceIntegrationTest {
     @DisplayName("ID로 조회하면 DTO를 반환한다")
     void getFolder() {
       CommonFolder saved =
-          commonFolderRepository.save(CommonFolder.create("폴더", CommonFolderType.QUESTION_SET, 0));
+          commonFolderRepository.save(
+              CommonFolder.create("폴더", CommonFolderType.QUESTION_SET, 0, ownerId));
 
-      CommonFolderResponse response = commonFolderService.getFolder(saved.getId());
+      CommonFolderResponse response = commonFolderService.getFolder(ownerId, saved.getId());
 
       assertThat(response.id()).isEqualTo(saved.getId());
       assertThat(response.name()).isEqualTo("폴더");
@@ -60,9 +62,11 @@ class CommonFolderServiceIntegrationTest {
     @DisplayName("엔티티 Optional로도 조회할 수 있다")
     void findFolderEntityById() {
       CommonFolder saved =
-          commonFolderRepository.save(CommonFolder.create("엔티티", CommonFolderType.QUESTION_SET, 0));
+          commonFolderRepository.save(
+              CommonFolder.create("엔티티", CommonFolderType.QUESTION_SET, 0, ownerId));
 
-      Optional<CommonFolder> found = commonFolderService.findFolderEntityById(saved.getId());
+      Optional<CommonFolder> found =
+          commonFolderService.findFolderEntityById(ownerId, saved.getId());
 
       assertThat(found).isPresent();
       assertThat(found.get().getId()).isEqualTo(saved.getId());
@@ -71,7 +75,7 @@ class CommonFolderServiceIntegrationTest {
     @Test
     @DisplayName("존재하지 않는 ID면 Optional.empty()를 반환한다")
     void findFolderEntityById_notFound() {
-      Optional<CommonFolder> found = commonFolderService.findFolderEntityById(999L);
+      Optional<CommonFolder> found = commonFolderService.findFolderEntityById(ownerId, 999L);
 
       assertThat(found).isEmpty();
     }
@@ -84,7 +88,7 @@ class CommonFolderServiceIntegrationTest {
     @Test
     @DisplayName("기본 폴더가 없으면 새로 생성한다")
     void createWhenMissing() {
-      CommonFolder defaultFolder = commonFolderService.getOrCreateDefaultQuestionSetFolder();
+      CommonFolder defaultFolder = commonFolderService.getOrCreateDefaultQuestionSetFolder(ownerId);
 
       assertThat(defaultFolder.getName()).isEqualTo(CommonFolder.DEFAULT_NAME);
       assertThat(defaultFolder.getType()).isEqualTo(CommonFolderType.QUESTION_SET);
@@ -94,9 +98,9 @@ class CommonFolderServiceIntegrationTest {
     @Test
     @DisplayName("이미 존재하면 기존 폴더를 반환한다")
     void returnExisting() {
-      CommonFolder firstCall = commonFolderService.getOrCreateDefaultQuestionSetFolder();
+      CommonFolder firstCall = commonFolderService.getOrCreateDefaultQuestionSetFolder(ownerId);
 
-      CommonFolder secondCall = commonFolderService.getOrCreateDefaultQuestionSetFolder();
+      CommonFolder secondCall = commonFolderService.getOrCreateDefaultQuestionSetFolder(ownerId);
 
       assertThat(secondCall.getId()).isEqualTo(firstCall.getId());
     }
@@ -109,11 +113,12 @@ class CommonFolderServiceIntegrationTest {
     @Test
     @DisplayName("다음 정렬 순서를 부여해 생성한다")
     void createFolder() {
-      commonFolderRepository.save(CommonFolder.create("기존", CommonFolderType.QUESTION_SET, 3));
+      commonFolderRepository.save(
+          CommonFolder.create("기존", CommonFolderType.QUESTION_SET, 3, ownerId));
 
       CommonFolderResponse response =
           commonFolderService.createFolder(
-              new QuestionSetFolderRequest("새 폴더", CommonFolderType.QUESTION_SET));
+              ownerId, new QuestionSetFolderRequest("새 폴더", CommonFolderType.QUESTION_SET));
 
       assertThat(response.sortOrder()).isEqualTo(4);
       assertThat(commonFolderRepository.findById(response.id())).isPresent();
@@ -128,11 +133,14 @@ class CommonFolderServiceIntegrationTest {
     @DisplayName("기본 폴더가 아니면 이름을 수정한다")
     void updateFolder() {
       CommonFolder folder =
-          commonFolderRepository.save(CommonFolder.create("수정전", CommonFolderType.QUESTION_SET, 0));
+          commonFolderRepository.save(
+              CommonFolder.create("수정전", CommonFolderType.QUESTION_SET, 0, ownerId));
 
       CommonFolderResponse response =
           commonFolderService.updateFolder(
-              folder.getId(), new QuestionSetFolderRequest("수정후", CommonFolderType.QUESTION_SET));
+              ownerId,
+              folder.getId(),
+              new QuestionSetFolderRequest("수정후", CommonFolderType.QUESTION_SET));
 
       assertThat(response.name()).isEqualTo("수정후");
       assertThat(commonFolderRepository.findById(folder.getId()).orElseThrow().getName())
@@ -144,11 +152,13 @@ class CommonFolderServiceIntegrationTest {
     void updateFolder_default() {
       CommonFolder folder =
           commonFolderRepository.save(
-              CommonFolder.create(CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET, 0));
+              CommonFolder.create(
+                  CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET, 0, ownerId));
 
       assertThatThrownBy(
               () ->
                   commonFolderService.updateFolder(
+                      ownerId,
                       folder.getId(),
                       new QuestionSetFolderRequest("변경", CommonFolderType.QUESTION_SET)))
           .isInstanceOf(InvalidFolderOperationException.class)
@@ -164,12 +174,16 @@ class CommonFolderServiceIntegrationTest {
     @Test
     @DisplayName("ID로 삭제하면 DB에서도 사라진다")
     void deleteFolder() {
-      CommonFolder folder =
-          commonFolderRepository.save(CommonFolder.create("삭제", CommonFolderType.QUESTION_SET, 0));
+      commonFolderRepository.save(
+          CommonFolder.create("삭제", CommonFolderType.QUESTION_SET, 0, ownerId));
 
-      commonFolderService.deleteFolder(folder.getId());
+      CommonFolder folder2 =
+          commonFolderRepository.save(
+              CommonFolder.create("삭제", CommonFolderType.QUESTION_SET, 0, ownerId));
 
-      assertThat(commonFolderRepository.findById(folder.getId())).isEmpty();
+      commonFolderService.deleteFolder(ownerId, folder2.getId());
+
+      assertThat(commonFolderRepository.findById(folder2.getId())).isEmpty();
     }
   }
 }

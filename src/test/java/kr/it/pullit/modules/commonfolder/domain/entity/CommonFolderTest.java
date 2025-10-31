@@ -11,7 +11,7 @@ class CommonFolderTest {
   @Test
   @DisplayName("정렬 순서를 변경하면 새로운 값이 반영된다")
   void updateSortOrder() {
-    CommonFolder folder = CommonFolder.create("name", CommonFolderType.QUESTION_SET, 1);
+    CommonFolder folder = CommonFolder.create("name", CommonFolderType.QUESTION_SET, 1, 1L);
 
     folder.updateSortOrder(7);
 
