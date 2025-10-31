@@ -1,5 +1,10 @@
 package kr.it.pullit.modules.learningsource.source.web.apidocs;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.springframework.http.ProblemDetail;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -7,12 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
-import org.springframework.http.ProblemDetail;
 
 // TODO: 상태코드 정상화
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
@@ -55,19 +55,23 @@ import org.springframework.http.ProblemDetail;
           @Content(
               mediaType = "application/json",
               schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "잘못된 요청",
-                      summary = "필수 값 누락",
-                      value =
-                          """
+              examples = {
+                @ExampleObject(
+                    name = "잘못된 요청",
+                    summary = "필수 값 누락",
+                    value =
+                        """
                         {
-                          \"type\": \"about:blank\",
-                          \"title\": \"Bad Request\",
-                          \"status\": 400,
-                          \"detail\": \"파일명은 필수입니다\",
-                          \"code\": \"C_001\"
+                          "type": "about:blank",
+                          "title": "Bad Request",
+                          "status": 400,
+                          "detail": "파일명은 필수입니다",
+                          "code": "C_001"
                         }
-                        """)))
+                        """),
+                @ExampleObject(
+                    name = "인수 타입 불일치",
+                    ref = "#/components/examples/argumentTypeMismatchExample")
+              }))
 })
 public @interface GenerateUploadUrlApiDocs {}

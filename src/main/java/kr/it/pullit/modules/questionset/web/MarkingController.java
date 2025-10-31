@@ -1,12 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
-import jakarta.validation.Valid;
 import java.util.List;
-import kr.it.pullit.modules.questionset.service.MarkingService;
-import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
-import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
-import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -14,10 +8,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import jakarta.validation.Valid;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
+import kr.it.pullit.modules.questionset.service.MarkingService;
+import kr.it.pullit.modules.questionset.web.apidocs.MarkQuestionsApiDocs;
+import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
+import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/marking")
+@AuthApiDocs
 public class MarkingController {
 
   private final MarkingService markingService;
@@ -31,6 +34,7 @@ public class MarkingController {
    * @return ResponseEntity 응답
    */
   @PostMapping
+  @MarkQuestionsApiDocs
   public ResponseEntity<MarkQuestionsResponse> markQuestions(
       @RequestBody @Valid List<MarkingRequest> request,
       @AuthenticationPrincipal Long memberId,
