@@ -2,6 +2,8 @@ package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -29,8 +31,6 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -223,6 +223,19 @@ public class QuestionSetService implements QuestionSetPublicApi {
         questionSetRepository.findAllByCommonFolderId(folderId);
     List<Long> questionSetIds = questionSetsToDelete.stream().map(QuestionSet::getId).toList();
     questionSetRepository.deleteAllByIds(questionSetIds);
+  }
+
+  @Override
+  @Transactional
+  public void relocateQuestionSetsToDefaultFolder(Long folderId) {
+    CommonFolder defaultFolder = commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder();
+    List<QuestionSet> questionSets = questionSetRepository.findAllByCommonFolderId(folderId);
+    questionSets.forEach(questionSet -> questionSet.assignToFolder(defaultFolder));
+  }
+
+  @Override
+  public List<QuestionSet> findAllByFolderId(Long folderId) {
+    return questionSetRepository.findAllByCommonFolderId(folderId);
   }
 
   @Override

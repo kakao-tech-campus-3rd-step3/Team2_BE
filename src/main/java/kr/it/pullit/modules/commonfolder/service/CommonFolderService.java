@@ -3,6 +3,8 @@ package kr.it.pullit.modules.commonfolder.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
@@ -12,8 +14,6 @@ import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +83,10 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional
   public void deleteFolder(Long id) {
+    if (id.equals(CommonFolder.DEFAULT_FOLDER_ID)) {
+      throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER);
+    }
+
     commonFolderRepository.deleteById(id);
   }
 
