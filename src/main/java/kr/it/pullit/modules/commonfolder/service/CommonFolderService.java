@@ -3,6 +3,8 @@ package kr.it.pullit.modules.commonfolder.service;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
@@ -11,10 +13,9 @@ import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,7 @@ public class CommonFolderService implements CommonFolderPublicApi {
 
   @Override
   @Transactional
-  public CommonFolderResponse createFolder(Long ownerId, QuestionSetFolderRequest request) {
+  public CommonFolderResponse createFolder(Long ownerId, CreateFolderRequest request) {
     CommonFolder folder = createNewFolder(request.name(), ownerId, request.type());
     return toDto(folder);
   }
@@ -77,14 +78,18 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional
   public CommonFolderResponse updateFolder(
-      Long ownerId, Long id, QuestionSetFolderRequest request) {
+      Long ownerId, Long id, UpdateFolderRequest request) {
     CommonFolder folder = findFolderByIdAndOwner(id, ownerId);
 
     if (folder.getName().equals(CommonFolder.DEFAULT_NAME)) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER);
     }
 
-    folder.update(request.name());
+    String newName = request.name() != null ? request.name() : folder.getName();
+    CommonFolderType newType = request.type() != null ? request.type() : folder.getType();
+
+    folder.update(newName, newType);
+
     return toDto(commonFolderRepository.save(folder));
   }
 
