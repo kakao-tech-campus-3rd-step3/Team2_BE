@@ -16,11 +16,19 @@ public class WrongAnswerEventListener {
 
   @EventListener
   public void handleMarkingCompletedEvent(MarkingCompletedEvent event) {
+    if (event.results() == null || event.results().isEmpty()) {
+      return;
+    }
+
     List<Long> targetQuestionIds =
         event.results().stream()
             .filter(result -> isTargetForWrongAnswerUpdate(result.isCorrect(), event.isReviewing()))
             .map(MarkingResultDto::questionId)
             .toList();
+
+    if (targetQuestionIds.isEmpty()) {
+      return;
+    }
 
     processMarking(event.memberId(), targetQuestionIds, event.isReviewing());
   }

@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.MarkingPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
+import kr.it.pullit.modules.questionset.domain.entity.MarkingResult;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
+import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
@@ -22,6 +24,7 @@ public class MarkingService implements MarkingPublicApi {
 
   private final QuestionPublicApi questionPublicApi;
   private final EventPublisher eventPublisher;
+  private final MarkingResultRepository markingResultRepository;
 
   @Override
   public MarkQuestionsResponse markQuestions(MarkingServiceRequest request) {
@@ -33,6 +36,9 @@ public class MarkingService implements MarkingPublicApi {
       Question question = findQuestionById(markingRequest.questionId());
       boolean isCorrect = question.isCorrect(markingRequest.memberAnswer());
       results.add(MarkingResultDto.of(question.getId(), isCorrect));
+
+      MarkingResult markingResult = MarkingResult.create(request.memberId(), question, isCorrect);
+      markingResultRepository.save(markingResult);
     }
 
     eventPublisher.publish(
