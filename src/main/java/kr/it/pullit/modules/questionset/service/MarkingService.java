@@ -9,7 +9,7 @@ import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
-import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 import kr.it.pullit.shared.event.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,18 +27,18 @@ public class MarkingService implements MarkingPublicApi {
   public MarkQuestionsResponse markQuestions(MarkingServiceRequest request) {
     validateRequest(request);
 
-    List<MarkingResult> results = new ArrayList<>();
+    List<MarkingResultDto> results = new ArrayList<>();
 
     for (var markingRequest : request.markingRequests()) {
       Question question = findQuestionById(markingRequest.questionId());
       boolean isCorrect = question.isCorrect(markingRequest.memberAnswer());
-      results.add(MarkingResult.of(question.getId(), isCorrect));
+      results.add(MarkingResultDto.of(question.getId(), isCorrect));
     }
 
     eventPublisher.publish(
         new MarkingCompletedEvent(request.memberId(), results, request.isReviewing()));
 
-    long correctCount = results.stream().filter(MarkingResult::isCorrect).count();
+    long correctCount = results.stream().filter(MarkingResultDto::isCorrect).count();
 
     return MarkQuestionsResponse.of(results, results.size(), (int) correctCount);
   }
