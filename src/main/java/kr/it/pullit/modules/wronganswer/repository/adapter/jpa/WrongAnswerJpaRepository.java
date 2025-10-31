@@ -16,30 +16,29 @@ public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Lon
 
   @Query(
       """
-        SELECT new kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto(
-          q.questionSet, COUNT(q.id), MAX(wa.id))
-        FROM WrongAnswer wa
-        JOIN wa.question q
-        WHERE wa.memberId = :memberId AND wa.isReviewed = false
-        GROUP BY q.questionSet
-        HAVING COUNT(q.id) > 0
-        ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
-      """)
+            SELECT new kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto(
+              q.questionSet, COUNT(q.id), MAX(wa.id))
+            FROM WrongAnswer wa
+            JOIN wa.question q
+            WHERE wa.memberId = :memberId AND wa.isReviewed = false
+            GROUP BY q.questionSet
+            HAVING COUNT(q.id) > 0
+            ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
+          """)
   List<WrongAnswerSetDto> findAllWrongAnswerSetAndCountByMemberId(@Param("memberId") Long memberId);
 
   @Query(
       """
-        SELECT new kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto(
-          q.questionSet, COUNT(q.id), MAX(wa.id))
-        FROM WrongAnswer wa
-        JOIN wa.question q
-        WHERE wa.memberId = :memberId
-          AND wa.isReviewed = false
-          AND (:cursor IS NULL OR MAX(wa.id) < :cursor)
-        GROUP BY q.questionSet
-        HAVING COUNT(q.id) > 0
-        ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
-      """)
+            SELECT new kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto(
+              q.questionSet, COUNT(q.id), MAX(wa.id))
+            FROM WrongAnswer wa
+            JOIN wa.question q
+            WHERE wa.memberId = :memberId
+            AND wa.isReviewed = false
+            GROUP BY q.questionSet
+            HAVING COUNT(q.id) > 0 AND (:cursor IS NULL OR MAX(wa.id) < :cursor)
+            ORDER BY MAX(wa.createdAt) DESC, q.questionSet.id DESC
+          """)
   List<WrongAnswerSetDto> findWrongAnswerSetWithCursor(
       @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
 }
