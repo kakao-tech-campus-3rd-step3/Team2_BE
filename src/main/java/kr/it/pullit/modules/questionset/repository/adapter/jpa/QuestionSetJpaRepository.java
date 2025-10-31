@@ -99,7 +99,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-            SELECT qs
+            SELECT DISTINCT qs
             FROM QuestionSet qs
             LEFT JOIN FETCH qs.questions
             WHERE qs.ownerId = :memberId AND qs.status = 'COMPLETE'
