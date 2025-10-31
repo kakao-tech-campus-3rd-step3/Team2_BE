@@ -10,7 +10,15 @@ public interface CommonFolderRepository extends JpaRepository<CommonFolder, Long
 
   List<CommonFolder> findByTypeOrderBySortOrderAsc(CommonFolderType type);
 
+  List<CommonFolder> findByOwnerIdAndTypeOrderBySortOrderAsc(Long ownerId, CommonFolderType type);
+
   Optional<CommonFolder> findFirstByTypeOrderBySortOrderDesc(CommonFolderType type);
 
+  Optional<CommonFolder> findFirstByOwnerIdAndTypeOrderBySortOrderDesc(
+      Long ownerId, CommonFolderType type);
+
   Optional<CommonFolder> findByNameAndType(String name, CommonFolderType type);
+
+  Optional<CommonFolder> findByNameAndOwnerIdAndType(
+      String name, Long ownerId, CommonFolderType type);
 }

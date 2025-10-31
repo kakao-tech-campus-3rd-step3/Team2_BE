@@ -30,6 +30,10 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
   @Override
   public void deleteById(Long id) {
-    questionJpaRepository.deleteById(id);
+    Question question =
+        questionJpaRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("문제를 찾을 수 없습니다: " + id));
+    questionJpaRepository.delete(question);
   }
 }

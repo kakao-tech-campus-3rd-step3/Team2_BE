@@ -42,12 +42,17 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
 
   @Override
   public void deleteById(Long questionSetId) {
-    questionSetJpaRepository.deleteById(questionSetId);
+    QuestionSet questionSet =
+        questionSetJpaRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> new RuntimeException("문제집을 찾을 수 없습니다: " + questionSetId));
+    questionSetJpaRepository.delete(questionSet);
   }
 
   @Override
   public void deleteAllByIds(List<Long> questionSetIds) {
-    questionSetJpaRepository.deleteAllById(questionSetIds);
+    List<QuestionSet> questionSets = questionSetJpaRepository.findAllById(questionSetIds);
+    questionSetJpaRepository.deleteAll(questionSets);
   }
 
   @Override
