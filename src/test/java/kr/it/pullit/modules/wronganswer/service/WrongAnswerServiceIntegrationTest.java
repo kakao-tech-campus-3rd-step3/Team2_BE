@@ -2,9 +2,10 @@ package kr.it.pullit.modules.wronganswer.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
-import jakarta.persistence.EntityManager;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
@@ -70,7 +71,8 @@ class WrongAnswerServiceIntegrationTest {
 
     List<WrongAnswer> wrongAnswers =
         wrongAnswerRepository.findByMemberIdAndQuestionIdIn(
-            memberId, List.of(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId()));
+            memberId,
+            List.of(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId()));
 
     assertThat(wrongAnswers).hasSize(3);
     assertThat(wrongAnswers.stream().map(WrongAnswer::getQuestion).toList())
@@ -95,15 +97,18 @@ class WrongAnswerServiceIntegrationTest {
 
     List<WrongAnswer> memberWrongAnswers =
         wrongAnswerRepository.findByMemberIdAndQuestionIdIn(
-            memberId, List.of(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId()));
+            memberId,
+            List.of(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId()));
 
     List<WrongAnswer> setTwoWrongAnswers =
         memberWrongAnswers.stream()
-            .filter(wrongAnswer -> wrongAnswer.getQuestion().getQuestionSet().equals(secondQuestionSet))
+            .filter(
+                wrongAnswer -> wrongAnswer.getQuestion().getQuestionSet().equals(secondQuestionSet))
             .toList();
     WrongAnswer setOneWrongAnswer =
         memberWrongAnswers.stream()
-            .filter(wrongAnswer -> wrongAnswer.getQuestion().getQuestionSet().equals(firstQuestionSet))
+            .filter(
+                wrongAnswer -> wrongAnswer.getQuestion().getQuestionSet().equals(firstQuestionSet))
             .findFirst()
             .orElseThrow();
 
@@ -112,7 +117,10 @@ class WrongAnswerServiceIntegrationTest {
             .questionSet(secondQuestionSet)
             .count((long) setTwoWrongAnswers.size())
             .lastWrongAnswerId(
-                setTwoWrongAnswers.stream().map(WrongAnswer::getId).max(Long::compare).orElseThrow())
+                setTwoWrongAnswers.stream()
+                    .map(WrongAnswer::getId)
+                    .max(Long::compare)
+                    .orElseThrow())
             .build();
     WrongAnswerSetDto olderSetDto =
         WrongAnswerSetDto.builder()
@@ -142,8 +150,7 @@ class WrongAnswerServiceIntegrationTest {
 
     assertThat(secondPage.hasNext()).isFalse();
     assertThat(secondPage.content()).hasSize(1);
-    assertThat(secondPage.content().getFirst().questionSetId())
-        .isEqualTo(firstQuestionSet.getId());
+    assertThat(secondPage.content().getFirst().questionSetId()).isEqualTo(firstQuestionSet.getId());
   }
 
   @Test
@@ -153,8 +160,7 @@ class WrongAnswerServiceIntegrationTest {
         memberId, List.of(firstQuestion.getId(), secondQuestion.getId()));
     wrongAnswerService.markAsCorrectAnswers(memberId, List.of(secondQuestion.getId()));
 
-    List<WrongAnswerSetResponse> responses =
-        wrongAnswerService.getAllMyWrongAnswers(memberId);
+    List<WrongAnswerSetResponse> responses = wrongAnswerService.getAllMyWrongAnswers(memberId);
 
     assertThat(responses).hasSize(1);
     assertThat(responses.getFirst().questionSetId()).isEqualTo(firstQuestionSet.getId());

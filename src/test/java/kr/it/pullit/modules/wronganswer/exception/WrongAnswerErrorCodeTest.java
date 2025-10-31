@@ -16,8 +16,7 @@ class WrongAnswerErrorCodeTest {
 
     assertThat(errorCode.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     assertThat(errorCode.getCode()).isEqualTo("WAE_001");
-    assertThat(errorCode.getMessage())
-        .isEqualTo("오답을 찾을 수 없습니다. (%s: %s)");
+    assertThat(errorCode.getMessage()).isEqualTo("오답을 찾을 수 없습니다. (%s: %s)");
   }
 
   @Test

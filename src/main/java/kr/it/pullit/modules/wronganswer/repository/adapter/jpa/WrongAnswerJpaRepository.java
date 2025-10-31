@@ -1,14 +1,13 @@
 package kr.it.pullit.modules.wronganswer.repository.adapter.jpa;
 
+import java.util.List;
+import java.util.Optional;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Long> {
   Optional<WrongAnswer> findByMemberIdAndQuestionId(Long memberId, Long questionId);

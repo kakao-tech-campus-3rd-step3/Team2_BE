@@ -4,8 +4,7 @@ import kr.it.pullit.shared.error.BusinessException;
 
 public class WrongAnswerNotFoundException extends BusinessException {
 
-  private WrongAnswerNotFoundException(
-      WrongAnswerErrorCode errorCode, Object... messageArguments) {
+  private WrongAnswerNotFoundException(WrongAnswerErrorCode errorCode, Object... messageArguments) {
     super(errorCode, messageArguments);
   }
 
@@ -22,7 +21,6 @@ public class WrongAnswerNotFoundException extends BusinessException {
   }
 
   public static WrongAnswerNotFoundException noWrongAnswersToReview() {
-    return new WrongAnswerNotFoundException(
-        WrongAnswerErrorCode.NO_WRONG_ANSWERS_TO_REVIEW);
+    return new WrongAnswerNotFoundException(WrongAnswerErrorCode.NO_WRONG_ANSWERS_TO_REVIEW);
   }
 }

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +16,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
+import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.modules.wronganswer.repository.WrongAnswerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,5 +72,22 @@ class WrongAnswerServiceTest {
     wrongAnswerService.markAsCorrectAnswers(MEMBER_ID, Collections.emptyList());
 
     verifyNoInteractions(memberPublicApi, questionPublicApi, wrongAnswerRepository);
+  }
+
+  @Test
+  @DisplayName("이미 존재하는 오답만 전달되면 저장을 시도하지 않는다")
+  void shouldSkipSavingWhenAllWrongAnswersAlreadyExist() {
+    Question question = mock(Question.class);
+    when(question.getId()).thenReturn(88L);
+
+    when(memberPublicApi.findById(MEMBER_ID)).thenReturn(Optional.of(mock(Member.class)));
+    when(questionPublicApi.findEntitiesByIds(List.of(88L))).thenReturn(List.of(question));
+
+    when(wrongAnswerRepository.findByMemberIdAndQuestionIdIn(MEMBER_ID, List.of(88L)))
+        .thenReturn(List.of(WrongAnswer.create(MEMBER_ID, question)));
+
+    wrongAnswerService.markAsWrongAnswers(MEMBER_ID, List.of(88L));
+
+    verify(wrongAnswerRepository, never()).saveAll(any());
   }
 }

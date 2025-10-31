@@ -19,14 +19,7 @@ class WrongAnswerSetResponseTest {
   void shouldCreateResponseWithFactoryMethod() {
     WrongAnswerSetResponse response =
         WrongAnswerSetResponse.of(
-            10L,
-            "자료구조 요약",
-            List.of("교재", "강의"),
-            DifficultyType.HARD,
-            "트리",
-            3L,
-            "CS",
-            99L);
+            10L, "자료구조 요약", List.of("교재", "강의"), DifficultyType.HARD, "트리", 3L, "CS", 99L);
 
     assertThat(response.questionSetId()).isEqualTo(10L);
     assertThat(response.questionSetTitle()).isEqualTo("자료구조 요약");
@@ -43,14 +36,7 @@ class WrongAnswerSetResponseTest {
   void shouldIgnoreLastWrongAnswerIdWhenSerialized() throws JsonProcessingException {
     WrongAnswerSetResponse response =
         WrongAnswerSetResponse.of(
-            1L,
-            "네트워크",
-            List.of("블로그"),
-            DifficultyType.EASY,
-            "OSI",
-            1L,
-            "네트워크",
-            42L);
+            1L, "네트워크", List.of("블로그"), DifficultyType.EASY, "OSI", 1L, "네트워크", 42L);
 
     String json = objectMapper.writeValueAsString(response);
 

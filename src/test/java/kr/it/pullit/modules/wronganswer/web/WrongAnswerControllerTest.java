@@ -29,15 +29,7 @@ class WrongAnswerControllerTest extends ControllerTest {
   @DisplayName("오답집 커서 조회 API는 페이징 응답을 반환한다")
   void shouldReturnPagedWrongAnswers() throws Exception {
     WrongAnswerSetResponse response =
-        WrongAnswerSetResponse.of(
-            1L,
-            "자료구조 연습",
-            List.of("교재"),
-            null,
-            "자료구조",
-            3L,
-            null,
-            10L);
+        WrongAnswerSetResponse.of(1L, "자료구조 연습", List.of("교재"), null, "자료구조", 3L, null, 10L);
     CursorPageResponse<WrongAnswerSetResponse> page =
         CursorPageResponse.<WrongAnswerSetResponse>builder()
             .content(List.of(response))
@@ -62,8 +54,7 @@ class WrongAnswerControllerTest extends ControllerTest {
   @DisplayName("전체 오답 조회 API는 모든 오답 문제집을 반환한다")
   void shouldReturnAllWrongAnswers() throws Exception {
     List<WrongAnswerSetResponse> responses =
-        List.of(
-            WrongAnswerSetResponse.of(2L, "OS 정리", List.of("강의"), null, "운영체제", 5L, null, 30L));
+        List.of(WrongAnswerSetResponse.of(2L, "OS 정리", List.of("강의"), null, "운영체제", 5L, null, 30L));
     given(wrongAnswerPublicApi.getAllMyWrongAnswers(77L)).willReturn(responses);
 
     mockMvc

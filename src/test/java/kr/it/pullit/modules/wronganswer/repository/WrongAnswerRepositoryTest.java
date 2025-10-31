@@ -45,13 +45,12 @@ class WrongAnswerRepositoryTest {
     firstQuestion = persistQuestion(firstQuestionSet, "스택의 특징은?");
     secondQuestion = persistQuestion(firstQuestionSet, "큐의 특징은?");
     thirdQuestion = persistQuestion(secondQuestionSet, "해시 테이블 충돌 처리 방식은?");
-    Question otherMemberQuestion =
-        persistQuestion(secondQuestionSet, "다른 회원의 오답 데이터");
 
     persistWrongAnswer(MEMBER_ID, firstQuestion);
     persistWrongAnswer(MEMBER_ID, secondQuestion).markAsReviewed();
     persistWrongAnswer(MEMBER_ID, thirdQuestion);
-    persistWrongAnswer(999L, otherMemberQuestion);
+    // [FIX 1] 'otherMemberQuestion' 변수를 인라인 처리하여 선언-사용 거리 문제를 해결
+    persistWrongAnswer(999L, persistQuestion(secondQuestionSet, "다른 회원의 오답 데이터"));
     entityManager.flush();
     entityManager.clear();
   }
@@ -60,7 +59,8 @@ class WrongAnswerRepositoryTest {
   @DisplayName("save와 findByMemberIdAndQuestionId는 저장한 오답을 정확히 조회한다")
   void shouldSaveAndFindWrongAnswerByMemberAndQuestionId() {
     Question question = persistQuestion(firstQuestionSet, "재귀 호출의 종료 조건은?");
-    WrongAnswer saved = wrongAnswerRepository.save(WrongAnswer.create(100L, question));
+    // [FIX 2] 변수 선언과 사용 위치를 좁힐 수 없는 경우 final 키워드를 붙여 경고 해결
+    final WrongAnswer saved = wrongAnswerRepository.save(WrongAnswer.create(100L, question));
     entityManager.flush();
     entityManager.clear();
 
@@ -76,11 +76,13 @@ class WrongAnswerRepositoryTest {
   void shouldFindWrongAnswersByMemberAndQuestionIds() {
     List<WrongAnswer> wrongAnswers =
         wrongAnswerRepository.findByMemberIdAndQuestionIdIn(
-            MEMBER_ID, List.of(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId()));
+            MEMBER_ID,
+            List.of(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId()));
 
     assertThat(wrongAnswers)
         .extracting(wrongAnswer -> wrongAnswer.getQuestion().getId())
-        .containsExactlyInAnyOrder(firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId());
+        .containsExactlyInAnyOrder(
+            firstQuestion.getId(), secondQuestion.getId(), thirdQuestion.getId());
   }
 
   @Test
@@ -98,7 +100,8 @@ class WrongAnswerRepositoryTest {
     assertThat(olderSet.count()).isEqualTo(1L);
 
     List<WrongAnswerSetDto> secondPage =
-        wrongAnswerRepository.findWrongAnswerSetWithCursor(MEMBER_ID, latestSet.lastWrongAnswerId(), 1);
+        wrongAnswerRepository.findWrongAnswerSetWithCursor(
+            MEMBER_ID, latestSet.lastWrongAnswerId(), 1);
 
     assertThat(secondPage).hasSize(1);
     assertThat(secondPage.getFirst().questionSet().getId()).isEqualTo(firstQuestionSet.getId());
