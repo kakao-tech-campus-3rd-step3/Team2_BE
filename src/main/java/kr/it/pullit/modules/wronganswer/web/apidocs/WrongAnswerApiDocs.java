@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
                                   "title": "Not Found",
                                   "status": 404,
                                   "detail": "오답을 찾을 수 없습니다. (Member ID, Question ID: 91, 100)",
-                                  "instance": "/api/some-path",
+                                  "instance": "/api/wronganswers",
                                   "code": "WAE_001"
                                 }
                                 """),
