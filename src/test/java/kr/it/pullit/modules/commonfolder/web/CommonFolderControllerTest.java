@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.commonfolder.web;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,18 +10,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.List;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.api.FolderFacade;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
+import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
+import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
+import kr.it.pullit.support.apidocs.ProblemDetailTestUtils;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @AuthenticatedMvcSliceTest(controllers = CommonFolderController.class)
 @DisplayName("CommonFolderController 슬라이스 테스트")
@@ -131,5 +139,102 @@ class CommonFolderControllerTest extends ControllerTest {
     // verify
     org.mockito.Mockito.verify(folderFacade).deleteFolderAndContents(1L, 1L);
   }
-}
 
+  @Nested
+  @DisplayName("에러 응답 검증")
+  class ErrorResponse {
+
+    @Test
+    @WithMockMember
+    @DisplayName("존재하지 않는 폴더 조회 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenFolderNotFound() throws Exception {
+      // given
+      doThrow(FolderNotFoundException.byId(999L)).when(commonFolderPublicApi).getFolder(1L, 999L);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/common-folders/999"))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs("/api/common-folders/999", "폴더 조회 실패"));
+    }
+
+    @Test
+    @WithMockMember
+    @DisplayName("기본 폴더 수정 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenUpdatingDefaultFolder() throws Exception {
+      // given
+      var request = new QuestionSetFolderRequest("다른 이름", CommonFolderType.QUESTION_SET);
+      doThrow(
+              new InvalidFolderOperationException(
+                  CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER))
+          .when(commonFolderPublicApi)
+          .updateFolder(1L, CommonFolder.DEFAULT_FOLDER_ID, request);
+
+      // when & then
+      mockMvc
+          .perform(
+              patch("/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID)
+                  .contentType(APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs(
+                  "/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID, "기본 폴더 수정 시도"));
+    }
+
+    @Test
+    @WithMockMember
+    @DisplayName("기본 폴더 삭제 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenDeletingDefaultFolder() throws Exception {
+      // given
+      doThrow(
+              new InvalidFolderOperationException(
+                  CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER))
+          .when(folderFacade)
+          .deleteFolderAndContents(1L, CommonFolder.DEFAULT_FOLDER_ID);
+
+      // when & then
+      mockMvc
+          .perform(delete("/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs(
+                  "/api/common-folders/" + CommonFolder.DEFAULT_FOLDER_ID, "기본 폴더 삭제 시도"));
+    }
+
+    @Test
+    @WithMockMember
+    @DisplayName("존재하지 않는 폴더 수정 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenUpdatingNonExistentFolder() throws Exception {
+      // given
+      var request = new QuestionSetFolderRequest("새 이름", CommonFolderType.QUESTION_SET);
+      doThrow(FolderNotFoundException.byId(999L))
+          .when(commonFolderPublicApi)
+          .updateFolder(1L, 999L, request);
+
+      // when & then
+      mockMvc
+          .perform(
+              patch("/api/common-folders/999")
+                  .contentType(APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs("/api/common-folders/999", "폴더 조회 실패"));
+    }
+
+    @Test
+    @WithMockMember
+    @DisplayName("존재하지 않는 폴더의 삭제 경고 조회 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
+    void shouldMatchApiDocsWhenGetDeleteWarningForNonExistentFolder() throws Exception {
+      // given
+      doThrow(FolderNotFoundException.byId(999L))
+          .when(folderFacade)
+          .getQuestionSetCountInFolder(1L, 999L);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/common-folders/999/delete-warning"))
+          .andExpect(
+              ProblemDetailTestUtils.conformToApiDocs(
+                  "/api/common-folders/999/delete-warning", "폴더 조회 실패"));
+    }
+  }
+}

@@ -12,10 +12,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
+import kr.it.pullit.shared.apidocs.ApiDocsGroup;
 import org.springframework.http.ProblemDetail;
 
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
+@ApiDocsGroup
 @Operation(
     summary = "폴더 정보 수정",
     description =
