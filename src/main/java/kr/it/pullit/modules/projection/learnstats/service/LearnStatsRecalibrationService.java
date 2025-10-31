@@ -1,13 +1,11 @@
 package kr.it.pullit.modules.projection.learnstats.service;
 
-import java.util.List;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -43,11 +41,7 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
   }
 
   private void recalibrateMember(Long memberId) {
-    List<QuestionSet> completedSets =
-        questionSetPublicApi.findCompletedEntitiesByMemberId(memberId);
-
-    long realTotalCount =
-        completedSets.stream().mapToLong(questionSet -> questionSet.getQuestions().size()).sum();
+    long realTotalCount = questionSetPublicApi.countCompletedQuestionsByMemberId(memberId);
 
     LearnStats stats =
         learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
