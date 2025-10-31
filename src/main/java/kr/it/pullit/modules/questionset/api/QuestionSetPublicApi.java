@@ -25,6 +25,10 @@ public interface QuestionSetPublicApi {
 
   void deleteAllByFolderId(Long folderId);
 
+  void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId);
+
+  List<QuestionSet> findAllByFolderId(Long folderId);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   long countCompletedQuestionsByMemberId(Long memberId);
