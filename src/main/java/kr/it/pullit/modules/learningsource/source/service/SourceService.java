@@ -112,8 +112,8 @@ public class SourceService implements SourcePublicApi {
   }
 
   @Override
-  public Optional<Source> findByIdAndMemberId(Long id) {
-    return sourceRepository.findByIdAndMemberId(id, id);
+  public Optional<Source> findByIdAndMemberId(Long id, Long memberId) {
+    return sourceRepository.findByIdAndMemberId(id, memberId);
   }
 
   @Override
