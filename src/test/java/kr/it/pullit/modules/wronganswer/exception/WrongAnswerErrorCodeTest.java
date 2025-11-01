@@ -2,12 +2,14 @@ package kr.it.pullit.modules.wronganswer.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 // TODO: 서비스 단위테스트에서 에러코드를 검증하도록 변경 필요.
 @DisplayName("WrongAnswerErrorCode 단위 테스트")
+@MockitoUnitTest
 class WrongAnswerErrorCodeTest {
 
   @Test

@@ -20,7 +20,8 @@ import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
 import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
 import kr.it.pullit.support.apidocs.ProblemDetailTestUtils;
 import kr.it.pullit.support.security.WithMockMember;
@@ -79,7 +80,7 @@ class CommonFolderControllerTest extends ControllerTest {
   @DisplayName("로그인한 사용자는 새 폴더를 성공적으로 생성한다")
   void shouldSuccessfullyCreateFolderWhenLoggedIn() throws Exception {
     // given
-    var request = new QuestionSetFolderRequest("새 폴더", CommonFolderType.QUESTION_SET);
+    var request = new CreateFolderRequest("새 폴더", CommonFolderType.QUESTION_SET);
     var response = new CommonFolderResponse(1L, "새 폴더", CommonFolderType.QUESTION_SET, 0);
     given(commonFolderPublicApi.createFolder(1L, request)).willReturn(response);
 
@@ -98,7 +99,7 @@ class CommonFolderControllerTest extends ControllerTest {
   @DisplayName("로그인한 사용자는 자신의 폴더를 성공적으로 수정한다")
   void shouldSuccessfullyUpdateFolderWhenLoggedIn() throws Exception {
     // given
-    var request = new QuestionSetFolderRequest("수정된 폴더", CommonFolderType.QUESTION_SET);
+    var request = new UpdateFolderRequest("수정된 폴더", CommonFolderType.QUESTION_SET);
     var response = new CommonFolderResponse(1L, "수정된 폴더", CommonFolderType.QUESTION_SET, 0);
     given(commonFolderPublicApi.updateFolder(1L, 1L, request)).willReturn(response);
 
@@ -163,7 +164,7 @@ class CommonFolderControllerTest extends ControllerTest {
     @DisplayName("기본 폴더 수정 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
     void shouldMatchApiDocsWhenUpdatingDefaultFolder() throws Exception {
       // given
-      var request = new QuestionSetFolderRequest("다른 이름", CommonFolderType.QUESTION_SET);
+      var request = new UpdateFolderRequest("다른 이름", CommonFolderType.QUESTION_SET);
       doThrow(
               new InvalidFolderOperationException(
                   CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER))
@@ -205,7 +206,7 @@ class CommonFolderControllerTest extends ControllerTest {
     @DisplayName("존재하지 않는 폴더 수정 시도 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
     void shouldMatchApiDocsWhenUpdatingNonExistentFolder() throws Exception {
       // given
-      var request = new QuestionSetFolderRequest("새 이름", CommonFolderType.QUESTION_SET);
+      var request = new UpdateFolderRequest("새 이름", CommonFolderType.QUESTION_SET);
       doThrow(FolderNotFoundException.byId(999L))
           .when(commonFolderPublicApi)
           .updateFolder(1L, 999L, request);

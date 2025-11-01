@@ -9,9 +9,11 @@ import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.shared.jpa.BaseEntity;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@MockitoUnitTest
 class SourceTest {
 
   private static Source createSource(Long memberId, String filePath) {

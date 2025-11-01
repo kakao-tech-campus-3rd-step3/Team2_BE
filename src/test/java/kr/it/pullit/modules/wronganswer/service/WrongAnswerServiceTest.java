@@ -18,16 +18,15 @@ import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.modules.wronganswer.repository.WrongAnswerRepository;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
-@ExtendWith(MockitoExtension.class)
 @DisplayName("WrongAnswerService 단위 테스트")
+@MockitoUnitTest
 class WrongAnswerServiceTest {
 
   private static final Long MEMBER_ID = 11L;

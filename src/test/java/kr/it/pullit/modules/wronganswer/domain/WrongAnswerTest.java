@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @DisplayName("WrongAnswer 엔티티 단위 테스트")
+@MockitoUnitTest
 class WrongAnswerTest {
 
   @Test
