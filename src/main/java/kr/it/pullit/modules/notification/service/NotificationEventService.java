@@ -27,7 +27,7 @@ public class NotificationEventService implements NotificationEventPublicApi {
   private final NotificationChannelFactory notificationChannelFactory;
 
   @Override
-  public SseEmitter subscribe(Long userId, String lastEventId) {
+  public SseEmitter subscribe(Long userId, Long lastEventId) {
     NotificationChannel channel = createAndRegisterChannel(userId);
     handleInitialConnection(channel, lastEventId);
     return channel.emitter();
@@ -46,13 +46,11 @@ public class NotificationEventService implements NotificationEventPublicApi {
       return;
     }
     log.debug("Sending heartbeat to {} connected SSE clients", channels.size());
-    String heartbeatMessage = "heartbeat " + System.currentTimeMillis();
     channels
         .values()
         .forEach(
             channel -> {
-              EventData heartbeatEvent =
-                  EventData.of(channel.memberId(), "heartbeat", heartbeatMessage);
+              EventData heartbeatEvent = EventData.heartbeat(channel.memberId());
               channel.send(heartbeatEvent);
             });
   }
@@ -64,13 +62,14 @@ public class NotificationEventService implements NotificationEventPublicApi {
     return channel;
   }
 
-  private void handleInitialConnection(NotificationChannel channel, String lastEventId) {
+  private void handleInitialConnection(NotificationChannel channel, Long lastEventId) {
     try {
-      replayMissedEventsIfNecessary(channel.memberId(), lastEventId);
       sendInstantEvent(
           channel.memberId(),
           SseEventType.HAND_SHAKE_COMPLETE,
-          "EventStream Created. userId: " + channel.memberId());
+          "EventStream Created. userId: " + channel.memberId(),
+          lastEventId);
+      replayMissedEventsIfNecessary(channel.memberId(), lastEventId);
     } catch (Exception e) {
       channel.completeWithError(e);
     }
@@ -82,26 +81,31 @@ public class NotificationEventService implements NotificationEventPublicApi {
     notificationChannelRepository.findById(userId).ifPresent(channel -> channel.send(eventData));
   }
 
-  private void sendInstantEvent(Long userId, SseEventType eventType, Object data) {
-    EventData eventData = EventData.of(userId, eventType.code(), data);
+  private void sendInstantEvent(
+      Long userId, SseEventType eventType, Object data, Long lastEventId) {
+    EventData eventData;
+    if (eventType == SseEventType.HAND_SHAKE_COMPLETE && lastEventId != null) {
+      eventData = EventData.reConnection(userId, lastEventId);
+    } else {
+      eventData = EventData.of(userId, eventType.code(), data);
+    }
     notificationChannelRepository.findById(userId).ifPresent(channel -> channel.send(eventData));
   }
 
-  private void replayMissedEventsIfNecessary(Long userId, String lastEventId) {
-    if (lastEventId == null || lastEventId.isEmpty()) {
+  private void replayMissedEventsIfNecessary(Long userId, Long lastEventId) {
+    if (lastEventId == null) {
       return;
     }
     log.info("Reconnecting user {} with lastEventId: {}", userId, lastEventId);
     doReplayMissedEvents(userId, lastEventId);
   }
 
-  private void doReplayMissedEvents(Long userId, String lastEventId) {
+  private void doReplayMissedEvents(Long userId, Long lastId) {
     try {
-      long lastId = Long.parseLong(lastEventId);
-      List<EventData> missedEvents = sseEventCache.findAllByUserIdAfter(userId, lastId);
+      List<EventData> missedEvents = sseEventCache.pollAllByUserIdAfter(userId, lastId);
       replayFoundEvents(userId, missedEvents);
     } catch (NumberFormatException e) {
-      log.warn("Invalid lastEventId format: {} for user {}", lastEventId, userId);
+      log.warn("Invalid lastEventId format: {} for user {}", lastId, userId);
     }
   }
 
