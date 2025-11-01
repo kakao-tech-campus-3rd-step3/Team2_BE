@@ -10,7 +10,9 @@ import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,5 +46,12 @@ public class SourceController {
   @GetMapping
   public ResponseEntity<List<SourceResponse>> getMySources(@AuthenticationPrincipal Long memberId) {
     return ResponseEntity.ok(sourcePublicApi.getMySources(memberId));
+  }
+
+  @DeleteMapping("/{sourceId}")
+  public ResponseEntity<Void> deleteSource(
+      @PathVariable Long sourceId, @AuthenticationPrincipal Long memberId) {
+    sourcePublicApi.deleteSource(sourceId, memberId);
+    return ResponseEntity.noContent().build();
   }
 }

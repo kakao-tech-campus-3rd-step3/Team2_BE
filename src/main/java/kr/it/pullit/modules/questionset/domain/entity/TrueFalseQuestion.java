@@ -4,6 +4,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
+import kr.it.pullit.modules.questionset.exception.QuestionErrorCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -34,6 +37,11 @@ public class TrueFalseQuestion extends Question {
     return this.answer == parsedUserAnswer;
   }
 
+  @Override
+  public QuestionType getQuestionType() {
+    return QuestionType.TRUE_FALSE;
+  }
+
   private void validate() {
     // TrueFalseQuestion에 대한 특별한 유효성 검사 규칙이 있다면 여기에 추가
   }
@@ -46,6 +54,9 @@ public class TrueFalseQuestion extends Question {
   public static TrueFalseQuestion createFromLlm(
       QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
 
+    validateNoOptions(questionDto);
+    validateAnswer(questionDto);
+
     TrueFalseQuestion question =
         TrueFalseQuestion.builder()
             .questionSet(questionSet)
@@ -56,5 +67,18 @@ public class TrueFalseQuestion extends Question {
 
     question.validate();
     return question;
+  }
+
+  private static void validateAnswer(LlmGeneratedQuestionResponse questionDto) {
+    String answer = questionDto.answer();
+    if (!("true".equalsIgnoreCase(answer) || "false".equalsIgnoreCase(answer))) {
+      throw new InvalidQuestionException(QuestionErrorCode.TRUE_FALSE_INVALID_ANSWER);
+    }
+  }
+
+  private static void validateNoOptions(LlmGeneratedQuestionResponse questionDto) {
+    if (questionDto.options() != null && !questionDto.options().isEmpty()) {
+      throw new InvalidQuestionException(QuestionErrorCode.TRUE_FALSE_NO_OPTIONS);
+    }
   }
 }

@@ -1,5 +1,6 @@
 package kr.it.pullit.platform.storage.api;
 
+import java.io.InputStream;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 
 public interface S3PublicApi {
@@ -7,7 +8,9 @@ public interface S3PublicApi {
   PresignedUrlResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long ownerId);
 
-  byte[] downloadFileAsBytes(String filePath);
+  InputStream downloadFileAsStream(String filePath);
 
   boolean fileExists(String filePath);
+
+  void deleteFile(String filePath);
 }

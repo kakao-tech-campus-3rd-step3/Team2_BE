@@ -5,13 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
-import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,25 +36,28 @@ class SourceServiceTest {
     final Long memberId = 1L;
     final Long sourceId = 1L;
     final String filePath = "path/to/file.pdf";
-    final byte[] expectedContent = "test file content".getBytes();
+    final InputStream expectedContent =
+        new ByteArrayInputStream("test file content".getBytes()); // stream으로
+    // 반
+    // 환
 
-    final Member mockMember = Member.create(1L, "test@example.com", "테스트사용자");
+    final Long memberIdForMock = 1L; // assuming memberId 1 is used for mock creation
     final SourceFolder mockSourceFolder =
-        SourceFolder.builder().member(mockMember).name("default").color("#000000").build();
+        SourceFolder.create(memberIdForMock, "default", null, "#000000");
     final SourceCreationParam creationParam =
         new SourceCreationParam(memberId, "test.pdf", filePath, "application/pdf", 1024L);
 
-    Source mockSource = Source.create(creationParam, mockMember, mockSourceFolder);
+    Source mockSource = Source.create(creationParam, memberIdForMock, mockSourceFolder);
 
     given(sourceRepository.findByIdAndMemberId(sourceId, memberId))
         .willReturn(Optional.of(mockSource));
-    given(s3PublicApi.downloadFileAsBytes(filePath)).willReturn(expectedContent);
+    given(s3PublicApi.downloadFileAsStream(filePath)).willReturn(expectedContent);
     // when
-    byte[] actualContent = sourceService.getContentBytes(sourceId, memberId);
+    InputStream actualContent = sourceService.getContentStream(sourceId, memberId);
     // then
     assertThat(actualContent).isEqualTo(expectedContent);
     verify(sourceRepository).findByIdAndMemberId(sourceId, memberId);
-    verify(s3PublicApi).downloadFileAsBytes(filePath);
+    verify(s3PublicApi).downloadFileAsStream(filePath);
   }
 
   @Test
@@ -67,7 +71,7 @@ class SourceServiceTest {
         .willReturn(Optional.empty());
 
     // when & then
-    assertThatThrownBy(() -> sourceService.getContentBytes(nonExistentSourceId, memberId))
+    assertThatThrownBy(() -> sourceService.getContentStream(nonExistentSourceId, memberId))
         .isInstanceOf(SourceNotFoundException.class)
         .hasMessageContaining("소스를 찾을 수 없습니다.");
   }

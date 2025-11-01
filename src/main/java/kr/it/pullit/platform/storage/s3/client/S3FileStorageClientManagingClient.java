@@ -1,17 +1,16 @@
 package kr.it.pullit.platform.storage.s3.client;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import kr.it.pullit.platform.storage.core.S3StorageProps;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -78,12 +77,30 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   }
 
   @Override
-  public byte[] downloadFileAsBytes(String filePath) {
+  public InputStream downloadFileAsStream(String filePath) {
     GetObjectRequest getObjectRequest =
         GetObjectRequest.builder().bucket(s3StorageProps.getBucketName()).key(filePath).build();
 
-    ResponseBytes<GetObjectResponse> responseBytes = s3Client.getObjectAsBytes(getObjectRequest);
-    return responseBytes.asByteArray();
+    int maxRetries = 3;
+    int attempt = 0;
+    long delay = 1000; // 1초부터 시작
+
+    while (true) {
+      try {
+        return s3Client.getObject(getObjectRequest);
+      } catch (NoSuchKeyException e) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw e;
+        }
+        try {
+          Thread.sleep(delay * attempt); // 재시도 간격 증가
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          throw new RuntimeException("S3 파일 다운로드 재시도 중 스레드 인터럽트 발생", ie);
+        }
+      }
+    }
   }
 
   private S3Client createS3Client() {

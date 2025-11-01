@@ -18,4 +18,8 @@ public interface MemberPublicApi {
   Member save(Member member);
 
   Optional<MemberInfoResponse> getMemberInfo(Long memberId);
+
+  void grantAdminRole(Long memberId);
+
+  void revokeAdminRole(Long memberId);
 }

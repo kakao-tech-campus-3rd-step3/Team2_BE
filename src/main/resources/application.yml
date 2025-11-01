@@ -121,6 +121,7 @@ logging:
   level:
     ROOT: INFO
     kr.it.pullit: DEBUG
+    kr.it.pullit.modules.notification.service.NotificationService: INFO
     org.springframework.security: DEBUG
     java.lang.ProcessBuilder: INFO
     sun.rmi.loader: WARN
@@ -161,6 +162,8 @@ app:
       secret-key: ${S3_SECRET_KEY:test}
       presigned-url-expiration: PT15M
       base-path: learning-sources
+  notification:
+    sse-cache-size: 10000
 
 # OpenAPI/Swagger 설정
 springdoc:

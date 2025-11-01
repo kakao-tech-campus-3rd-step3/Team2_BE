@@ -4,6 +4,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
+import kr.it.pullit.modules.questionset.exception.QuestionErrorCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -35,6 +38,11 @@ public class ShortAnswerQuestion extends Question {
     return processedUserAnswer.equals(processedAnswer);
   }
 
+  @Override
+  public QuestionType getQuestionType() {
+    return QuestionType.SHORT_ANSWER;
+  }
+
   private void validate() {
     // TODO: 추후 validation 추가.
   }
@@ -47,6 +55,8 @@ public class ShortAnswerQuestion extends Question {
   public static ShortAnswerQuestion createFromLlm(
       QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
 
+    validateNoOptions(questionDto);
+
     ShortAnswerQuestion question =
         ShortAnswerQuestion.builder()
             .questionSet(questionSet)
@@ -57,5 +67,11 @@ public class ShortAnswerQuestion extends Question {
 
     question.validate();
     return question;
+  }
+
+  private static void validateNoOptions(LlmGeneratedQuestionResponse questionDto) {
+    if (questionDto.options() != null && !questionDto.options().isEmpty()) {
+      throw new InvalidQuestionException(QuestionErrorCode.SHORT_ANSWER_NO_OPTIONS);
+    }
   }
 }
