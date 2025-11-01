@@ -44,6 +44,10 @@ public class InMemorySseEventCache implements SseEventCache {
         .collect(Collectors.toList());
   }
 
+  public void clearByUserId(Long userId) {
+    cache.removeIf(event -> event.userId() != null && event.userId().equals(userId));
+  }
+
   @Override
   public void clear() {
     cache.clear();

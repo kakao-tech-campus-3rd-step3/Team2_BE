@@ -71,6 +71,7 @@ public class NotificationEventService implements NotificationEventPublicApi {
           channel.memberId(),
           SseEventType.HAND_SHAKE_COMPLETE,
           "EventStream Created. userId: " + channel.memberId());
+      sseEventCache.clearByUserId(channel.memberId());
     } catch (Exception e) {
       channel.completeWithError(e);
     }
