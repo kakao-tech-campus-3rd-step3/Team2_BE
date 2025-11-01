@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
-import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,9 +37,9 @@ class WrongAnswerEventListenerTest {
         new MarkingCompletedEvent(
             MEMBER_ID,
             List.of(
-                MarkingResult.of(1L, true),
-                MarkingResult.of(2L, false),
-                MarkingResult.of(3L, true)),
+                MarkingResultDto.of(1L, true),
+                MarkingResultDto.of(2L, false),
+                MarkingResultDto.of(3L, true)),
             true);
 
     wrongAnswerEventListener.handleMarkingCompletedEvent(event);
@@ -55,9 +55,9 @@ class WrongAnswerEventListenerTest {
         new MarkingCompletedEvent(
             MEMBER_ID,
             List.of(
-                MarkingResult.of(7L, true),
-                MarkingResult.of(8L, false),
-                MarkingResult.of(9L, false)),
+                MarkingResultDto.of(7L, true),
+                MarkingResultDto.of(8L, false),
+                MarkingResultDto.of(9L, false)),
             false);
 
     wrongAnswerEventListener.handleMarkingCompletedEvent(event);
