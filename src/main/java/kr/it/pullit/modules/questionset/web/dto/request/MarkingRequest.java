@@ -14,4 +14,9 @@ public record MarkingRequest(
           @JsonSubTypes.Type(value = Boolean.class, name = "boolean"),
           @JsonSubTypes.Type(value = String.class, name = "string")
         })
-        Object memberAnswer) {}
+        Object memberAnswer) {
+
+  public static MarkingRequest of(Long questionId, Object memberAnswer) {
+    return new MarkingRequest(questionId, memberAnswer);
+  }
+}

@@ -2,7 +2,7 @@ package kr.it.pullit.modules.wronganswer.service;
 
 import java.util.List;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
-import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 import kr.it.pullit.modules.wronganswer.api.WrongAnswerPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -16,11 +16,19 @@ public class WrongAnswerEventListener {
 
   @EventListener
   public void handleMarkingCompletedEvent(MarkingCompletedEvent event) {
+    if (event.results() == null || event.results().isEmpty()) {
+      return;
+    }
+
     List<Long> targetQuestionIds =
         event.results().stream()
             .filter(result -> isTargetForWrongAnswerUpdate(result.isCorrect(), event.isReviewing()))
-            .map(MarkingResult::questionId)
+            .map(MarkingResultDto::questionId)
             .toList();
+
+    if (targetQuestionIds.isEmpty()) {
+      return;
+    }
 
     processMarking(event.memberId(), targetQuestionIds, event.isReviewing());
   }

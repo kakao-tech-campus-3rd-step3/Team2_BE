@@ -1,10 +1,11 @@
 package kr.it.pullit.modules.wronganswer.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-//TODO: 서비스 단위테스트에서 exception을 검증하도록 변경 필요.
+// TODO: 서비스 단위테스트에서 exception을 검증하도록 변경 필요.
 @DisplayName("WrongAnswerNotFoundException 단위 테스트")
 class WrongAnswerNotFoundExceptionTest {
 

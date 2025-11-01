@@ -36,19 +36,23 @@ import org.springframework.http.ProblemDetail;
           @Content(
               mediaType = "application/json",
               schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "검증 실패",
-                      summary = "업로드 ID 누락",
-                      value =
-                          """
+              examples = {
+                @ExampleObject(
+                    name = "검증 실패",
+                    summary = "업로드 ID 누락",
+                    value =
+                        """
                         {
-                          \"type\": \"about:blank\",
-                          \"title\": \"Bad Request\",
-                          \"status\": 400,
-                          \"detail\": \"업로드 ID는 필수입니다\",
-                          \"code\": \"C_001\"
+                          "type": "about:blank",
+                          "title": "Bad Request",
+                          "status": 400,
+                          "detail": "업로드 ID는 필수입니다",
+                          "code": "C_001"
                         }
-                        """)))
+                        """),
+                @ExampleObject(
+                    name = "인수 타입 불일치",
+                    ref = "#/components/examples/argumentTypeMismatchExample")
+              }))
 })
 public @interface ProcessUploadCompleteApiDocs {}

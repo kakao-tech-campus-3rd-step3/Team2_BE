@@ -55,16 +55,16 @@ import org.springframework.http.ProblemDetail;
                           """))),
   @ApiResponse(
       responseCode = "400",
-      description = "잘못된 요청 (예: '전체' 폴더 수정 시도)",
+      description = "잘못된 요청 (예: '전체' 폴더 수정 시도, ID 타입 불일치)",
       content =
           @Content(
               mediaType = "application/json",
               schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "기본 폴더 수정 시도",
-                      value =
-                          """
+              examples = {
+                @ExampleObject(
+                    name = "기본 폴더 수정 시도",
+                    value =
+                        """
                                 {
                                   "type": "about:blank",
                                   "title": "Bad Request",
@@ -73,7 +73,11 @@ import org.springframework.http.ProblemDetail;
                                   "instance": "/api/common-folders/1",
                                   "code": "CF_002"
                                 }
-                                """))),
+                                """),
+                @ExampleObject(
+                    name = "인수 타입 불일치",
+                    ref = "#/components/examples/argumentTypeMismatchExample")
+              })),
   @ApiResponse(
       responseCode = "404",
       description = "존재하지 않거나 권한이 없는 폴더",

@@ -36,19 +36,23 @@ import org.springframework.http.ProblemDetail;
           @Content(
               mediaType = "application/json",
               schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "잘못된 요청",
-                      summary = "삭제 권한 없음",
-                      value =
-                          """
+              examples = {
+                @ExampleObject(
+                    name = "잘못된 요청",
+                    summary = "삭제 권한 없음",
+                    value =
+                        """
                         {
-                          \"type\": \"about:blank\",
-                          \"title\": \"Bad Request\",
-                          \"status\": 400,
-                          \"detail\": \"요청한 소스를 삭제할 수 없습니다\",
-                          \"code\": \"C_001\"
+                          "type": "about:blank",
+                          "title": "Bad Request",
+                          "status": 400,
+                          "detail": "요청한 소스를 삭제할 수 없습니다",
+                          "code": "C_001"
                         }
-                        """)))
+                        """),
+                @ExampleObject(
+                    name = "인수 타입 불일치",
+                    ref = "#/components/examples/argumentTypeMismatchExample")
+              }))
 })
 public @interface DeleteSourceApiDocs {}

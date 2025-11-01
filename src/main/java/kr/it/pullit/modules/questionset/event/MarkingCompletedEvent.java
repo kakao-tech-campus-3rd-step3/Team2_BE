@@ -1,7 +1,7 @@
 package kr.it.pullit.modules.questionset.event;
 
 import java.util.List;
-import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 
 public record MarkingCompletedEvent(
-    Long memberId, List<MarkingResult> results, boolean isReviewing) {}
+    Long memberId, List<MarkingResultDto> results, boolean isReviewing) {}
