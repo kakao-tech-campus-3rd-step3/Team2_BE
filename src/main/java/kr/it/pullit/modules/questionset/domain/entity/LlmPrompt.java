@@ -1,5 +1,7 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
+import static kr.it.pullit.modules.questionset.domain.QuestionSetConstants.TITLE_MAX_LENGTH;
+
 import java.util.Objects;
 import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
 import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
@@ -21,8 +23,11 @@ public record LlmPrompt(String value) {
             """
         당신은 해당 pdf를 기반으로하는 시험 문제 출제 위원입니다.
         따라서 당신은 수험자들의 학습을 잘 했는지 확인 할 수 있게 중요한 개념과 학생들이 어려워 하는 부분들을 문제로 출제하세요.
+        당신은 pdf의 내용을 기반으로 문제집 제목과 문제들을 생성해야 합니다.
 
         [지시사항]:
+        - 문제집 내용이 전부 영어라고 할 지라도 당신이 사용해야하는 주요 언어는 한국어입니다.
+        - 생성되는 문제집의 제목(title)은 반드시 %d자 이내여야 합니다.
         - 난이도: %s
         - 문제유형: %s
         %s- Think step by step
@@ -36,6 +41,7 @@ public record LlmPrompt(String value) {
         [예시]:
         %s
         """,
+            TITLE_MAX_LENGTH,
             difficulty.getPrompt(),
             questionType.getType(),
             shortAnswerInstruction,

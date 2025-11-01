@@ -7,38 +7,20 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
-import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
-import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "members")
+@Table(name = "member")
 public class Member extends BaseEntity {
-
-  @OneToMany(mappedBy = "owner")
-  private final List<QuestionSet> questionSets = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<SourceFolder> sourceFolders = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<Source> sources = new ArrayList<>();
-
-  @OneToMany(mappedBy = "member")
-  private final List<WrongAnswer> wrongAnswers = new ArrayList<>();
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,23 +41,46 @@ public class Member extends BaseEntity {
   @Column
   private MemberStatus status;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Role role;
+
   @Builder(access = AccessLevel.PRIVATE)
-  public Member(Long kakaoId, String email, String name, MemberStatus status) {
+  public Member(
+      final Long kakaoId,
+      final String email,
+      final String name,
+      final MemberStatus status,
+      final Role role) {
     Assert.hasText(email, "email은 비어있을 수 없습니다.");
     Assert.hasText(name, "name은 비어있을 수 없습니다.");
+    Assert.notNull(status, "status는 null일 수 없습니다.");
+    Assert.notNull(role, "role은 null일 수 없습니다.");
 
     this.kakaoId = kakaoId;
     this.email = email;
     this.name = name;
-    this.status = (status != null) ? status : MemberStatus.ACTIVE;
+    this.status = status;
+    this.role = role;
   }
 
-  public static Member create(Long kakaoId, String email, String name) {
+  public static Member createMember(Long kakaoId, String email, String name) {
     return Member.builder()
         .kakaoId(kakaoId)
         .email(email)
         .name(name)
         .status(MemberStatus.ACTIVE)
+        .role(Role.MEMBER)
+        .build();
+  }
+
+  public static Member createAdmin(Long kakaoId, String email, String name) {
+    return Member.builder()
+        .kakaoId(kakaoId)
+        .email(email)
+        .name(name)
+        .status(MemberStatus.ACTIVE)
+        .role(Role.ADMIN)
         .build();
   }
 
@@ -88,11 +93,15 @@ public class Member extends BaseEntity {
   }
 
   public void updateMemberInfo(String email, String name) {
-    if (email != null && !email.isBlank()) {
-      this.email = email;
-    }
-    if (name != null && !name.isBlank()) {
-      this.name = name;
-    }
+    this.email = StringUtils.hasText(email) ? email : this.email;
+    this.name = StringUtils.hasText(name) ? name : this.name;
+  }
+
+  public void grantAdmin() {
+    this.role = Role.ADMIN;
+  }
+
+  public void revokeAdmin() {
+    this.role = Role.MEMBER;
   }
 }

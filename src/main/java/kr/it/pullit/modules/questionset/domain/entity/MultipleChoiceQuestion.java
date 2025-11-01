@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import java.util.List;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
+import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
 import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
 import kr.it.pullit.modules.questionset.exception.QuestionErrorCode;
 import lombok.Getter;
@@ -46,6 +47,11 @@ public class MultipleChoiceQuestion extends Question {
     return userAnswer.toString().trim().equalsIgnoreCase(this.answer.trim());
   }
 
+  @Override
+  public QuestionType getQuestionType() {
+    return QuestionType.MULTIPLE_CHOICE;
+  }
+
   private void validate() {
     if (this.options == null || this.options.isEmpty()) {
       throw new InvalidQuestionException(QuestionErrorCode.MULTIPLE_CHOICE_OPTIONS_REQUIRED);
@@ -54,19 +60,19 @@ public class MultipleChoiceQuestion extends Question {
 
   /**
    * @param questionSet 문제가 속한 문제집
-   * @param questionDto LLM이 생성한 문제 응답
+   * @param llmGeneratedQuestionResponse LLM이 생성한 문제 응답
    * @return 생성된 객관식 문제 엔티티
    */
   public static MultipleChoiceQuestion createFromLlm(
-      QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
+      QuestionSet questionSet, LlmGeneratedQuestionResponse llmGeneratedQuestionResponse) {
 
     MultipleChoiceQuestion question =
         MultipleChoiceQuestion.builder()
             .questionSet(questionSet)
-            .questionText(questionDto.questionText())
-            .options(questionDto.options())
-            .answer(questionDto.answer())
-            .explanation(questionDto.explanation())
+            .questionText(llmGeneratedQuestionResponse.questionText())
+            .options(llmGeneratedQuestionResponse.options())
+            .answer(llmGeneratedQuestionResponse.answer())
+            .explanation(llmGeneratedQuestionResponse.explanation())
             .build();
 
     question.validate();

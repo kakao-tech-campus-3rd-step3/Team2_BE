@@ -6,6 +6,7 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -29,7 +30,6 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
     return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
   }
 
-  /** lazy loading을 위해 문제 목록을 제외한 문제집 메타데이터만 조회합니다. */
   @Override
   public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
@@ -56,6 +56,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public List<QuestionSet> findByMemberId(Long memberId) {
     return questionSetJpaRepository.findByMemberId(memberId);
+  }
+
+  @Override
+  public List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable) {
+    return questionSetJpaRepository.findByMemberIdWithCursor(memberId, cursor, pageable);
   }
 
   @Override

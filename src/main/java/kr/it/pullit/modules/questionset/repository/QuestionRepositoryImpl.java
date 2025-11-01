@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionJpaRepository;
@@ -15,6 +16,11 @@ public class QuestionRepositoryImpl implements QuestionRepository {
   @Override
   public Optional<Question> findById(Long id) {
     return questionJpaRepository.findById(id);
+  }
+
+  @Override
+  public List<Question> findAllById(List<Long> ids) {
+    return questionJpaRepository.findAllById(ids);
   }
 
   @Override

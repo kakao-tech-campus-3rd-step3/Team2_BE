@@ -1,30 +1,23 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.util.List;
-import kr.it.pullit.modules.learningsource.source.event.SourceExtractionCompleteEvent;
-import kr.it.pullit.modules.learningsource.source.event.SourceExtractionStartEvent;
-import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.notification.api.NotificationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionSetResponse;
-import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.domain.entity.ShortAnswerQuestion;
-import kr.it.pullit.modules.questionset.domain.entity.TrueFalseQuestion;
 import kr.it.pullit.modules.questionset.domain.event.QuestionSetCreatedEvent;
+import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -33,10 +26,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class QuestionGenerationEventHandler {
 
-  private final SourceRepository sourceRepository;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationPublicApi notificationPublicApi;
+  private final SourceValidator sourceValidator;
+  private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
 
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -49,29 +43,6 @@ public class QuestionGenerationEventHandler {
     } catch (Exception e) {
       handleFailure(event, e);
     }
-  }
-
-  @TransactionalEventListener
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void handleSourceExtractionStart(final SourceExtractionStartEvent event) {
-    sourceRepository
-        .findById(event.sourceId())
-        .ifPresent(
-            source -> {
-              source.startProcessing();
-              log.info("Source[id={}] status updated to PROCESSING.", source.getId());
-            });
-  }
-
-  @TransactionalEventListener
-  public void handleSourceExtractionComplete(final SourceExtractionCompleteEvent event) {
-    sourceRepository
-        .findById(event.sourceId())
-        .ifPresent(
-            source -> {
-              source.markAsReady();
-              log.info("Source[id={}] status updated to READY.", source.getId());
-            });
   }
 
   private void processQuestionGeneration(QuestionSetCreatedEvent event) {
@@ -87,6 +58,10 @@ public class QuestionGenerationEventHandler {
   private QuestionGenerationRequest createGenerationRequest(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
         fetchQuestionSetMetadata(event.questionSetId(), event.ownerId());
+
+    sourceValidator.validateSourcesAreReady(
+        questionSetResponse.getSourceIds(), event.questionSetId());
+
     QuestionGenerationSpecification specification = createSpecificationFrom(questionSetResponse);
     return new QuestionGenerationRequest(
         event.ownerId(), event.questionSetId(), questionSetResponse.getSourceIds(), specification);
@@ -127,14 +102,9 @@ public class QuestionGenerationEventHandler {
   private Question createQuestion(
       QuestionSet questionSet, LlmGeneratedQuestionResponse questionDto) {
 
-    return switch (questionSet.getType()) {
-      case MULTIPLE_CHOICE -> MultipleChoiceQuestion.createFromLlm(questionSet, questionDto);
-      case TRUE_FALSE -> TrueFalseQuestion.createFromLlm(questionSet, questionDto);
-      case SHORT_ANSWER -> ShortAnswerQuestion.createFromLlm(questionSet, questionDto);
-      // TODO: 나중에 예외처리 추가.
-      default ->
-          throw new IllegalStateException("Unsupported question type: " + questionSet.getType());
-    };
+    return questionCreationStrategyFactory
+        .getStrategy(questionSet.getType())
+        .create(questionSet, questionDto);
   }
 
   private void handleSuccess(QuestionSetCreatedEvent event) {

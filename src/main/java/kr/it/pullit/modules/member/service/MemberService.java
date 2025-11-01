@@ -3,6 +3,7 @@ package kr.it.pullit.modules.member.service;
 import java.util.Optional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class MemberService implements MemberPublicApi {
 
@@ -32,30 +34,17 @@ public class MemberService implements MemberPublicApi {
   @Override
   @Transactional
   public Optional<Member> findOrCreateMember(SocialLoginCommand command) {
-    Optional<Member> memberByKakao = memberRepository.findByKakaoId(command.kakaoId());
-    if (memberByKakao.isPresent()) {
-      Member member = memberByKakao.get();
-      member.updateMemberInfo(command.email(), command.name());
-      return Optional.of(memberRepository.save(member));
+    Optional<Member> byKakaoId = memberRepository.findByKakaoId(command.kakaoId());
+    if (byKakaoId.isPresent()) {
+      return updateExistingKakaoMember(byKakaoId.get(), command);
     }
 
-    Member memberToReturn =
-        memberRepository
-            .findByEmail(command.email())
-            .map(
-                existing -> {
-                  existing.linkKakaoId(command.kakaoId());
-                  existing.updateMemberInfo(command.email(), command.name());
-                  return memberRepository.save(existing);
-                })
-            .orElseGet(
-                () -> {
-                  Member newMember =
-                      Member.create(command.kakaoId(), command.email(), command.name());
-                  return memberRepository.save(newMember);
-                });
+    Optional<Member> byEmail = memberRepository.findByEmail(command.email());
+    if (byEmail.isPresent()) {
+      return linkKakaoToExistingEmailMember(byEmail.get(), command);
+    }
 
-    return Optional.of(memberToReturn);
+    return createNewMember(command);
   }
 
   @Override
@@ -71,5 +60,40 @@ public class MemberService implements MemberPublicApi {
   @Override
   public Optional<MemberInfoResponse> getMemberInfo(Long memberId) {
     return memberRepository.findById(memberId).map(MemberInfoResponse::from);
+  }
+
+  @Override
+  public void grantAdminRole(Long memberId) {
+    Member member = findMemberOrThrow(memberId);
+    member.grantAdmin();
+  }
+
+  @Override
+  public void revokeAdminRole(Long memberId) {
+    Member member = findMemberOrThrow(memberId);
+    member.revokeAdmin();
+  }
+
+  private Optional<Member> updateExistingKakaoMember(Member member, SocialLoginCommand command) {
+    member.updateMemberInfo(command.email(), command.name());
+    return Optional.of(memberRepository.save(member));
+  }
+
+  private Optional<Member> linkKakaoToExistingEmailMember(
+      Member member, SocialLoginCommand command) {
+    member.linkKakaoId(command.kakaoId());
+    member.updateMemberInfo(command.email(), command.name());
+    return Optional.of(memberRepository.save(member));
+  }
+
+  private Optional<Member> createNewMember(SocialLoginCommand command) {
+    Member newMember = Member.createMember(command.kakaoId(), command.email(), command.name());
+    return Optional.of(memberRepository.save(newMember));
+  }
+
+  private Member findMemberOrThrow(Long memberId) {
+    return memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> MemberNotFoundException.byId(memberId));
   }
 }
