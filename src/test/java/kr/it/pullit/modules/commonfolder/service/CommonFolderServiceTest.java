@@ -249,6 +249,8 @@ class CommonFolderServiceTest {
       // given
       Long ownerId = 1L;
       Long folderId = CommonFolder.DEFAULT_FOLDER_ID;
+      CommonFolder defaultFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
+      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(defaultFolder));
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.deleteFolder(ownerId, folderId))
