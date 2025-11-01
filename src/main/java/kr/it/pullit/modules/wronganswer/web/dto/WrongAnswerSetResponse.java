@@ -3,6 +3,7 @@ package kr.it.pullit.modules.wronganswer.web.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import lombok.Builder;
 
 @Builder
@@ -13,7 +14,7 @@ public record WrongAnswerSetResponse(
     DifficultyType difficulty,
     String majorTopic,
     Long incorrectCount,
-    String category,
+    QuestionType category,
     @JsonIgnore Long lastWrongAnswerId) {
 
   public static WrongAnswerSetResponse of(
@@ -23,7 +24,7 @@ public record WrongAnswerSetResponse(
       DifficultyType difficulty,
       String majorTopic,
       Long incorrectCount,
-      String category,
+      QuestionType category,
       Long lastWrongAnswerId) {
     return WrongAnswerSetResponse.builder()
         .questionSetId(questionSetId)

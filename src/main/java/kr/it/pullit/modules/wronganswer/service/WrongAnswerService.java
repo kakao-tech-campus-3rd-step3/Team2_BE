@@ -42,7 +42,6 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
     return CursorPageResponse.of(content, size, WrongAnswerSetResponse::lastWrongAnswerId);
   }
 
-  // TODO: 카테고리 추가 필요.
   private WrongAnswerSetResponse toResponse(WrongAnswerSetDto dto) {
     QuestionSet questionSet = dto.questionSet();
     List<String> sourceNames =
@@ -55,7 +54,7 @@ public class WrongAnswerService implements WrongAnswerPublicApi {
         questionSet.getDifficulty(),
         questionSet.getTitle(),
         dto.count(),
-        null,
+        questionSet.getType(),
         dto.lastWrongAnswerId());
   }
 

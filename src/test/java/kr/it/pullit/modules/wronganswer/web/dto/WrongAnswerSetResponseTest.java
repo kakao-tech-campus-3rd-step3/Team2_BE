@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,14 @@ class WrongAnswerSetResponseTest {
   void shouldCreateResponseWithFactoryMethod() {
     WrongAnswerSetResponse response =
         WrongAnswerSetResponse.of(
-            10L, "자료구조 요약", List.of("교재", "강의"), DifficultyType.HARD, "트리", 3L, "CS", 99L);
+            10L,
+            "자료구조 요약",
+            List.of("교재", "강의"),
+            DifficultyType.HARD,
+            "트리",
+            3L,
+            QuestionType.MULTIPLE_CHOICE,
+            99L);
 
     assertThat(response.questionSetId()).isEqualTo(10L);
     assertThat(response.questionSetTitle()).isEqualTo("자료구조 요약");
@@ -29,7 +37,7 @@ class WrongAnswerSetResponseTest {
     assertThat(response.difficulty()).isEqualTo(DifficultyType.HARD);
     assertThat(response.majorTopic()).isEqualTo("트리");
     assertThat(response.incorrectCount()).isEqualTo(3L);
-    assertThat(response.category()).isEqualTo("CS");
+    assertThat(response.category()).isEqualTo(QuestionType.MULTIPLE_CHOICE);
     assertThat(response.lastWrongAnswerId()).isEqualTo(99L);
   }
 
@@ -38,7 +46,14 @@ class WrongAnswerSetResponseTest {
   void shouldIgnoreLastWrongAnswerIdWhenSerialized() throws JsonProcessingException {
     WrongAnswerSetResponse response =
         WrongAnswerSetResponse.of(
-            1L, "네트워크", List.of("블로그"), DifficultyType.EASY, "OSI", 1L, "네트워크", 42L);
+            1L,
+            "네트워크",
+            List.of("블로그"),
+            DifficultyType.EASY,
+            "OSI",
+            1L,
+            QuestionType.SHORT_ANSWER,
+            42L);
 
     String json = objectMapper.writeValueAsString(response);
 
