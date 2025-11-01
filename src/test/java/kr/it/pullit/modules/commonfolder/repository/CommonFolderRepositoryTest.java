@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,9 +28,9 @@ class CommonFolderRepositoryTest {
     void findByTypeOrderBySortOrderAsc() {
       CommonFolderType type = CommonFolderType.QUESTION_SET;
       Long ownerId = 1L;
-      commonFolderRepository.save(CommonFolder.create("B", type, 2, ownerId));
-      commonFolderRepository.save(CommonFolder.create("A", type, 0, ownerId));
-      commonFolderRepository.save(CommonFolder.create("C", type, 1, ownerId));
+      commonFolderRepository.save(CommonFolder.create("B", type, FolderScope.CUSTOM, 2, ownerId));
+      commonFolderRepository.save(CommonFolder.create("A", type, FolderScope.CUSTOM, 0, ownerId));
+      commonFolderRepository.save(CommonFolder.create("C", type, FolderScope.CUSTOM, 1, ownerId));
 
       List<CommonFolder> folders =
           commonFolderRepository.findByOwnerIdAndTypeOrderBySortOrderAsc(ownerId, type);
@@ -48,9 +49,11 @@ class CommonFolderRepositoryTest {
     void findFirstByTypeOrderBySortOrderDesc() {
       CommonFolderType type = CommonFolderType.QUESTION_SET;
       Long ownerId = 1L;
-      commonFolderRepository.save(CommonFolder.create("lowest", type, 0, ownerId));
+      commonFolderRepository.save(
+          CommonFolder.create("lowest", type, FolderScope.CUSTOM, 0, ownerId));
       CommonFolder highest =
-          commonFolderRepository.save(CommonFolder.create("highest", type, 5, ownerId));
+          commonFolderRepository.save(
+              CommonFolder.create("highest", type, FolderScope.CUSTOM, 5, ownerId));
 
       Optional<CommonFolder> found =
           commonFolderRepository.findFirstByOwnerIdAndTypeOrderBySortOrderDesc(ownerId, type);
@@ -70,7 +73,8 @@ class CommonFolderRepositoryTest {
       CommonFolderType type = CommonFolderType.QUESTION_SET;
       Long ownerId = 1L;
       CommonFolder saved =
-          commonFolderRepository.save(CommonFolder.create("target", type, 0, ownerId));
+          commonFolderRepository.save(
+              CommonFolder.create("target", type, FolderScope.CUSTOM, 0, ownerId));
 
       Optional<CommonFolder> found =
           commonFolderRepository.findByNameAndOwnerIdAndType("target", ownerId, type);
@@ -87,6 +91,32 @@ class CommonFolderRepositoryTest {
               "missing", 1L, CommonFolderType.QUESTION_SET);
 
       assertThat(found).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("scope으로 조회")
+  class DescribeFindByOwnerIdAndTypeAndScope {
+    @Test
+    @DisplayName("소유자, 타입, scope이 일치하는 폴더를 반환한다")
+    void findByOwnerIdAndTypeAndScope() {
+      Long ownerId = 1L;
+      commonFolderRepository.save(
+          CommonFolder.create("전체", CommonFolderType.QUESTION_SET, FolderScope.ALL, 0, ownerId));
+      commonFolderRepository.save(
+          CommonFolder.create(
+              "사용자정의", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 1, ownerId));
+      commonFolderRepository.save(
+          CommonFolder.create("전체", CommonFolderType.WRONG_ANSWER, FolderScope.ALL, 0, ownerId));
+
+      Optional<CommonFolder> found =
+          commonFolderRepository.findByOwnerIdAndTypeAndScope(
+              ownerId, CommonFolderType.QUESTION_SET, FolderScope.ALL);
+
+      assertThat(found).isPresent();
+      assertThat(found.get().getName()).isEqualTo("전체");
+      assertThat(found.get().getType()).isEqualTo(CommonFolderType.QUESTION_SET);
+      assertThat(found.get().getScope()).isEqualTo(FolderScope.ALL);
     }
   }
 }
