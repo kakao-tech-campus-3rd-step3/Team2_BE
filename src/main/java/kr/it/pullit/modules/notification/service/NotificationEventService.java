@@ -46,13 +46,11 @@ public class NotificationEventService implements NotificationEventPublicApi {
       return;
     }
     log.debug("Sending heartbeat to {} connected SSE clients", channels.size());
-    String heartbeatMessage = "heartbeat " + System.currentTimeMillis();
     channels
         .values()
         .forEach(
             channel -> {
-              EventData heartbeatEvent =
-                  EventData.of(channel.memberId(), "heartbeat", heartbeatMessage);
+              EventData heartbeatEvent = EventData.heartbeat(channel.memberId());
               channel.send(heartbeatEvent);
             });
   }
@@ -71,7 +69,6 @@ public class NotificationEventService implements NotificationEventPublicApi {
           channel.memberId(),
           SseEventType.HAND_SHAKE_COMPLETE,
           "EventStream Created. userId: " + channel.memberId());
-      sseEventCache.clearByUserId(channel.memberId());
     } catch (Exception e) {
       channel.completeWithError(e);
     }
@@ -99,7 +96,7 @@ public class NotificationEventService implements NotificationEventPublicApi {
   private void doReplayMissedEvents(Long userId, String lastEventId) {
     try {
       long lastId = Long.parseLong(lastEventId);
-      List<EventData> missedEvents = sseEventCache.findAllByUserIdAfter(userId, lastId);
+      List<EventData> missedEvents = sseEventCache.pollAllByUserIdAfter(userId, lastId);
       replayFoundEvents(userId, missedEvents);
     } catch (NumberFormatException e) {
       log.warn("Invalid lastEventId format: {} for user {}", lastEventId, userId);
