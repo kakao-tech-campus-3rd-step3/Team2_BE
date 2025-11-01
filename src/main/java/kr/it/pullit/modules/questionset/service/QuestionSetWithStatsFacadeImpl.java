@@ -1,5 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
+import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
@@ -19,13 +21,25 @@ public class QuestionSetWithStatsFacadeImpl implements QuestionSetWithStatsFacad
 
   private final QuestionSetPublicApi questionSetPublicApi;
   private final LearnStatsPublicApi learnStatsPublicApi;
+  private final CommonFolderPublicApi commonFolderPublicApi;
 
   @Override
   public MyQuestionSetsWithProgressResponse getMemberQuestionSetsWithProgress(
       Long memberId, Long cursor, int size, Long folderId) {
 
-    CursorPageResponse<MyQuestionSetsResponse> questionSets =
-        questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId);
+    boolean isAllFolder =
+        folderId == null
+            || commonFolderPublicApi
+                .findFolderEntityById(memberId, folderId)
+                .map(folder -> folder.getScope() == FolderScope.ALL)
+                .orElse(false);
+
+    CursorPageResponse<MyQuestionSetsResponse> questionSets;
+    if (isAllFolder) {
+      questionSets = questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size);
+    } else {
+      questionSets = questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId);
+    }
     long totalCount = questionSetPublicApi.countByMemberId(memberId);
 
     LearnStats learnStats =

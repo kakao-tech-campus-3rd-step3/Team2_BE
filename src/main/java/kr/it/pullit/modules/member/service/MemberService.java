@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.member.service;
 
 import java.util.Optional;
+import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService implements MemberPublicApi {
 
   private final MemberRepository memberRepository;
+  private final CommonFolderPublicApi commonFolderPublicApi;
 
   @Override
   @Transactional(readOnly = true)
@@ -95,7 +97,9 @@ public class MemberService implements MemberPublicApi {
 
   private Optional<Member> createNewMember(SocialLoginCommand command) {
     Member newMember = Member.createMember(command.kakaoId(), command.email(), command.name());
-    return Optional.of(memberRepository.save(newMember));
+    Member savedMember = memberRepository.save(newMember);
+    commonFolderPublicApi.createInitialFolders(savedMember.getId());
+    return Optional.of(savedMember);
   }
 
   private Member findMemberOrThrow(Long memberId) {

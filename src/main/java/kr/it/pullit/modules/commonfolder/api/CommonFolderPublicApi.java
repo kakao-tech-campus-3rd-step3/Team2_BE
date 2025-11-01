@@ -10,6 +10,8 @@ import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 
 public interface CommonFolderPublicApi {
 
+  void createInitialFolders(Long ownerId);
+
   List<CommonFolderResponse> getFolders(Long ownerId, CommonFolderType type);
 
   CommonFolder getOrCreateDefaultQuestionSetFolder(Long ownerId);

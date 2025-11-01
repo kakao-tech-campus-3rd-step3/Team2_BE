@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
 import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
 import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
@@ -25,6 +26,15 @@ public class CommonFolderService implements CommonFolderPublicApi {
   private final CommonFolderRepository commonFolderRepository;
 
   @Override
+  @Transactional
+  public void createInitialFolders(Long ownerId) {
+    createNewFolder(
+        CommonFolder.DEFAULT_NAME, ownerId, CommonFolderType.QUESTION_SET, FolderScope.ALL, true);
+    createNewFolder(
+        CommonFolder.DEFAULT_NAME, ownerId, CommonFolderType.WRONG_ANSWER, FolderScope.ALL, true);
+  }
+
+  @Override
   public List<CommonFolderResponse> getFolders(Long ownerId, CommonFolderType type) {
     List<CommonFolder> folders =
         commonFolderRepository.findByOwnerIdAndTypeOrderBySortOrderAsc(ownerId, type);
@@ -35,27 +45,36 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Transactional
   public CommonFolder getOrCreateDefaultQuestionSetFolder(Long ownerId) {
     return commonFolderRepository
-        .findByNameAndOwnerIdAndType(
-            CommonFolder.DEFAULT_NAME, ownerId, CommonFolderType.QUESTION_SET)
+        .findByOwnerIdAndTypeAndScope(ownerId, CommonFolderType.QUESTION_SET, FolderScope.ALL)
         .orElseGet(
             () ->
-                createNewFolder(CommonFolder.DEFAULT_NAME, ownerId, CommonFolderType.QUESTION_SET));
+                createNewFolder(
+                    CommonFolder.DEFAULT_NAME,
+                    ownerId,
+                    CommonFolderType.QUESTION_SET,
+                    FolderScope.ALL,
+                    false));
   }
 
   @Override
   @Transactional
   public CommonFolderResponse createFolder(Long ownerId, CreateFolderRequest request) {
-    CommonFolder folder = createNewFolder(request.name(), ownerId, request.type());
+    CommonFolder folder =
+        createNewFolder(request.name(), ownerId, request.type(), FolderScope.CUSTOM, false);
     return toDto(folder);
   }
 
-  private CommonFolder createNewFolder(String name, Long ownerId, CommonFolderType type) {
-    int sortOrder = calculateNextSortOrder(ownerId, type);
-    CommonFolder folder = CommonFolder.create(name, type, sortOrder, ownerId);
+  private CommonFolder createNewFolder(
+      String name, Long ownerId, CommonFolderType type, FolderScope scope, boolean isInitial) {
+    int sortOrder = calculateNextSortOrder(ownerId, type, isInitial);
+    CommonFolder folder = CommonFolder.create(name, type, scope, sortOrder, ownerId);
     return commonFolderRepository.save(folder);
   }
 
-  private int calculateNextSortOrder(Long ownerId, CommonFolderType type) {
+  private int calculateNextSortOrder(Long ownerId, CommonFolderType type, boolean isInitial) {
+    if (isInitial) {
+      return 0;
+    }
     return commonFolderRepository
         .findFirstByOwnerIdAndTypeOrderBySortOrderDesc(ownerId, type)
         .map(folder -> folder.getSortOrder() + 1)
@@ -65,7 +84,7 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional(readOnly = true)
   public CommonFolderResponse getFolder(Long ownerId, Long id) {
-    return toDto(findFolderByIdAndOwner(id, ownerId));
+    return toDto(getFolderByIdAndOwner(id, ownerId));
   }
 
   @Override
@@ -78,9 +97,9 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional
   public CommonFolderResponse updateFolder(Long ownerId, Long id, UpdateFolderRequest request) {
-    CommonFolder folder = findFolderByIdAndOwner(id, ownerId);
+    CommonFolder folder = getFolderByIdAndOwner(id, ownerId);
 
-    if (folder.getName().equals(CommonFolder.DEFAULT_NAME)) {
+    if (folder.getScope() == FolderScope.ALL) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER);
     }
 
@@ -95,27 +114,26 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional
   public void deleteFolder(Long ownerId, Long id) {
-    if (id.equals(CommonFolder.DEFAULT_FOLDER_ID)) {
+    CommonFolder folder = getFolderByIdAndOwner(id, ownerId);
+
+    if (folder.getScope() == FolderScope.ALL) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER);
     }
-    // 소유권 확인 후 삭제
-    findFolderByIdAndOwner(id, ownerId);
     commonFolderRepository.deleteById(id);
   }
 
-  private CommonFolder findFolderById(Long id) {
-    return commonFolderRepository.findById(id).orElseThrow(() -> FolderNotFoundException.byId(id));
-  }
-
-  private CommonFolder findFolderByIdAndOwner(Long id, Long ownerId) {
+  private CommonFolder getFolderByIdAndOwner(Long id, Long ownerId) {
     return commonFolderRepository
-        .findById(id)
-        .filter(folder -> folder.getOwnerId().equals(ownerId))
+        .findByIdAndOwnerId(id, ownerId)
         .orElseThrow(() -> FolderNotFoundException.byId(id));
   }
 
   private CommonFolderResponse toDto(CommonFolder folder) {
     return new CommonFolderResponse(
-        folder.getId(), folder.getName(), folder.getType(), folder.getSortOrder());
+        folder.getId(),
+        folder.getName(),
+        folder.getType(),
+        folder.getScope(),
+        folder.getSortOrder());
   }
 }
