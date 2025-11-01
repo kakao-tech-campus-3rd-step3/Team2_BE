@@ -156,18 +156,25 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional(readOnly = true)
   public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
+      Long memberId, Long cursor, int size) {
+    memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
+    List<QuestionSet> results =
+        questionSetRepository.findByMemberIdWithCursorAndNextPageCheck(memberId, cursor, size);
+    List<MyQuestionSetsResponse> myQuestionSetsResponses =
+        results.stream().map(MyQuestionSetsResponse::from).toList();
+    return CursorPageResponse.of(
+        myQuestionSetsResponses, size, MyQuestionSetsResponse::questionSetId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
       Long memberId, Long cursor, int size, Long folderId) {
     memberPublicApi.findById(memberId).orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
-    List<QuestionSet> results;
-    if (folderId == null || folderId.equals(1L)) {
-      results =
-          questionSetRepository.findByMemberIdWithCursorAndNextPageCheck(memberId, cursor, size);
-    } else {
-      results =
-          questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
-              memberId, folderId, cursor, size);
-    }
+    List<QuestionSet> results =
+        questionSetRepository.findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+            memberId, folderId, cursor, size);
 
     List<MyQuestionSetsResponse> myQuestionSetsResponses =
         results.stream().map(MyQuestionSetsResponse::from).toList();

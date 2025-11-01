@@ -9,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "common_folder")
-public class CommonFolder {
+public class CommonFolder extends BaseEntity {
 
   public static final String DEFAULT_NAME = "전체";
   public static final Long DEFAULT_FOLDER_ID = 1L;
@@ -34,6 +36,10 @@ public class CommonFolder {
   @Column(nullable = false)
   private CommonFolderType type;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private FolderScope scope;
+
   @Column(nullable = false)
   private int sortOrder;
 
@@ -41,18 +47,21 @@ public class CommonFolder {
   private Long ownerId;
 
   @Builder(access = AccessLevel.PRIVATE)
-  public CommonFolder(String name, CommonFolderType type, int sortOrder, Long ownerId) {
+  public CommonFolder(
+      String name, CommonFolderType type, FolderScope scope, int sortOrder, Long ownerId) {
     this.name = name;
     this.type = type;
+    this.scope = scope;
     this.sortOrder = sortOrder;
     this.ownerId = ownerId;
   }
 
   public static CommonFolder create(
-      String name, CommonFolderType type, int sortOrder, Long ownerId) {
+      String name, CommonFolderType type, FolderScope scope, int sortOrder, Long ownerId) {
     return CommonFolder.builder()
         .name(name)
         .type(type)
+        .scope(scope)
         .sortOrder(sortOrder)
         .ownerId(ownerId)
         .build();
