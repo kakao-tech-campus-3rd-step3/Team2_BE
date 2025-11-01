@@ -9,7 +9,7 @@ import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEvent;
 import kr.it.pullit.modules.questionset.event.MarkingCompletedEventHandler;
-import kr.it.pullit.modules.questionset.web.dto.response.MarkingResult;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ class MarkingCompletedEventHandlerTest {
   void shouldPublishEventWhenResultExists() {
     // given
     var memberId = 1L;
-    var results = List.of(new MarkingResult(1L, true));
+    var results = List.of(new MarkingResultDto(1L, true));
     var event = new MarkingCompletedEvent(memberId, results, false);
 
     // when
@@ -44,7 +44,7 @@ class MarkingCompletedEventHandlerTest {
   void shouldNotPublishEventWhenReviewing() {
     // given
     var memberId = 1L;
-    var results = List.of(new MarkingResult(1L, true));
+    var results = List.of(new MarkingResultDto(1L, true));
     var event = new MarkingCompletedEvent(memberId, results, true);
 
     // when
@@ -59,7 +59,7 @@ class MarkingCompletedEventHandlerTest {
   void shouldNotPublishEventWhenResultsAreEmpty() {
     // given
     var memberId = 1L;
-    var results = Collections.<MarkingResult>emptyList();
+    var results = Collections.<MarkingResultDto>emptyList();
     var event = new MarkingCompletedEvent(memberId, results, false);
 
     // when
