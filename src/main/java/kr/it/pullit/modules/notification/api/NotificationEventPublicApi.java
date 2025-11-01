@@ -5,7 +5,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 public interface NotificationEventPublicApi {
 
-  SseEmitter subscribe(Long userId, String lastEventId);
+  SseEmitter subscribe(Long userId, Long lastEventId);
 
   void publishQuestionSetCreationComplete(Long userId, QuestionSetCreationCompleteResponse data);
 }

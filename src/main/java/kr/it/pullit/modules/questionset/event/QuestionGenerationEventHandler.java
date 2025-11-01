@@ -126,7 +126,8 @@ public class QuestionGenerationEventHandler {
     QuestionSetResponse questionSetResponse =
         questionSetPublicApi.getQuestionSetForSolving(
             event.questionSetId(), event.ownerId(), false);
-    return new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
+    return new QuestionSetCreationCompleteResponse(
+        true, questionSetResponse.getId(), "문제집 생성 완료 (" + questionSetResponse.getTitle() + ")");
   }
 
   private void publishSuccessNotification(

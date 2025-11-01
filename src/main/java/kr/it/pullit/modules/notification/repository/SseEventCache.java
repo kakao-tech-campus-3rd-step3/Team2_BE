@@ -5,7 +5,7 @@ import kr.it.pullit.modules.notification.domain.EventData;
 
 public interface SseEventCache {
 
-  EventData put(EventData event);
+  void put(EventData event);
 
   void clear();
 
@@ -17,5 +17,5 @@ public interface SseEventCache {
    * @param lastEventId 클라이언트가 마지막으로 받은 이벤트 ID
    * @return 유실된 이벤트들의 목록
    */
-  List<EventData> findAllByUserIdAfter(Long userId, long lastEventId);
+  List<EventData> pollAllByUserIdAfter(Long userId, long lastEventId);
 }
