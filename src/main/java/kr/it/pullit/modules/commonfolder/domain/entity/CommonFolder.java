@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "common_folder")
-public class CommonFolder {
+public class CommonFolder extends BaseEntity {
 
   public static final String DEFAULT_NAME = "전체";
   public static final Long DEFAULT_FOLDER_ID = 1L;
