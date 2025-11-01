@@ -6,10 +6,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("WrongAnswerSetResponse 단위 테스트")
+@MockitoUnitTest
 class WrongAnswerSetResponseTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();

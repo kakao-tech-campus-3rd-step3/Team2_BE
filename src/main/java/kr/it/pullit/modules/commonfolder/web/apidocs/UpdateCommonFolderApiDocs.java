@@ -12,7 +12,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import kr.it.pullit.shared.apidocs.ApiDocsGroup;
 
 @Target({ElementType.METHOD})
@@ -28,7 +28,7 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
             content =
                 @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = QuestionSetFolderRequest.class),
+                    schema = @Schema(implementation = UpdateFolderRequest.class),
                     examples =
                         @ExampleObject(
                             name = "폴더 수정 요청",

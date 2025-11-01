@@ -18,7 +18,8 @@ import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -120,7 +121,7 @@ class CommonFolderServiceTest {
     void createFolderSuccessWithExistingFolders() {
       // given
       Long ownerId = 1L;
-      QuestionSetFolderRequest request = new QuestionSetFolderRequest("새 폴더", QUESTION_SET);
+      CreateFolderRequest request = new CreateFolderRequest("새 폴더", QUESTION_SET);
       CommonFolder lastFolder = CommonFolder.create("마지막 폴더", QUESTION_SET, 5, ownerId);
 
       given(
@@ -152,7 +153,7 @@ class CommonFolderServiceTest {
       // given
       Long ownerId = 1L;
       Long folderId = 999L;
-      QuestionSetFolderRequest request = new QuestionSetFolderRequest("새 이름", QUESTION_SET);
+      UpdateFolderRequest request = new UpdateFolderRequest("새 이름", QUESTION_SET);
       given(commonFolderRepository.findById(folderId)).willReturn(Optional.empty());
 
       // when & then
@@ -168,7 +169,7 @@ class CommonFolderServiceTest {
       Long folderId = 2L;
       Long anotherOwnerId = 99L;
       CommonFolder anotherFolder = CommonFolder.create("다른 사람 폴더", QUESTION_SET, 0, anotherOwnerId);
-      QuestionSetFolderRequest request = new QuestionSetFolderRequest("새 이름", QUESTION_SET);
+      UpdateFolderRequest request = new UpdateFolderRequest("새 이름", QUESTION_SET);
       given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(anotherFolder));
 
       // when & then
@@ -183,7 +184,7 @@ class CommonFolderServiceTest {
       Long ownerId = 1L;
       Long folderId = 2L;
       CommonFolder defaultFolder = CommonFolder.create("전체", QUESTION_SET, 0, ownerId);
-      QuestionSetFolderRequest request = new QuestionSetFolderRequest("다른 이름", QUESTION_SET);
+      UpdateFolderRequest request = new UpdateFolderRequest("다른 이름", QUESTION_SET);
       given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(defaultFolder));
 
       // when & then

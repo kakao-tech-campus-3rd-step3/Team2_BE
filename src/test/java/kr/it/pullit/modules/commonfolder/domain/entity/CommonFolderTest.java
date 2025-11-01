@@ -3,9 +3,11 @@ package kr.it.pullit.modules.commonfolder.domain.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@MockitoUnitTest
 class CommonFolderTest {
 
   @Test

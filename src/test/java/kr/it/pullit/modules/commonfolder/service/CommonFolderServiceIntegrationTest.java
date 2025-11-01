@@ -11,7 +11,8 @@ import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -118,7 +119,7 @@ class CommonFolderServiceIntegrationTest {
 
       CommonFolderResponse response =
           commonFolderService.createFolder(
-              ownerId, new QuestionSetFolderRequest("새 폴더", CommonFolderType.QUESTION_SET));
+              ownerId, new CreateFolderRequest("새 폴더", CommonFolderType.QUESTION_SET));
 
       assertThat(response.sortOrder()).isEqualTo(4);
       assertThat(commonFolderRepository.findById(response.id())).isPresent();
@@ -140,7 +141,7 @@ class CommonFolderServiceIntegrationTest {
           commonFolderService.updateFolder(
               ownerId,
               folder.getId(),
-              new QuestionSetFolderRequest("수정후", CommonFolderType.QUESTION_SET));
+              new UpdateFolderRequest("수정후", CommonFolderType.QUESTION_SET));
 
       assertThat(response.name()).isEqualTo("수정후");
       assertThat(commonFolderRepository.findById(folder.getId()).orElseThrow().getName())
@@ -160,7 +161,7 @@ class CommonFolderServiceIntegrationTest {
                   commonFolderService.updateFolder(
                       ownerId,
                       folder.getId(),
-                      new QuestionSetFolderRequest("변경", CommonFolderType.QUESTION_SET)))
+                      new UpdateFolderRequest("변경", CommonFolderType.QUESTION_SET)))
           .isInstanceOf(InvalidFolderOperationException.class)
           .extracting("errorCode")
           .isEqualTo(CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER);

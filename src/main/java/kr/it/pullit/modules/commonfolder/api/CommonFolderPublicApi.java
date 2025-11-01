@@ -5,7 +5,8 @@ import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 
 public interface CommonFolderPublicApi {
 
@@ -17,9 +18,9 @@ public interface CommonFolderPublicApi {
 
   CommonFolderResponse getFolder(Long ownerId, Long id);
 
-  CommonFolderResponse createFolder(Long ownerId, QuestionSetFolderRequest request);
+  CommonFolderResponse createFolder(Long ownerId, CreateFolderRequest request);
 
-  CommonFolderResponse updateFolder(Long ownerId, Long id, QuestionSetFolderRequest request);
+  CommonFolderResponse updateFolder(Long ownerId, Long id, UpdateFolderRequest request);
 
   void deleteFolder(Long ownerId, Long id);
 }

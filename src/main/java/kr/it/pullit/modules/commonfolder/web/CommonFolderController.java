@@ -15,8 +15,9 @@ import kr.it.pullit.modules.commonfolder.web.apidocs.GetFolderDeleteWarningApiDo
 import kr.it.pullit.modules.commonfolder.web.apidocs.GetFoldersApiDocs;
 import kr.it.pullit.modules.commonfolder.web.apidocs.UpdateFolderApiDocs;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
+import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
 import kr.it.pullit.modules.commonfolder.web.dto.FolderDeleteWarningResponse;
-import kr.it.pullit.modules.commonfolder.web.dto.QuestionSetFolderRequest;
+import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -57,8 +58,7 @@ public class CommonFolderController {
   @CreateFolderApiDocs
   @PostMapping
   public ResponseEntity<Void> createFolder(
-      @AuthenticationPrincipal Long memberId,
-      @Valid @RequestBody QuestionSetFolderRequest request) {
+      @AuthenticationPrincipal Long memberId, @Valid @RequestBody CreateFolderRequest request) {
     CommonFolderResponse response = commonFolderPublicApi.createFolder(memberId, request);
     return ResponseEntity.created(URI.create("/api/common-folders/" + response.id())).build();
   }
@@ -68,7 +68,7 @@ public class CommonFolderController {
   public ResponseEntity<CommonFolderResponse> updateFolder(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
-      @Valid @RequestBody QuestionSetFolderRequest request) {
+      @Valid @RequestBody UpdateFolderRequest request) {
     return ResponseEntity.ok(commonFolderPublicApi.updateFolder(memberId, id, request));
   }
 

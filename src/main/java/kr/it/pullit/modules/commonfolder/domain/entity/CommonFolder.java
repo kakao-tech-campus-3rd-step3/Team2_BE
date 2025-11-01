@@ -58,8 +58,9 @@ public class CommonFolder {
         .build();
   }
 
-  public void update(String name) {
+  public void update(String name, CommonFolderType type) {
     this.name = name;
+    this.type = type;
   }
 
   public void updateSortOrder(int sortOrder) {
