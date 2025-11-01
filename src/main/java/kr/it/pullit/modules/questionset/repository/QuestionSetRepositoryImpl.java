@@ -6,7 +6,7 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -26,18 +26,33 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId) {
+  public Optional<QuestionSet> findWithQuestionsForFirstSolving(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdWithQuestionsForSolve(id, memberId);
   }
 
   @Override
-  public Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId) {
+  public Optional<QuestionSet> findWithoutQuestions(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdAndOwnerId(id, memberId);
   }
 
   @Override
   public QuestionSet save(QuestionSet questionSet) {
     return questionSetJpaRepository.save(questionSet);
+  }
+
+  @Override
+  public void deleteById(Long questionSetId) {
+    QuestionSet questionSet =
+        questionSetJpaRepository
+            .findById(questionSetId)
+            .orElseThrow(() -> new RuntimeException("문제집을 찾을 수 없습니다: " + questionSetId));
+    questionSetJpaRepository.delete(questionSet);
+  }
+
+  @Override
+  public void deleteAllByIds(List<Long> questionSetIds) {
+    List<QuestionSet> questionSets = questionSetJpaRepository.findAllById(questionSetIds);
+    questionSetJpaRepository.deleteAll(questionSets);
   }
 
   @Override
@@ -59,12 +74,38 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable) {
-    return questionSetJpaRepository.findByMemberIdWithCursor(memberId, cursor, pageable);
+  public List<QuestionSet> findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+      Long memberId, Long folderId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
+    return questionSetJpaRepository.findByMemberIdAndFolderIdWithCursor(
+        memberId, folderId, cursor, pageableWithOneExtra);
   }
 
   @Override
-  public void delete(QuestionSet questionSet) {
-    questionSetJpaRepository.delete(questionSet);
+  public List<QuestionSet> findByMemberIdWithCursorAndNextPageCheck(
+      Long memberId, Long cursor, int size) {
+    PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
+    return questionSetJpaRepository.findByMemberIdWithCursor(
+        memberId, cursor, pageableWithOneExtra);
+  }
+
+  @Override
+  public long countByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
+  }
+
+  @Override
+  public List<QuestionSet> findAllByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.findAllByCommonFolderId(commonFolderId);
+  }
+
+  @Override
+  public long countCompletedQuestionsByMemberId(Long memberId) {
+    return questionSetJpaRepository.countCompletedQuestionsByMemberId(memberId);
+  }
+
+  @Override
+  public long countByOwnerId(Long memberId) {
+    return questionSetJpaRepository.countByOwnerId(memberId);
   }
 }

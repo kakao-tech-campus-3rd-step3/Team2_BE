@@ -22,6 +22,8 @@ public abstract class BaseEntity {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  // 재적용
+
   @LastModifiedDate
   @Column(nullable = false)
   private LocalDateTime updatedAt;

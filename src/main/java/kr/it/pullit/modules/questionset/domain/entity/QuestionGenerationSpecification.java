@@ -1,8 +1,8 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
 import java.util.Objects;
-import kr.it.pullit.modules.questionset.domain.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 
 public record QuestionGenerationSpecification(
     DifficultyType difficultyType, QuestionType questionType, Integer questionCount) {

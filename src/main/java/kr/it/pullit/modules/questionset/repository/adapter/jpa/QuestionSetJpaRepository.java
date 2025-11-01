@@ -41,6 +41,10 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
+  List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
+
+  long countByCommonFolderId(Long commonFolderId);
+
   @Query(
       """
         SELECT DISTINCT qs
@@ -72,9 +76,34 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         SELECT qs
         FROM QuestionSet qs
         WHERE qs.ownerId = :memberId
+        AND qs.commonFolder.id = :folderId
+        AND (:cursor IS NULL OR qs.id < :cursor)
+        ORDER BY qs.createdAt DESC, qs.id DESC
+      """)
+  List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
+      @Param("memberId") Long memberId,
+      @Param("folderId") Long folderId,
+      @Param("cursor") Long cursor,
+      Pageable pageable);
+
+  @Query(
+      """
+        SELECT qs
+        FROM QuestionSet qs
+        WHERE qs.ownerId = :memberId
         AND (:cursor IS NULL OR qs.id < :cursor)
         ORDER BY qs.createdAt DESC, qs.id DESC
       """)
   List<QuestionSet> findByMemberIdWithCursor(
       @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
+
+  @Query(
+      """
+            SELECT COALESCE(SUM(qs.questionLength), 0)
+            FROM QuestionSet qs
+            WHERE qs.ownerId = :memberId AND qs.status = 'COMPLETE'
+      """)
+  long countCompletedQuestionsByMemberId(@Param("memberId") Long memberId);
+
+  long countByOwnerId(Long memberId);
 }
