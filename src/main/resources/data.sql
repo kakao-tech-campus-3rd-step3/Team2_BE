@@ -26,10 +26,10 @@ SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0;
 
 LOCK TABLES `common_folder` WRITE;
 /*!40000 ALTER TABLE `common_folder` DISABLE KEYS */;
-INSERT INTO `common_folder` (`sort_order`, `id`,`owner_id`, `name`, `type`) VALUES (0,1,1,'전체','QUESTION_SET'),
-                                                                        (1,2,1,'디지털영상처리','QUESTION_SET'),
-                                                                        (2,3,1,'시스템프로그래밍','QUESTION_SET'),
-                                                                        (3,4,1,'인공지능','QUESTION_SET');
+INSERT INTO `common_folder` (`sort_order`, `id`,`owner_id`, `name`, `type`, `scope`) VALUES (0,1,1,'전체','QUESTION_SET', 'ALL'),
+                                                                        (1,2,1,'디지털영상처리','QUESTION_SET', 'CUSTOM'),
+                                                                        (2,3,1,'시스템프로그래밍','QUESTION_SET', 'CUSTOM'),
+                                                                        (3,4,1,'인공지능','QUESTION_SET', 'CUSTOM');
 /*!40000 ALTER TABLE `common_folder` ENABLE KEYS */;
 UNLOCK TABLES;
 

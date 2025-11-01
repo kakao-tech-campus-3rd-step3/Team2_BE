@@ -1,6 +1,9 @@
 package kr.it.pullit.modules.commonfolder.service;
 
 import static kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType.QUESTION_SET;
+import static kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType.WRONG_ANSWER;
+import static kr.it.pullit.modules.commonfolder.domain.enums.FolderScope.ALL;
+import static kr.it.pullit.modules.commonfolder.domain.enums.FolderScope.CUSTOM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +40,45 @@ class CommonFolderServiceTest {
   @Mock private CommonFolderRepository commonFolderRepository;
 
   @Nested
+  @DisplayName("초기 폴더 생성")
+  class CreateInitialFolders {
+
+    @Test
+    @DisplayName("성공 - 사용자 ID를 받으면 QUESTION_SET과 WRONG_ANSWER 타입의 '전체' 폴더를 각각 생성한다")
+    void createInitialFolders_Success() {
+      // given
+      Long ownerId = 1L;
+      ArgumentCaptor<CommonFolder> folderCaptor = ArgumentCaptor.forClass(CommonFolder.class);
+      when(commonFolderRepository.save(folderCaptor.capture())).then(i -> i.getArgument(0));
+
+      // when
+      commonFolderService.createInitialFolders(ownerId);
+
+      // then
+      verify(commonFolderRepository, times(2)).save(any(CommonFolder.class));
+      List<CommonFolder> savedFolders = folderCaptor.getAllValues();
+
+      assertThat(savedFolders)
+          .anySatisfy(
+              folder -> {
+                assertThat(folder.getName()).isEqualTo("전체");
+                assertThat(folder.getType()).isEqualTo(QUESTION_SET);
+                assertThat(folder.getScope()).isEqualTo(ALL);
+                assertThat(folder.getOwnerId()).isEqualTo(ownerId);
+              });
+
+      assertThat(savedFolders)
+          .anySatisfy(
+              folder -> {
+                assertThat(folder.getName()).isEqualTo("전체");
+                assertThat(folder.getType()).isEqualTo(WRONG_ANSWER);
+                assertThat(folder.getScope()).isEqualTo(ALL);
+                assertThat(folder.getOwnerId()).isEqualTo(ownerId);
+              });
+    }
+  }
+
+  @Nested
   @DisplayName("사용자별 기본 폴더 생성/조회")
   class GetOrCreateDefaultFolder {
 
@@ -44,14 +86,12 @@ class CommonFolderServiceTest {
     private final String defaultFolderName = "전체";
 
     @Test
-    @DisplayName("성공 - 해당 유저의 기본 폴더가 이미 존재하면, 그것을 반환한다")
+    @DisplayName("성공 - 해당 유저의 기본 문제집 폴더가 이미 존재하면, 그것을 반환한다")
     void shouldReturnExistingDefaultFolder() {
       // given
       CommonFolder existingFolder =
-          CommonFolder.create(defaultFolderName, QUESTION_SET, 0, ownerId);
-      given(
-              commonFolderRepository.findByNameAndOwnerIdAndType(
-                  defaultFolderName, ownerId, QUESTION_SET))
+          CommonFolder.create(defaultFolderName, QUESTION_SET, ALL, 0, ownerId);
+      given(commonFolderRepository.findByOwnerIdAndTypeAndScope(ownerId, QUESTION_SET, ALL))
           .willReturn(Optional.of(existingFolder));
 
       // when
@@ -60,32 +100,6 @@ class CommonFolderServiceTest {
       // then
       assertThat(result).isEqualTo(existingFolder);
       verify(commonFolderRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("성공 - 해당 유저의 기본 폴더가 없으면, 새로 생성하고 저장한 뒤 반환한다")
-    void shouldCreateAndReturnNewDefaultFolder() {
-      // given
-      given(
-              commonFolderRepository.findByNameAndOwnerIdAndType(
-                  defaultFolderName, ownerId, QUESTION_SET))
-          .willReturn(Optional.empty());
-
-      given(
-              commonFolderRepository.findFirstByOwnerIdAndTypeOrderBySortOrderDesc(
-                  ownerId, QUESTION_SET))
-          .willReturn(Optional.empty());
-
-      when(commonFolderRepository.save(any(CommonFolder.class))).then(i -> i.getArgument(0));
-
-      // when
-      CommonFolder result = commonFolderService.getOrCreateDefaultQuestionSetFolder(ownerId);
-
-      // then
-      verify(commonFolderRepository, times(1)).save(any(CommonFolder.class));
-      assertThat(result.getName()).isEqualTo(defaultFolderName);
-      assertThat(result.getOwnerId()).isEqualTo(ownerId);
-      assertThat(result.getSortOrder()).isZero();
     }
   }
 
@@ -98,17 +112,15 @@ class CommonFolderServiceTest {
     void shouldReturnOnlyOwnedFolders() {
       // given
       Long ownerId = 1L;
-      CommonFolder myFolder1 = CommonFolder.create("내 폴더 1", QUESTION_SET, 0, ownerId);
-      CommonFolder myFolder2 = CommonFolder.create("내 폴더 2", QUESTION_SET, 1, ownerId);
-
+      CommonFolder myFolder1 = CommonFolder.create("내 폴더 1", QUESTION_SET, CUSTOM, 0, ownerId);
       given(commonFolderRepository.findByOwnerIdAndTypeOrderBySortOrderAsc(ownerId, QUESTION_SET))
-          .willReturn(List.of(myFolder1, myFolder2));
+          .willReturn(List.of(myFolder1));
 
       // when
       List<CommonFolderResponse> result = commonFolderService.getFolders(ownerId, QUESTION_SET);
 
       // then
-      assertThat(result).hasSize(2);
+      assertThat(result).hasSize(1);
       assertThat(result.get(0).name()).isEqualTo("내 폴더 1");
     }
   }
@@ -122,7 +134,7 @@ class CommonFolderServiceTest {
       // given
       Long ownerId = 1L;
       CreateFolderRequest request = new CreateFolderRequest("새 폴더", QUESTION_SET);
-      CommonFolder lastFolder = CommonFolder.create("마지막 폴더", QUESTION_SET, 5, ownerId);
+      CommonFolder lastFolder = CommonFolder.create("마지막 폴더", QUESTION_SET, CUSTOM, 5, ownerId);
 
       given(
               commonFolderRepository.findFirstByOwnerIdAndTypeOrderBySortOrderDesc(
@@ -168,7 +180,8 @@ class CommonFolderServiceTest {
       Long ownerId = 1L;
       Long folderId = 2L;
       Long anotherOwnerId = 99L;
-      CommonFolder anotherFolder = CommonFolder.create("다른 사람 폴더", QUESTION_SET, 0, anotherOwnerId);
+      CommonFolder anotherFolder =
+          CommonFolder.create("다른 사람 폴더", QUESTION_SET, CUSTOM, 0, anotherOwnerId);
       UpdateFolderRequest request = new UpdateFolderRequest("새 이름", QUESTION_SET);
       given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(anotherFolder));
 
@@ -183,9 +196,26 @@ class CommonFolderServiceTest {
       // given
       Long ownerId = 1L;
       Long folderId = 2L;
-      CommonFolder defaultFolder = CommonFolder.create("전체", QUESTION_SET, 0, ownerId);
+      CommonFolder defaultFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
       UpdateFolderRequest request = new UpdateFolderRequest("다른 이름", QUESTION_SET);
       given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(defaultFolder));
+
+      // when & then
+      assertThatThrownBy(() -> commonFolderService.updateFolder(ownerId, folderId, request))
+          .isInstanceOf(InvalidFolderOperationException.class);
+    }
+
+    @Test
+    @DisplayName("실패 - '전체' 폴더(scope=ALL)는 수정할 수 없다")
+    void updateFolderFailWhenScopeIsAll() {
+      // given
+      Long ownerId = 1L;
+      Long folderId = 2L;
+      CommonFolder allFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
+      UpdateFolderRequest request = new UpdateFolderRequest("다른 이름", QUESTION_SET);
+
+      // findByIdAndOwner가 ownerId까지 검증하므로, Mock이 ownerId가 일치하는 폴더를 반환하도록 설정
+      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(allFolder));
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.updateFolder(ownerId, folderId, request))
@@ -203,7 +233,8 @@ class CommonFolderServiceTest {
       Long ownerId = 1L;
       Long folderId = 10L;
       Long anotherOwnerId = 99L;
-      CommonFolder anotherFolder = CommonFolder.create("다른 사람 폴더", QUESTION_SET, 0, anotherOwnerId);
+      CommonFolder anotherFolder =
+          CommonFolder.create("다른 사람 폴더", QUESTION_SET, CUSTOM, 0, anotherOwnerId);
       given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(anotherFolder));
 
       // when & then
@@ -223,6 +254,22 @@ class CommonFolderServiceTest {
       assertThatThrownBy(() -> commonFolderService.deleteFolder(ownerId, folderId))
           .isInstanceOf(InvalidFolderOperationException.class);
       verify(commonFolderRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("실패 - '전체' 폴더(scope=ALL)는 삭제할 수 없다")
+    void deleteFolderFailWhenScopeIsAll() {
+      // given
+      Long ownerId = 1L;
+      Long folderId = 10L;
+      CommonFolder allFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
+
+      // findByIdAndOwner가 ownerId까지 검증하므로, Mock이 ownerId가 일치하는 폴더를 반환하도록 설정
+      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(allFolder));
+
+      // when & then
+      assertThatThrownBy(() -> commonFolderService.deleteFolder(ownerId, folderId))
+          .isInstanceOf(InvalidFolderOperationException.class);
     }
   }
 }

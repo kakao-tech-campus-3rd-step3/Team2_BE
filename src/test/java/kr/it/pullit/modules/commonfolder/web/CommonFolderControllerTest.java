@@ -16,6 +16,7 @@ import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.api.FolderFacade;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
 import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
 import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
@@ -44,8 +45,10 @@ class CommonFolderControllerTest extends ControllerTest {
   @DisplayName("로그인한 사용자는 자신의 폴더 목록을 성공적으로 조회한다")
   void shouldSuccessfullyRetrieveFoldersWhenLoggedIn() throws Exception {
     // given
-    var folder1 = new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, 0);
-    var folder2 = new CommonFolderResponse(2L, "폴더2", CommonFolderType.QUESTION_SET, 1);
+    var folder1 =
+        new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0);
+    var folder2 =
+        new CommonFolderResponse(2L, "폴더2", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 1);
     given(commonFolderPublicApi.getFolders(1L, CommonFolderType.QUESTION_SET))
         .willReturn(List.of(folder1, folder2));
 
@@ -55,6 +58,7 @@ class CommonFolderControllerTest extends ControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].id").value(1L))
         .andExpect(jsonPath("$[0].name").value("폴더1"))
+        .andExpect(jsonPath("$[0].scope").value(FolderScope.CUSTOM.name()))
         .andExpect(jsonPath("$[1].id").value(2L))
         .andExpect(jsonPath("$[1].name").value("폴더2"));
   }
@@ -64,7 +68,8 @@ class CommonFolderControllerTest extends ControllerTest {
   @DisplayName("로그인한 사용자는 특정 폴더를 성공적으로 조회한다")
   void shouldSuccessfullyRetrieveFolderByIdWhenLoggedIn() throws Exception {
     // given
-    var folder = new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, 0);
+    var folder =
+        new CommonFolderResponse(1L, "폴더1", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0);
     given(commonFolderPublicApi.getFolder(1L, 1L)).willReturn(folder);
 
     // when & then
@@ -72,7 +77,8 @@ class CommonFolderControllerTest extends ControllerTest {
         .perform(get("/api/common-folders/1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(1L))
-        .andExpect(jsonPath("$.name").value("폴더1"));
+        .andExpect(jsonPath("$.name").value("폴더1"))
+        .andExpect(jsonPath("$.scope").value(FolderScope.CUSTOM.name()));
   }
 
   @Test
@@ -81,7 +87,8 @@ class CommonFolderControllerTest extends ControllerTest {
   void shouldSuccessfullyCreateFolderWhenLoggedIn() throws Exception {
     // given
     var request = new CreateFolderRequest("새 폴더", CommonFolderType.QUESTION_SET);
-    var response = new CommonFolderResponse(1L, "새 폴더", CommonFolderType.QUESTION_SET, 0);
+    var response =
+        new CommonFolderResponse(1L, "새 폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0);
     given(commonFolderPublicApi.createFolder(1L, request)).willReturn(response);
 
     // when & then
@@ -100,7 +107,9 @@ class CommonFolderControllerTest extends ControllerTest {
   void shouldSuccessfullyUpdateFolderWhenLoggedIn() throws Exception {
     // given
     var request = new UpdateFolderRequest("수정된 폴더", CommonFolderType.QUESTION_SET);
-    var response = new CommonFolderResponse(1L, "수정된 폴더", CommonFolderType.QUESTION_SET, 0);
+    var response =
+        new CommonFolderResponse(
+            1L, "수정된 폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0);
     given(commonFolderPublicApi.updateFolder(1L, 1L, request)).willReturn(response);
 
     // when & then
