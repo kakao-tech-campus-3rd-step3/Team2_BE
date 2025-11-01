@@ -27,6 +27,8 @@ public class NotificationController {
 
     String lastEventId = headerLastEventId != null ? headerLastEventId : paramLastEventId;
 
-    return notificationEventPublicApi.subscribe(memberId, lastEventId);
+    Long lastEventIdLong = lastEventId != null ? Long.parseLong(lastEventId) : null;
+
+    return notificationEventPublicApi.subscribe(memberId, lastEventIdLong);
   }
 }
