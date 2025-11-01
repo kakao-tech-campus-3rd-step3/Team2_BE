@@ -84,7 +84,7 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional(readOnly = true)
   public CommonFolderResponse getFolder(Long ownerId, Long id) {
-    return toDto(findFolderByIdAndOwner(id, ownerId));
+    return toDto(getFolderByIdAndOwner(id, ownerId));
   }
 
   @Override
@@ -97,7 +97,7 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional
   public CommonFolderResponse updateFolder(Long ownerId, Long id, UpdateFolderRequest request) {
-    CommonFolder folder = findFolderByIdAndOwner(id, ownerId);
+    CommonFolder folder = getFolderByIdAndOwner(id, ownerId);
 
     if (folder.getScope() == FolderScope.ALL) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_UPDATE_DEFAULT_FOLDER);
@@ -114,7 +114,7 @@ public class CommonFolderService implements CommonFolderPublicApi {
   @Override
   @Transactional
   public void deleteFolder(Long ownerId, Long id) {
-    CommonFolder folder = findFolderByIdAndOwner(id, ownerId);
+    CommonFolder folder = getFolderByIdAndOwner(id, ownerId);
 
     if (folder.getScope() == FolderScope.ALL) {
       throw new InvalidFolderOperationException(CommonFolderErrorCode.CANNOT_DELETE_DEFAULT_FOLDER);
@@ -122,14 +122,9 @@ public class CommonFolderService implements CommonFolderPublicApi {
     commonFolderRepository.deleteById(id);
   }
 
-  private CommonFolder findFolderById(Long id) {
-    return commonFolderRepository.findById(id).orElseThrow(() -> FolderNotFoundException.byId(id));
-  }
-
-  private CommonFolder findFolderByIdAndOwner(Long id, Long ownerId) {
+  private CommonFolder getFolderByIdAndOwner(Long id, Long ownerId) {
     return commonFolderRepository
-        .findById(id)
-        .filter(folder -> folder.getOwnerId().equals(ownerId))
+        .findByIdAndOwnerId(id, ownerId)
         .orElseThrow(() -> FolderNotFoundException.byId(id));
   }
 

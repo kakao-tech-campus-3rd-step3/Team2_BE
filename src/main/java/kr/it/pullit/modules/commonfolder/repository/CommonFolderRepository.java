@@ -25,4 +25,6 @@ public interface CommonFolderRepository extends JpaRepository<CommonFolder, Long
 
   Optional<CommonFolder> findByOwnerIdAndTypeAndScope(
       Long ownerId, CommonFolderType type, FolderScope scope);
+
+  Optional<CommonFolder> findByIdAndOwnerId(Long id, Long ownerId);
 }

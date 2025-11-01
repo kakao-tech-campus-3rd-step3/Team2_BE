@@ -166,7 +166,8 @@ class CommonFolderServiceTest {
       Long ownerId = 1L;
       Long folderId = 999L;
       UpdateFolderRequest request = new UpdateFolderRequest("새 이름", QUESTION_SET);
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.empty());
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.updateFolder(ownerId, folderId, request))
@@ -183,7 +184,8 @@ class CommonFolderServiceTest {
       CommonFolder anotherFolder =
           CommonFolder.create("다른 사람 폴더", QUESTION_SET, CUSTOM, 0, anotherOwnerId);
       UpdateFolderRequest request = new UpdateFolderRequest("새 이름", QUESTION_SET);
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(anotherFolder));
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.updateFolder(ownerId, folderId, request))
@@ -198,7 +200,8 @@ class CommonFolderServiceTest {
       Long folderId = 2L;
       CommonFolder defaultFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
       UpdateFolderRequest request = new UpdateFolderRequest("다른 이름", QUESTION_SET);
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(defaultFolder));
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.of(defaultFolder));
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.updateFolder(ownerId, folderId, request))
@@ -215,7 +218,8 @@ class CommonFolderServiceTest {
       UpdateFolderRequest request = new UpdateFolderRequest("다른 이름", QUESTION_SET);
 
       // findByIdAndOwner가 ownerId까지 검증하므로, Mock이 ownerId가 일치하는 폴더를 반환하도록 설정
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(allFolder));
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.of(allFolder));
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.updateFolder(ownerId, folderId, request))
@@ -232,10 +236,8 @@ class CommonFolderServiceTest {
       // given
       Long ownerId = 1L;
       Long folderId = 10L;
-      Long anotherOwnerId = 99L;
-      CommonFolder anotherFolder =
-          CommonFolder.create("다른 사람 폴더", QUESTION_SET, CUSTOM, 0, anotherOwnerId);
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(anotherFolder));
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.deleteFolder(ownerId, folderId))
@@ -250,7 +252,8 @@ class CommonFolderServiceTest {
       Long ownerId = 1L;
       Long folderId = CommonFolder.DEFAULT_FOLDER_ID;
       CommonFolder defaultFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(defaultFolder));
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.of(defaultFolder));
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.deleteFolder(ownerId, folderId))
@@ -267,7 +270,8 @@ class CommonFolderServiceTest {
       CommonFolder allFolder = CommonFolder.create("전체", QUESTION_SET, ALL, 0, ownerId);
 
       // findByIdAndOwner가 ownerId까지 검증하므로, Mock이 ownerId가 일치하는 폴더를 반환하도록 설정
-      given(commonFolderRepository.findById(folderId)).willReturn(Optional.of(allFolder));
+      given(commonFolderRepository.findByIdAndOwnerId(folderId, ownerId))
+          .willReturn(Optional.of(allFolder));
 
       // when & then
       assertThatThrownBy(() -> commonFolderService.deleteFolder(ownerId, folderId))
