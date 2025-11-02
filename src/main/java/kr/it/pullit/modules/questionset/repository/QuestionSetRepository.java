@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import org.springframework.data.domain.Pageable;
 
 public interface QuestionSetRepository {
 
@@ -12,19 +11,32 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId);
 
-  Optional<QuestionSet> findByIdWithQuestionsForFirstSolving(Long id, Long memberId);
+  Optional<QuestionSet> findWithQuestionsForFirstSolving(Long id, Long memberId);
 
-  Optional<QuestionSet> findByIdWithoutQuestions(Long id, Long memberId);
+  Optional<QuestionSet> findWithoutQuestions(Long id, Long memberId);
 
   List<QuestionSet> findByMemberId(Long memberId);
 
-  List<QuestionSet> findByMemberIdWithCursor(Long memberId, Long cursor, Pageable pageable);
+  List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
+
+  long countByCommonFolderId(Long commonFolderId);
+
+  List<QuestionSet> findByMemberIdAndFolderIdWithCursorAndNextPageCheck(
+      Long memberId, Long folderId, Long cursor, int size);
+
+  List<QuestionSet> findByMemberIdWithCursorAndNextPageCheck(Long memberId, Long cursor, int size);
 
   QuestionSet save(QuestionSet questionSet);
 
-  void delete(QuestionSet questionSet);
+  void deleteById(Long questionSetId);
+
+  void deleteAllByIds(List<Long> questionSetIds);
 
   Optional<QuestionSet> findQuestionSetForReviewing(Long questionSetId, Long memberId);
 
   Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
+
+  long countCompletedQuestionsByMemberId(Long memberId);
+
+  long countByOwnerId(Long memberId);
 }

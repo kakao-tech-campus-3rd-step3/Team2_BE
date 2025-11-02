@@ -3,7 +3,7 @@ package kr.it.pullit.modules.questionset.web.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import lombok.Builder;
 
 @Builder

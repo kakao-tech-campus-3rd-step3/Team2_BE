@@ -7,8 +7,11 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import kr.it.pullit.modules.auth.exception.InvalidAccessTokenException;
+import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import kr.it.pullit.platform.security.jwt.dto.TokenValidationResult;
@@ -28,10 +31,12 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
   private final JwtProps jwtProps;
   private final Algorithm algorithm;
   private final JWTVerifier verifier;
+  private final Clock clock;
 
-  public JwtTokenProviderImpl(JwtProps jwtProps) {
+  public JwtTokenProviderImpl(JwtProps jwtProps, Clock clock) {
     this.jwtProps = jwtProps;
     this.algorithm = Algorithm.HMAC256(jwtProps.secret());
+    this.clock = clock;
     this.verifier =
         JWT.require(algorithm)
             .withIssuer(jwtProps.issuer())
@@ -46,7 +51,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
   @Override
   public String createAccessToken(TokenCreationSubject subject) {
-    Instant now = Instant.now();
+    Instant now = Instant.now(clock);
     Instant expiration = now.plus(jwtProps.accessTokenExpirationMinutes());
 
     return createToken(subject, now, expiration, TOKEN_TYPE_ACCESS);
@@ -54,7 +59,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
 
   @Override
   public String createRefreshToken(TokenCreationSubject subject) {
-    Instant now = Instant.now();
+    Instant now = Instant.now(clock);
     Instant expiration = now.plus(jwtProps.refreshTokenExpirationDays());
 
     return createToken(subject, now, expiration, TOKEN_TYPE_REFRESH);
@@ -76,7 +81,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
   }
 
   @Override
-  public TokenValidationResult validateToken(String token) {
+  public TokenValidationResult validateAccessToken(String token) {
     return validateTokenInternal(token, TOKEN_TYPE_ACCESS, "액세스 토큰이 아닙니다.");
   }
 
@@ -97,11 +102,13 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     } catch (TokenExpiredException e) {
       return new TokenValidationResult.Expired();
     } catch (JWTVerificationException e) {
-      return new TokenValidationResult.Invalid("토큰 검증 실패: " + e.getMessage(), e);
+      if (expectedTokenType.equals(TOKEN_TYPE_ACCESS)) {
+        throw InvalidAccessTokenException.by();
+      } else {
+        throw InvalidRefreshTokenException.by();
+      }
     } catch (TokenException e) {
       return new TokenValidationResult.Invalid(e.getMessage(), e);
-    } catch (Exception e) {
-      return new TokenValidationResult.Invalid("예상치 못한 오류: " + e.getMessage(), e);
     }
   }
 

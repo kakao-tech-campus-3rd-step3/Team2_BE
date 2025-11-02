@@ -6,7 +6,7 @@ import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.ShortAnswerQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.TrueFalseQuestion;
-import kr.it.pullit.modules.questionset.domain.enums.QuestionType;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.exception.InvalidQuestionException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetErrorCode;
 import lombok.Builder;

@@ -1,7 +1,10 @@
 package kr.it.pullit.modules.questionset.web;
 
+import jakarta.validation.Valid;
 import java.util.List;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.questionset.service.MarkingService;
+import kr.it.pullit.modules.questionset.web.apidocs.MarkQuestionsApiDocs;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/marking")
+@AuthApiDocs
 public class MarkingController {
 
   private final MarkingService markingService;
@@ -30,13 +34,14 @@ public class MarkingController {
    * @return ResponseEntity 응답
    */
   @PostMapping
+  @MarkQuestionsApiDocs
   public ResponseEntity<MarkQuestionsResponse> markQuestions(
-      @RequestBody List<MarkingRequest> markingRequest,
+      @RequestBody @Valid List<MarkingRequest> request,
       @AuthenticationPrincipal Long memberId,
       @RequestParam(defaultValue = "false") Boolean isReviewing) {
 
     MarkingServiceRequest markingServiceRequest =
-        MarkingServiceRequest.of(memberId, markingRequest, isReviewing);
+        MarkingServiceRequest.of(memberId, request, isReviewing);
     MarkQuestionsResponse res = markingService.markQuestions(markingServiceRequest);
     return ResponseEntity.ok(res);
   }

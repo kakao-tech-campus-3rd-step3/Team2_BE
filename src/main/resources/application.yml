@@ -81,8 +81,6 @@ decorator:
   datasource:
     p6spy:
       enable-logging: true
-#      if you want to write in the spy.log file. this might be used in qa or product profile
-#      logging: file
 
 jwt:
   secret: ${JWT_SECRET_KEY:Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=}
@@ -122,6 +120,7 @@ logging:
     ROOT: INFO
     kr.it.pullit: DEBUG
     kr.it.pullit.modules.notification.service.NotificationService: INFO
+    kr.it.pullit.modules.projection.outbox.relay.OutboxEventRelay: WARN
     org.springframework.security: DEBUG
     java.lang.ProcessBuilder: INFO
     sun.rmi.loader: WARN
@@ -129,6 +128,8 @@ logging:
     javax.management.remote.rmi: WARN
     # org.hibernate.orm.jdbc.bind: TRACE
     p6spy: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5p ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n"
 
 # 로컬 개발용 기본 사용자 (프로덕션에서는 제거하고 환경변수 사용)
 
@@ -167,15 +168,14 @@ app:
 
 # OpenAPI/Swagger 설정
 springdoc:
-  api-docs:
-    path: /v3/api-docs
+  # Swagger UI 페이지 경로를 설정합니다.
   swagger-ui:
     path: /swagger-ui.html
-    operations-sorter: method
-    tags-sorter: alpha
-    url: /openapi/index.yml
-    disable-swagger-default-url: true
-  # 기존 YAML 파일을 로드하여 통합
-  openapi:
-    try-it-out-enabled: true
-    filter: true
+  # API 문서의 기본 경로를 설정합니다.
+  api-docs:
+    path: /api-docs
+  # 문서에 포함할 API 경로 패턴을 지정합니다.
+  paths-to-match:
+    - /api/**
+    - /auth/**
+    - /admin/**

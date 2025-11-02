@@ -4,6 +4,8 @@ import java.util.Optional;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.adapter.jpa.MemberJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -35,5 +37,10 @@ public class MemberRepositoryImpl implements MemberRepository {
   @Override
   public Optional<Member> findByRefreshToken(String refreshToken) {
     return memberJpaRepository.findByRefreshToken(refreshToken);
+  }
+
+  @Override
+  public Page<Member> findAll(Pageable pageable) {
+    return memberJpaRepository.findAll(pageable);
   }
 }

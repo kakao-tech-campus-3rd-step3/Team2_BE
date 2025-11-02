@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.member.service;
 
 import java.util.Optional;
+import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
@@ -8,6 +9,8 @@ import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService implements MemberPublicApi {
 
   private final MemberRepository memberRepository;
+  private final CommonFolderPublicApi commonFolderPublicApi;
 
   @Override
   @Transactional(readOnly = true)
@@ -50,6 +54,11 @@ public class MemberService implements MemberPublicApi {
   @Override
   public Optional<Member> findByRefreshToken(String refreshToken) {
     return memberRepository.findByRefreshToken(refreshToken);
+  }
+
+  @Override
+  public Page<Member> findAll(Pageable pageable) {
+    return memberRepository.findAll(pageable);
   }
 
   @Override
@@ -88,7 +97,9 @@ public class MemberService implements MemberPublicApi {
 
   private Optional<Member> createNewMember(SocialLoginCommand command) {
     Member newMember = Member.createMember(command.kakaoId(), command.email(), command.name());
-    return Optional.of(memberRepository.save(newMember));
+    Member savedMember = memberRepository.save(newMember);
+    commonFolderPublicApi.createInitialFolders(savedMember.getId());
+    return Optional.of(savedMember);
   }
 
   private Member findMemberOrThrow(Long memberId) {
