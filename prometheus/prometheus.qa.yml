@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'springboot-qa'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['pullit-qa-app:8080']
+  - job_name: 'prometheus-qa'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node_exporter-qa'
+    static_configs:
+      - targets: ['node-exporter-qa:9100']

@@ -38,10 +38,12 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Create app directory on EC2
-        run: ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app"
+        run: ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app/prometheus"
 
-      - name: Upload docker-compose (QA)
-        run: scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
+      - name: Upload docker-compose and prometheus config (QA)
+        run: |
+          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
+          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no prometheus/prometheus.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/prometheus/prometheus.qa.yml
 
       - name: Deploy with Docker Compose (QA)
         run: |
@@ -60,6 +62,7 @@ jobs:
             export AWS_REGION='ap-northeast-2' && \
             export SENTRY_DSN='${{ secrets.SENTRY_DSN }}' && \
             export SENTRY_AUTH_TOKEN='${{ secrets.SENTRY_AUTH_TOKEN }}' && \
+            export GRAFANA_ADMIN_PASSWORD='${{ secrets.GRAFANA_ADMIN_PASSWORD }}' && \
             cd /home/ubuntu/app && \
             docker compose -f docker-compose.qa.yml down --remove-orphans && \
             docker compose -f docker-compose.qa.yml pull && \
