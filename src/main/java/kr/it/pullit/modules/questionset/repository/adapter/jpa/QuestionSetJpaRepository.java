@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.repository.adapter.jpa;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -106,4 +107,26 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
   long countCompletedQuestionsByMemberId(@Param("memberId") Long memberId);
 
   long countByOwnerId(Long memberId);
+
+  @Query(
+      """
+          SELECT SUM(q.questionLength) FROM QuestionSet q
+          WHERE q.ownerId = :memberId
+          AND q.status = 'COMPLETE'
+          AND q.createdAt BETWEEN :start AND :end
+      """)
+  Long countCompletedQuestionsByMemberIdAndDateBetween(
+      @Param("memberId") Long memberId,
+      @Param("start") LocalDateTime start,
+      @Param("end") LocalDateTime end);
+
+  @Query(
+      """
+          SELECT DISTINCT q.createdAt
+          FROM QuestionSet q
+          WHERE q.ownerId = :memberId
+          AND q.status = 'COMPLETE'
+          ORDER BY q.createdAt ASC
+      """)
+  List<LocalDateTime> findCompletedDatesByMemberId(@Param("memberId") Long memberId);
 }

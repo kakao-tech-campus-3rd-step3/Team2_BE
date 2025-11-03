@@ -5,11 +5,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
@@ -18,6 +13,11 @@ import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepositor
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -49,7 +49,8 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
   private void recalibrateMember(Long memberId) {
     long totalSolvedCount = questionSetPublicApi.countCompletedQuestionsByMemberId(memberId);
     int weeklySolvedCount = calculateWeeklySolvedCount(memberId);
-    List<LocalDateTime> completedDates = questionSetPublicApi.findCompletedDatesByMemberId(memberId);
+    List<LocalDateTime> completedDates =
+        questionSetPublicApi.findCompletedDatesByMemberId(memberId);
 
     LearnStats stats =
         learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));

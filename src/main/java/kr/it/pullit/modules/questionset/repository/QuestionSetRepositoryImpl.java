@@ -3,12 +3,12 @@ package kr.it.pullit.modules.questionset.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -96,6 +96,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public List<QuestionSet> findAllByCommonFolderId(Long commonFolderId) {
+    return questionSetJpaRepository.findAllByCommonFolderId(commonFolderId);
+  }
+
+  @Override
   public long countCompletedQuestionsByMemberId(Long memberId) {
     return questionSetJpaRepository.countCompletedQuestionsByMemberId(memberId);
   }
@@ -108,7 +113,9 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public long countCompletedQuestionsByMemberIdAndDateBetween(
       Long memberId, LocalDateTime start, LocalDateTime end) {
-    Long result = questionSetJpaRepository.countCompletedQuestionsByMemberIdAndDateBetween(memberId, start, end);
+    Long result =
+        questionSetJpaRepository.countCompletedQuestionsByMemberIdAndDateBetween(
+            memberId, start, end);
     return result != null ? result : 0;
   }
 
