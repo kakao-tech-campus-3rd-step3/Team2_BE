@@ -17,12 +17,13 @@ public class MarkingResultRepositoryImpl implements MarkingResultRepository {
   }
 
   @Override
-  public long countByMemberIdAndIsCorrectIsTrue(Long memberId) {
-    return jpaRepository.countByMemberIdAndIsCorrectIsTrue(memberId);
+  public long countByQuestionSetIdAndMemberId(Long questionSetId, Long memberId) {
+    return jpaRepository.countByQuestion_QuestionSetIdAndMemberId(questionSetId, memberId);
   }
 
   @Override
-  public long countByQuestionSetIdAndMemberId(Long questionSetId, Long memberId) {
-    return jpaRepository.countByQuestion_QuestionSetIdAndMemberId(questionSetId, memberId);
+  public long countCorrectByQuestionSetIdAndMemberId(Long questionSetId, Long memberId) {
+    return jpaRepository.countByQuestion_QuestionSetIdAndMemberIdAndIsCorrectIsTrue(
+        questionSetId, memberId);
   }
 }

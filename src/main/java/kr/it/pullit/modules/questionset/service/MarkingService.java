@@ -55,9 +55,21 @@ public class MarkingService implements MarkingPublicApi {
   }
 
   private void updateQuestionSetLearningStatus(Long memberId, QuestionSet questionSet) {
-    long attemptedQuestionCount =
-        markingResultRepository.countByQuestionSetIdAndMemberId(questionSet.getId(), memberId);
-    questionSet.updateLearningStatus(attemptedQuestionCount);
+    long correctQuestionCount =
+        markingResultRepository.countCorrectByQuestionSetIdAndMemberId(
+            questionSet.getId(), memberId);
+
+    if (correctQuestionCount == 0) {
+      long attemptedQuestionCount =
+          markingResultRepository.countByQuestionSetIdAndMemberId(questionSet.getId(), memberId);
+      if (attemptedQuestionCount > 0) {
+        questionSet.updateLearningStatus(1);
+        questionSetRepository.save(questionSet);
+        return;
+      }
+    }
+
+    questionSet.updateLearningStatus(correctQuestionCount);
     questionSetRepository.save(questionSet);
   }
 
