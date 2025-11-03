@@ -1,7 +1,6 @@
 package kr.it.pullit.modules.member.service;
 
 import java.util.Optional;
-import kr.it.pullit.modules.auth.repository.RefreshTokenRepository;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService implements MemberPublicApi {
 
   private final MemberRepository memberRepository;
-  private final RefreshTokenRepository refreshTokenRepository;
   private final CommonFolderPublicApi commonFolderPublicApi;
 
   @Override
@@ -46,11 +44,9 @@ public class MemberService implements MemberPublicApi {
     }
 
     Optional<Member> byEmail = memberRepository.findByEmail(command.email());
-    if (byEmail.isPresent()) {
-      return linkKakaoToExistingEmailMember(byEmail.get(), command);
-    }
+    return byEmail.map(member -> linkKakaoToExistingEmailMember(member, command))
+        .orElseGet(() -> createNewMember(command));
 
-    return createNewMember(command);
   }
 
   @Override
