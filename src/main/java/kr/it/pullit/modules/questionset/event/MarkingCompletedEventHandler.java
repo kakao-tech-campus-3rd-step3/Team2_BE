@@ -2,6 +2,7 @@ package kr.it.pullit.modules.questionset.event;
 
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
+import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -22,6 +23,11 @@ public class MarkingCompletedEventHandler {
 
     if (event.results().isEmpty()) {
       return;
+    }
+
+    long correctCount = event.results().stream().filter(MarkingResultDto::isCorrect).count();
+    if (correctCount > 0) {
+      learnStatsEventPublicApi.publishCorrectAnswerCount(event.memberId(), correctCount);
     }
 
     learnStatsEventPublicApi.publishQuestionSetSolved(event.memberId(), event.results().size());

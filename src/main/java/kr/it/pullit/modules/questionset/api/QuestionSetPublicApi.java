@@ -32,8 +32,6 @@ public interface QuestionSetPublicApi {
 
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
-  long countCompletedQuestionsByMemberId(Long memberId);
-
   long countCompletedQuestionsByMemberIdAndDateBetween(
       Long memberId, LocalDateTime start, LocalDateTime end);
 

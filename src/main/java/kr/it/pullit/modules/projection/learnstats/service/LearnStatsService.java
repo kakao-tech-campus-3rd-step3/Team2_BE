@@ -32,6 +32,12 @@ public class LearnStatsService implements LearnStatsPublicApi {
     repo.save(p);
   }
 
+  public void increaseCorrectQuestionCount(Long memberId, long correctCount) {
+    LearnStats p = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
+    p.increaseCorrectQuestionCount(correctCount);
+    repo.save(p);
+  }
+
   @Override
   @Transactional(readOnly = true)
   public Optional<LearnStats> getLearnStats(Long memberId) {

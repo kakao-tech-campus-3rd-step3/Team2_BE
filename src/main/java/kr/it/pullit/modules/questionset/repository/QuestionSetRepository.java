@@ -37,8 +37,6 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSetResponse> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
-  long countCompletedQuestionsByMemberId(Long memberId);
-
   long countByOwnerId(Long memberId);
 
   long countCompletedQuestionsByMemberIdAndDateBetween(

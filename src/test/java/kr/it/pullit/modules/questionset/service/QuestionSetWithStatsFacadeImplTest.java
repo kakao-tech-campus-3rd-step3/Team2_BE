@@ -94,7 +94,7 @@ class QuestionSetWithStatsFacadeImplTest {
     // given
     Long memberId = 1L;
     LearnStats learnStats = LearnStats.newOf(memberId);
-    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionCount", 5L);
+    ReflectionTestUtils.setField(learnStats, "totalCorrectQuestionCount", 5L);
     ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 10L);
 
     given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
@@ -113,7 +113,7 @@ class QuestionSetWithStatsFacadeImplTest {
     // given
     Long memberId = 1L;
     LearnStats learnStats = LearnStats.newOf(memberId);
-    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionCount", 0L);
+    ReflectionTestUtils.setField(learnStats, "totalCorrectQuestionCount", 0L);
     ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 0L);
 
     given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
