@@ -5,6 +5,7 @@ import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.LearningStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import lombok.Builder;
@@ -19,6 +20,7 @@ public record MyQuestionSetsResponse(
     DifficultyType difficultyType,
     QuestionType questionType,
     QuestionSetStatus status,
+    LearningStatus learningStatus,
     Long commonFolderId,
     String commonFolderName,
     LocalDateTime createdAt) {
@@ -41,6 +43,7 @@ public record MyQuestionSetsResponse(
         .difficultyType(questionSet.getDifficulty())
         .questionType(questionSet.getType())
         .status(questionSet.getStatus())
+        .learningStatus(questionSet.getLearningStatus())
         .commonFolderId(folderId)
         .commonFolderName(folderName)
         .createdAt(questionSet.getCreatedAt())

@@ -1,9 +1,9 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.MarkingResult;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.MarkingResultJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -14,5 +14,15 @@ public class MarkingResultRepositoryImpl implements MarkingResultRepository {
   @Override
   public MarkingResult save(MarkingResult markingResult) {
     return jpaRepository.save(markingResult);
+  }
+
+  @Override
+  public long countByMemberIdAndIsCorrectIsTrue(Long memberId) {
+    return jpaRepository.countByMemberIdAndIsCorrectIsTrue(memberId);
+  }
+
+  @Override
+  public long countByQuestionSetIdAndMemberId(Long questionSetId, Long memberId) {
+    return jpaRepository.countByQuestion_QuestionSetIdAndMemberId(questionSetId, memberId);
   }
 }

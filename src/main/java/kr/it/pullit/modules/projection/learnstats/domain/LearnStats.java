@@ -33,7 +33,7 @@ public class LearnStats extends BaseEntity {
 
   // 문제
   @Column(nullable = false)
-  private long totalSolvedQuestionCount; // 총 문제 수
+  private long totalSolvedQuestionCount; // 총 풀었던 문제 수
 
   @Column(nullable = false)
   private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
