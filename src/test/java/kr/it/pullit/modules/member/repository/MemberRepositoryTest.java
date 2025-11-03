@@ -31,8 +31,6 @@ class MemberRepositoryTest {
                 .name("tester")
                 .kakaoId(12345L)
                 .build());
-    savedMember.updateRefreshToken("test-refresh-token");
-    memberRepository.save(savedMember);
   }
 
   @Nested
@@ -70,17 +68,6 @@ class MemberRepositoryTest {
       // then
       assertThat(foundMember).isPresent();
       assertThat(foundMember.get().getKakaoId()).isEqualTo(12345L);
-    }
-
-    @Test
-    @DisplayName("리프레시 토큰으로 회원을 조회하면, 저장된 회원이 조회되어야 한다")
-    void shouldFindMemberByRefreshToken() {
-      // when
-      Optional<Member> foundMember = memberRepository.findByRefreshToken("test-refresh-token");
-
-      // then
-      assertThat(foundMember).isPresent();
-      assertThat(foundMember.get().getRefreshToken()).isEqualTo("test-refresh-token");
     }
 
     @Test

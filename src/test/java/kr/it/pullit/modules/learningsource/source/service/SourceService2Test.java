@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@ActiveProfiles({"mock-auth", "real-env"})
+@ActiveProfiles({"mock-auth", "real-env", "test"})
 @IntegrationTest
 public class SourceService2Test {
 

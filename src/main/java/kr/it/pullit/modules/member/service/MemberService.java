@@ -44,16 +44,9 @@ public class MemberService implements MemberPublicApi {
     }
 
     Optional<Member> byEmail = memberRepository.findByEmail(command.email());
-    if (byEmail.isPresent()) {
-      return linkKakaoToExistingEmailMember(byEmail.get(), command);
-    }
-
-    return createNewMember(command);
-  }
-
-  @Override
-  public Optional<Member> findByRefreshToken(String refreshToken) {
-    return memberRepository.findByRefreshToken(refreshToken);
+    return byEmail
+        .map(member -> linkKakaoToExistingEmailMember(member, command))
+        .orElseGet(() -> createNewMember(command));
   }
 
   @Override

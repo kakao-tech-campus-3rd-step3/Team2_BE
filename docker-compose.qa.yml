@@ -26,9 +26,14 @@ services:
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
       # JVM 옵션 (메모리 최적화)
       - JAVA_OPTS=-Xmx512m -Xms256m
+      # Redis 연결 설정
+      - REDIS_HOST=pullit-qa-redis
+      - REDIS_PORT=6379
     depends_on:
       pullit-qa-db:
         condition: service_healthy
+      pullit-qa-redis:
+        condition: service_started
     networks:
       - pullit-qa-network
     healthcheck:
@@ -103,6 +108,21 @@ services:
       - "127.0.0.1:9487:9100"
     networks:
       - pullit-qa-network
+
+  # QA용 Redis
+  pullit-qa-redis:
+    image: redis:8.0.4-alpine
+    container_name: pullit-qa-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - pullit-qa-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pullit_qa_data:

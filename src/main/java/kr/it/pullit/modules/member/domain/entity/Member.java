@@ -34,9 +34,6 @@ public class Member extends BaseEntity {
 
   @Column private String name;
 
-  @Column(length = 512)
-  private String refreshToken;
-
   @Enumerated(EnumType.STRING)
   @Column
   private MemberStatus status;
@@ -82,10 +79,6 @@ public class Member extends BaseEntity {
         .status(MemberStatus.ACTIVE)
         .role(Role.ADMIN)
         .build();
-  }
-
-  public void updateRefreshToken(String refreshToken) {
-    this.refreshToken = refreshToken;
   }
 
   public void linkKakaoId(Long kakaoId) {

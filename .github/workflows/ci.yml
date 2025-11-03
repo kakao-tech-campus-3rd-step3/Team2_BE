@@ -9,6 +9,17 @@ on:
 jobs:
   code_check:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       AWS_REGION: ap-northeast-2
       # DB 관련 변수는 빌드/테스트 시 내장 DB를 사용하므로 불필요
@@ -54,6 +65,13 @@ jobs:
           JWT_COOKIE_DOMAIN: ${{ secrets.JWT_COOKIE_DOMAIN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: build/reports/tests/test
 
       - name: Build and push image with tags (latest and sha)
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'

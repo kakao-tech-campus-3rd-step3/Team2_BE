@@ -15,8 +15,6 @@ public interface MemberPublicApi {
 
   Optional<Member> findOrCreateMember(SocialLoginCommand command);
 
-  Optional<Member> findByRefreshToken(String refreshToken);
-
   Member save(Member member);
 
   Optional<MemberInfoResponse> getMemberInfo(Long memberId);

@@ -4,3 +4,7 @@ spring:
       mode: never
   datasource:
     url: jdbc:h2:mem:test;MODE=MySQL;
+  data:
+    redis:
+      host: localhost
+      port: 6379
