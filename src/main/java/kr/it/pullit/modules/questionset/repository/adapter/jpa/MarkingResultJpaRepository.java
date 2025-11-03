@@ -5,7 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MarkingResultJpaRepository extends JpaRepository<MarkingResult, Long> {
 
-  long countByMemberIdAndIsCorrectIsTrue(Long memberId);
-
   long countByQuestion_QuestionSetIdAndMemberId(Long questionSetId, Long memberId);
+
+  long countByQuestion_QuestionSetIdAndMemberIdAndIsCorrectIsTrue(
+      Long questionSetId, Long memberId);
 }
