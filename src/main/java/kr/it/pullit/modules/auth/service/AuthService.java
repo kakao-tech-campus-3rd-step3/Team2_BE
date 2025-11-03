@@ -1,16 +1,20 @@
 package kr.it.pullit.modules.auth.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import kr.it.pullit.modules.auth.domain.entity.RefreshToken;
 import kr.it.pullit.modules.auth.exception.InvalidRefreshTokenException;
+import kr.it.pullit.modules.auth.repository.RefreshTokenRepository;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.domain.entity.Role;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
+import kr.it.pullit.platform.security.jwt.JwtProps;
 import kr.it.pullit.platform.security.jwt.JwtTokenProvider;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.security.jwt.dto.TokenCreationSubject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -19,6 +23,8 @@ public class AuthService {
 
   private final MemberPublicApi memberPublicApi;
   private final JwtTokenProvider jwtTokenProvider;
+  private final RefreshTokenRepository refreshTokenRepository;
+  private final JwtProps jwtProps;
 
   @Transactional
   public AuthTokens issueAndSaveTokens(Long memberId) {
@@ -28,11 +34,19 @@ public class AuthService {
             .orElseThrow(() -> MemberNotFoundException.byId(memberId));
 
     AuthTokens newAuthTokens = jwtTokenProvider.createAuthTokens(TokenCreationSubject.from(member));
-    member.updateRefreshToken(newAuthTokens.refreshToken());
-
-    log.info(" [토큰 발급] DB에 저장된 리프레시 토큰: {}", newAuthTokens.refreshToken());
+    storeRefreshToken(member, newAuthTokens.refreshToken());
 
     return newAuthTokens;
+  }
+
+  public void storeRefreshToken(Member member, String refreshToken) {
+    long ttl = jwtProps.refreshTokenExpirationDays().toMillis();
+
+    RefreshToken tokenEntity =
+        RefreshToken.of(
+            member.getId(), refreshToken, member.getEmail(), member.getRole(), ttl);
+    refreshTokenRepository.save(tokenEntity);
+    log.info(" [리프레시 토큰 저장] Redis Key(memberId): {}", member.getId());
   }
 
   @Transactional(readOnly = true)
@@ -40,21 +54,24 @@ public class AuthService {
     log.info(" [토큰 갱신] API로 전달받은 리프레시 토큰: {}", refreshToken);
     validateRefreshToken(refreshToken);
 
-    Member member =
-        memberPublicApi
-            .findByRefreshToken(refreshToken)
+    RefreshToken tokenEntity =
+        refreshTokenRepository
+            .findByToken(refreshToken)
             .orElseThrow(InvalidRefreshTokenException::by);
 
-    return jwtTokenProvider.createAccessToken(TokenCreationSubject.from(member));
+    TokenCreationSubject subject =
+        TokenCreationSubject.of(
+            tokenEntity.getMemberId(),
+            tokenEntity.getEmail(),
+            Role.valueOf(tokenEntity.getRole()));
+
+    return jwtTokenProvider.createAccessToken(subject);
   }
 
   @Transactional
   public void logout(Long memberId) {
-    Member member =
-        memberPublicApi
-            .findById(memberId)
-            .orElseThrow(() -> MemberNotFoundException.byId(memberId));
-    member.updateRefreshToken(null);
+    refreshTokenRepository.deleteById(memberId);
+    log.info(" [로그아웃] Redis에서 리프레시 토큰 삭제 완료. Key(memberId): {}", memberId);
   }
 
   private void validateRefreshToken(String refreshToken) {

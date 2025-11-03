@@ -8,3 +8,7 @@ services:
       - 'MARIADB_USER=myuser'
     ports:
       - "127.0.0.1:3306:3306"
+  redis:
+    image: 'redis:8.0.4-alpine'
+    ports:
+      - "127.0.0.1:6379:6379"
