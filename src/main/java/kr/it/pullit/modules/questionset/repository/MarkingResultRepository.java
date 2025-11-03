@@ -8,7 +8,7 @@ public interface MarkingResultRepository {
   long countByQuestionSetIdAndMemberId(Long questionSetId, Long memberId);
 
   long countCorrectByQuestionSetIdAndMemberId(Long questionSetId, Long memberId);
-  
+
   long countDistinctQuestionByMemberId(Long memberId);
 
   long countByMemberIdAndIsCorrectIsTrue(Long memberId);
