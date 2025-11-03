@@ -92,7 +92,7 @@ services:
     networks:
       - pullit-qa-network
 
-  node-exporter:
+  node-exporter-qa:
     container_name: node-exporter-qa
     image: prom/node-exporter
     restart: unless-stopped
