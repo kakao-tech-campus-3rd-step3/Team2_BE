@@ -1,11 +1,11 @@
 package kr.it.pullit.modules.member.api;
 
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.service.dto.SocialLoginCommand;
 import kr.it.pullit.modules.member.web.dto.MemberInfoResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface MemberPublicApi {
 
@@ -14,8 +14,6 @@ public interface MemberPublicApi {
   Optional<Member> findByKakaoId(Long kakaoId);
 
   Optional<Member> findOrCreateMember(SocialLoginCommand command);
-
-  Optional<Member> findByRefreshToken(String refreshToken);
 
   Member save(Member member);
 

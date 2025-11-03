@@ -72,6 +72,42 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --default-time-zone=+09:00
+      - --slow_query_log=1
+      - --log_output=TABLE
+      - --long_query_time=1
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.qa.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9486:9090"
+    networks:
+      - pullit-qa-network
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: unless-stopped
+    volumes:
+      - grafana_storage:/var/lib/grafana
+    ports:
+      - "127.0.0.1:9485:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    networks:
+      - pullit-qa-network
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9487:9100"
+    networks:
+      - pullit-qa-network
 
   # QA용 Redis
   pullit-qa-redis:
@@ -90,6 +126,8 @@ services:
 
 volumes:
   pullit_qa_data:
+    driver: local
+  grafana_storage:
     driver: local
 
 networks:

@@ -43,7 +43,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `member` WRITE;
 /*!40000 ALTER TABLE `member` DISABLE KEYS */;
-INSERT INTO `member` (`created_at`, `id`, `kakao_id`, `updated_at`, `refresh_token`, `email`, `name`, `role`, `status`) VALUES ('2025-10-22 12:39:43.000000',1,123456789,'2025-10-22 12:39:43.000000','sample_refresh_token','test@example.com','홍길동','ADMIN','ACTIVE');
+INSERT INTO `member` (`created_at`, `id`, `kakao_id`, `updated_at`, `email`, `name`, `role`, `status`) VALUES ('2025-10-22 12:39:43.000000',1,123456789,'2025-10-22 12:39:43.000000','test@example.com','홍길동','ADMIN','ACTIVE');
 /*!40000 ALTER TABLE `member` ENABLE KEYS */;
 UNLOCK TABLES;
 

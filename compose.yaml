@@ -8,7 +8,55 @@ services:
       - 'MARIADB_USER=myuser'
     ports:
       - "127.0.0.1:3306:3306"
+    networks:
+      - pullit-qa-network
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9486:9090
+    networks:
+      - pullit-qa-network
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    ports:
+      - 9485:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    networks:
+      - pullit-qa-network
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - "9487:9100"
+    networks:
+      - pullit-qa-network
+
   redis:
     image: 'redis:8.0.4-alpine'
     ports:
       - "127.0.0.1:6379:6379"
+    networks:
+      - pullit-qa-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  pullit-qa-network:
+
+volumes:
+  grafana-storage:
