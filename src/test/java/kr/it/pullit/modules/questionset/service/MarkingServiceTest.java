@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.spy;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
+import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
 import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
@@ -151,6 +153,36 @@ class MarkingServiceTest {
       // then
       assertThat(response.results().get(0).isCorrect()).isTrue();
       verify(markingResultRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("요청이 null이면 예외를 던진다")
+    void throwsWhenRequestNull() {
+      assertThatThrownBy(() -> markingService.markQuestions(null))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("채점 대상이 비어 있으면 예외를 던진다")
+    void throwsWhenRequestsEmpty() {
+      MarkingServiceRequest request = MarkingServiceRequest.of(1L, List.of(), false);
+
+      assertThatThrownBy(() -> markingService.markQuestions(request))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("문제를 찾지 못하면 예외를 던진다")
+    void throwsWhenQuestionMissing() {
+      Long missingQuestionId = 999L;
+
+      given(questionPublicApi.findEntityById(missingQuestionId)).willReturn(Optional.empty());
+
+      MarkingServiceRequest request =
+          MarkingServiceRequest.of(1L, List.of(MarkingRequest.of(missingQuestionId, true)), false);
+
+      assertThatThrownBy(() -> markingService.markQuestions(request))
+          .isInstanceOf(QuestionNotFoundException.class);
     }
   }
 }
