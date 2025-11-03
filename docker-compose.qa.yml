@@ -104,7 +104,7 @@ services:
 volumes:
   pullit_qa_data:
     driver: local
-  grafana_qa_storage:
+  grafana_storage:
     driver: local
 
 networks:
