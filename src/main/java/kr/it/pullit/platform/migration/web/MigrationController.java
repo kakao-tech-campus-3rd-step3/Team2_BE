@@ -1,14 +1,13 @@
 package kr.it.pullit.platform.migration.web;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
-import kr.it.pullit.platform.migration.api.MigrationPublicApi;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.it.pullit.platform.migration.api.MigrationPublicApi;
+import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Migration API", description = "데이터베이스 마이그레이션 API (내부용)")
 @RestController
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class MigrationController {
 
   private final MigrationPublicApi migrationPublicApi;
-  private final LearnStatsRecalibrationPublicApi recalibrationApi;
 
   @PostMapping("/source-status-v1")
   public ResponseEntity<String> runSourceStatusMigration() {
@@ -28,7 +26,7 @@ public class MigrationController {
 
   @PostMapping("/recalibrate/learn-stats")
   public ResponseEntity<String> runLearnStatsRecalibration() {
-    recalibrationApi.recalibrateLearnStatsAllMembers();
+    migrationPublicApi.runLearnStatsRecalibration();
     return ResponseEntity.ok("모든 회원의 학습 통계(총 문제, 주간 문제, 연속 학습일) 보정 작업이 시작되었습니다.");
   }
 }

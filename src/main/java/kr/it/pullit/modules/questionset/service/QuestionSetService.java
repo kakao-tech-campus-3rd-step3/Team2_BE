@@ -3,6 +3,8 @@ package kr.it.pullit.modules.questionset.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -20,6 +22,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
@@ -30,14 +33,13 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
+  private final QuestionRepository questionRepository;
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
@@ -284,6 +286,11 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   public List<LocalDateTime> findCompletedDatesByMemberId(Long memberId) {
     return questionSetRepository.findCompletedDatesByMemberId(memberId);
+  }
+
+  @Override
+  public long countByQuestionSetOwnerId(Long ownerId) {
+    return questionRepository.countByQuestionSetOwnerId(ownerId);
   }
 
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {

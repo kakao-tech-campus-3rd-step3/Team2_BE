@@ -2,10 +2,10 @@ package kr.it.pullit.modules.questionset.repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -39,6 +39,6 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
   @Override
   public long countByQuestionSetOwnerId(Long ownerId) {
-    return questionJpaRepository.countByQuestionSetOwnerId(ownerId);
+    return questionJpaRepository.countByQuestionSet_OwnerId(ownerId);
   }
 }

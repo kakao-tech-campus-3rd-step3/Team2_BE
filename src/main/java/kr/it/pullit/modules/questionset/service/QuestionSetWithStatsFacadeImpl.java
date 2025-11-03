@@ -1,17 +1,17 @@
 package kr.it.pullit.modules.questionset.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
-import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
-import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +20,7 @@ public class QuestionSetWithStatsFacadeImpl implements QuestionSetWithStatsFacad
 
   private final QuestionSetPublicApi questionSetPublicApi;
   private final CommonFolderPublicApi commonFolderPublicApi;
-  private final MarkingResultRepository markingResultRepository;
-  private final QuestionRepository questionRepository;
+  private final LearnStatsPublicApi learnStatsPublicApi;
 
   @Override
   public MyQuestionSetsWithProgressResponse getMemberQuestionSetsWithProgress(
@@ -41,13 +40,10 @@ public class QuestionSetWithStatsFacadeImpl implements QuestionSetWithStatsFacad
       questionSets = questionSetPublicApi.getMemberQuestionSets(memberId, cursor, size, folderId);
     }
 
-    long totalCorrectAnswers = markingResultRepository.countByMemberIdAndIsCorrectIsTrue(memberId);
-    long totalQuestions = questionRepository.countByQuestionSetOwnerId(memberId);
+    LearnStats learnStats =
+        learnStatsPublicApi.getLearnStats(memberId).orElseGet(() -> LearnStats.newOf(memberId));
 
-    int learningProgress = 0;
-    if (totalQuestions > 0) {
-      learningProgress = (int) (((double) totalCorrectAnswers / totalQuestions) * 100);
-    }
+    int learningProgress = learnStats.calculateLearningProgress();
 
     return new MyQuestionSetsWithProgressResponse(questionSets, learningProgress);
   }

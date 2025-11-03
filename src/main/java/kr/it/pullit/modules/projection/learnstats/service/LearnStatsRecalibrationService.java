@@ -5,6 +5,11 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
@@ -13,11 +18,6 @@ import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepositor
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -46,8 +46,19 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
     log.info("모든 회원의 학습 통계 보정 작업을 완료했습니다.");
   }
 
+  @Override
+  public void recalibrateTotalQuestionCountForMember(Long memberId) {
+    long totalQuestionCount = questionSetPublicApi.countByQuestionSetOwnerId(memberId);
+    LearnStats stats =
+        learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
+    stats.updateTotalQuestionCount(totalQuestionCount);
+    learnStatsRepository.save(stats);
+    log.info("{}번 회원의 전체 문제 수를 {}개로 보정했습니다.", memberId, totalQuestionCount);
+  }
+
   private void recalibrateMember(Long memberId) {
     long totalSolvedCount = questionSetPublicApi.countCompletedQuestionsByMemberId(memberId);
+    long totalQuestionCount = questionSetPublicApi.countByQuestionSetOwnerId(memberId);
     int weeklySolvedCount = calculateWeeklySolvedCount(memberId);
     List<LocalDateTime> completedDates =
         questionSetPublicApi.findCompletedDatesByMemberId(memberId);
@@ -56,6 +67,7 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
         learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
 
     stats.recalibrate(totalSolvedCount, weeklySolvedCount, completedDates);
+    stats.updateTotalQuestionCount(totalQuestionCount);
 
     learnStatsRepository.save(stats);
 

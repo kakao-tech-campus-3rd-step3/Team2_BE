@@ -39,6 +39,8 @@ public interface QuestionSetPublicApi {
 
   List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
 
+  long countByQuestionSetOwnerId(Long ownerId);
+
   CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
       Long memberId, Long cursor, int size);
 

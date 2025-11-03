@@ -1,8 +1,12 @@
 package kr.it.pullit.modules.questionset.event;
 
 import java.util.List;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
@@ -18,10 +22,6 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationComp
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
@@ -33,7 +33,7 @@ public class QuestionGenerationEventHandler {
   private final NotificationEventPublicApi notificationEventPublicApi;
   private final SourceValidator sourceValidator;
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
-  private final LearnStatsEventPublicApi learnStatsEventPublicApi;
+  private final LearnStatsRecalibrationPublicApi learnStatsRecalibrationPublicApi;
 
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -118,8 +118,9 @@ public class QuestionGenerationEventHandler {
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
     QuestionSetCreationCompleteResponse responseDto = createSuccessResponse(event);
-    publishSuccessNotification(event.ownerId(), responseDto);
-    logSuccess(event.questionSetId());
+    notificationEventPublicApi.publishQuestionSetCreationComplete(event.ownerId(), responseDto);
+    learnStatsRecalibrationPublicApi.recalibrateTotalQuestionCountForMember(event.ownerId());
+    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", event.questionSetId());
   }
 
   private QuestionSetCreationCompleteResponse createSuccessResponse(QuestionSetCreatedEvent event) {
@@ -128,15 +129,6 @@ public class QuestionGenerationEventHandler {
             event.questionSetId(), event.ownerId(), false);
     return new QuestionSetCreationCompleteResponse(
         true, questionSetResponse.getId(), "문제집 생성 완료 (" + questionSetResponse.getTitle() + ")");
-  }
-
-  private void publishSuccessNotification(
-      Long ownerId, QuestionSetCreationCompleteResponse responseDto) {
-    notificationEventPublicApi.publishQuestionSetCreationComplete(ownerId, responseDto);
-  }
-
-  private void logSuccess(Long questionSetId) {
-    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", questionSetId);
   }
 
   private void handleFailure(QuestionSetCreatedEvent event, Exception e) {

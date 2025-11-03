@@ -1,15 +1,14 @@
 package kr.it.pullit.modules.projection.learnstats.domain;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
@@ -33,6 +32,9 @@ public class LearnStats extends BaseEntity {
 
   // 문제
   @Column(nullable = false)
+  private long totalQuestionCount; // 전체 문제 수
+
+  @Column(nullable = false)
   private long totalSolvedQuestionCount; // 총 풀었던 문제 수
 
   @Column(nullable = false)
@@ -53,6 +55,13 @@ public class LearnStats extends BaseEntity {
     return LearnStats.builder().memberId(memberId).build();
   }
 
+  public int calculateLearningProgress() {
+    if (this.totalQuestionCount == 0) {
+      return 0;
+    }
+    return (int) (((double) this.totalSolvedQuestionCount / this.totalQuestionCount) * 100);
+  }
+
   public void onWeeklyReset() {
     this.weeklySolvedQuestionCount = 0;
   }
@@ -65,6 +74,10 @@ public class LearnStats extends BaseEntity {
     this.totalSolvedQuestionCount += solvedQuestionCount;
     this.weeklySolvedQuestionCount += solvedQuestionCount;
     updateConsecutiveStreak(today);
+  }
+
+  public void updateTotalQuestionCount(long totalQuestionCount) {
+    this.totalQuestionCount = totalQuestionCount;
   }
 
   public void updateTotalSolvedQuestionCount(long realCount) {
