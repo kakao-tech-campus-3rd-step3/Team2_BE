@@ -35,11 +35,6 @@ public class MemberRepositoryImpl implements MemberRepository {
   }
 
   @Override
-  public Optional<Member> findByRefreshToken(String refreshToken) {
-    return memberJpaRepository.findByRefreshToken(refreshToken);
-  }
-
-  @Override
   public Page<Member> findAll(Pageable pageable) {
     return memberJpaRepository.findAll(pageable);
   }
