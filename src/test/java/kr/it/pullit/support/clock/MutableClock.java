@@ -33,4 +33,3 @@ public class MutableClock extends Clock {
     this.instant = instant;
   }
 }
-
