@@ -62,8 +62,7 @@ class GeminiClientTest {
     LlmGeneratedQuestionRequest request =
         new LlmGeneratedQuestionRequest("prompt", List.of(), null, specification);
 
-    LlmGeneratedQuestionSetResponse result =
-        geminiClient.getLlmGeneratedQuestionContent(request);
+    LlmGeneratedQuestionSetResponse result = geminiClient.getLlmGeneratedQuestionContent(request);
 
     assertThat(result.title()).isEqualTo("AI Quiz");
     assertThat(result.questions()).isEmpty();

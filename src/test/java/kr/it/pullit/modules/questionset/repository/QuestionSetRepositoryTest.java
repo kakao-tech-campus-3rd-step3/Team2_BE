@@ -4,14 +4,21 @@ import static kr.it.pullit.support.fixture.MemberFixtures.basicUser;
 import static kr.it.pullit.support.fixture.QuestionSetFixtures.createCompletedQuestionSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
+import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
 import kr.it.pullit.support.clock.MutableClock;
@@ -33,6 +40,10 @@ class QuestionSetRepositoryTest {
   @Autowired private MemberRepository memberRepository;
   @Autowired private MutableClock mutableClock;
   private Member member;
+
+  @Autowired private EntityManager entityManager;
+
+  @Autowired private CommonFolderRepository commonFolderRepository;
 
   @BeforeEach
   void setUp() {
@@ -301,8 +312,7 @@ class QuestionSetRepositoryTest {
       Long ownerId = 82L;
       CommonFolder folder = saveFolder(ownerId, "완료");
 
-      QuestionSet completed =
-          createQuestionSetAssignedTo(folder, ownerId, "완료된 문제집");
+      QuestionSet completed = createQuestionSetAssignedTo(folder, ownerId, "완료된 문제집");
       addQuestion(completed, "문제1");
       addQuestion(completed, "문제2");
       completed.setQuestionLength(completed.getQuestions().size());
@@ -353,8 +363,7 @@ class QuestionSetRepositoryTest {
       entityManager.persist(wrongAnswer);
       entityManager.flush();
 
-      Optional<QuestionSet> found =
-          repository.findQuestionSetForReviewing(saved.getId(), ownerId);
+      Optional<QuestionSet> found = repository.findQuestionSetForReviewing(saved.getId(), ownerId);
 
       assertThat(found).isPresent();
       assertThat(found.get().getQuestions()).hasSize(1);

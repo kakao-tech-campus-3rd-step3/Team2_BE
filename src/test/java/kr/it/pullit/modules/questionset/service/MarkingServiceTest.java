@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.spy;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
 import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;

@@ -40,7 +40,8 @@ class QuestionSetTest {
           new QuestionSetCreateParam(DifficultyType.EASY, 5, QuestionType.TRUE_FALSE);
 
       // when
-      QuestionSet questionSet = QuestionSet.create(ownerId, List.of(firstSource, secondSource), param);
+      QuestionSet questionSet =
+          QuestionSet.create(ownerId, List.of(firstSource, secondSource), param);
 
       // then
       assertThat(questionSet.getOwnerId()).isEqualTo(ownerId);
@@ -206,7 +207,8 @@ class QuestionSetTest {
 
   private static Source createSource(Long ownerId, String originalName) {
     SourceCreationParam param =
-        new SourceCreationParam(ownerId, originalName, "/path/" + originalName, "application/pdf", 100L);
+        new SourceCreationParam(
+            ownerId, originalName, "/path/" + originalName, "application/pdf", 100L);
     return Source.create(param, ownerId, SourceFolder.createDefaultFolder(ownerId));
   }
 }

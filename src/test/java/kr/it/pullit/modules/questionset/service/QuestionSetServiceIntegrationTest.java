@@ -8,6 +8,17 @@ import static org.mockito.Mockito.verify;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
+import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
+import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
+import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
+import kr.it.pullit.modules.learningsource.sourcefolder.repository.SourceFolderRepository;
+import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -20,17 +31,6 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequest
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
-import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
-import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
-import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
-import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
-import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
-import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
-import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFolder;
-import kr.it.pullit.modules.learningsource.sourcefolder.repository.SourceFolderRepository;
-import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
@@ -102,11 +102,7 @@ class QuestionSetServiceIntegrationTest {
 
     QuestionSetCreateRequestDto request =
         new QuestionSetCreateRequestDto(
-            DifficultyType.EASY,
-            3,
-            QuestionType.MULTIPLE_CHOICE,
-            List.of(source.getId()),
-            null);
+            DifficultyType.EASY, 3, QuestionType.MULTIPLE_CHOICE, List.of(source.getId()), null);
 
     QuestionSetResponse response = publicApi.create(request, member.getId());
 
@@ -126,11 +122,7 @@ class QuestionSetServiceIntegrationTest {
     CommonFolder folder =
         commonFolderRepository.save(
             CommonFolder.create(
-                "커스텀",
-                CommonFolderType.QUESTION_SET,
-                FolderScope.CUSTOM,
-                0,
-                member.getId()));
+                "커스텀", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, member.getId()));
 
     QuestionSetCreateRequestDto request =
         new QuestionSetCreateRequestDto(
@@ -182,7 +174,8 @@ class QuestionSetServiceIntegrationTest {
     Member member = persistMember();
     QuestionSet pending = persistPendingQuestionSet(member.getId());
 
-    assertThatThrownBy(() -> publicApi.getQuestionSetForSolving(pending.getId(), member.getId(), false))
+    assertThatThrownBy(
+            () -> publicApi.getQuestionSetForSolving(pending.getId(), member.getId(), false))
         .isInstanceOf(QuestionSetNotReadyException.class);
   }
 
@@ -227,11 +220,7 @@ class QuestionSetServiceIntegrationTest {
         sourceFolderRepository.save(SourceFolder.create(ownerId, "소스폴더", "설명", "#FFFFFF"));
     SourceCreationParam param =
         new SourceCreationParam(
-            ownerId,
-            originalName,
-            "path/" + UUID.randomUUID(),
-            "application/pdf",
-            1024L);
+            ownerId, originalName, "path/" + UUID.randomUUID(), "application/pdf", 1024L);
     Source source = Source.create(param, ownerId, folder);
     source.markAsReady();
     return sourceRepository.save(source);

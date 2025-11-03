@@ -53,8 +53,7 @@ class QuestionSetWithStatsFacadeImplTest {
       CursorPageResponse<MyQuestionSetsResponse> pageResponse = cursorResponse();
       LearnStats learnStats = learnStatsWithSolvedCount(memberId, 1);
 
-      when(questionSetPublicApi.getMemberQuestionSets(memberId, null, 5))
-          .thenReturn(pageResponse);
+      when(questionSetPublicApi.getMemberQuestionSets(memberId, null, 5)).thenReturn(pageResponse);
       when(questionSetPublicApi.countByMemberId(memberId)).thenReturn(2L);
       when(learnStatsPublicApi.getLearnStats(memberId)).thenReturn(Optional.of(learnStats));
 
@@ -76,8 +75,7 @@ class QuestionSetWithStatsFacadeImplTest {
 
       when(commonFolderPublicApi.findFolderEntityById(memberId, folderId))
           .thenReturn(Optional.of(allScopeFolder(folderId, memberId)));
-      when(questionSetPublicApi.getMemberQuestionSets(memberId, null, 3))
-          .thenReturn(pageResponse);
+      when(questionSetPublicApi.getMemberQuestionSets(memberId, null, 3)).thenReturn(pageResponse);
       when(questionSetPublicApi.countByMemberId(memberId)).thenReturn(0L);
       when(learnStatsPublicApi.getLearnStats(memberId)).thenReturn(Optional.empty());
 
@@ -135,7 +133,8 @@ class QuestionSetWithStatsFacadeImplTest {
 
   private CommonFolder allScopeFolder(Long folderId, Long memberId) {
     CommonFolder folder =
-        CommonFolder.create(CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET, FolderScope.ALL, 0, memberId);
+        CommonFolder.create(
+            CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET, FolderScope.ALL, 0, memberId);
     ReflectionTestUtils.setField(folder, "id", folderId);
     return folder;
   }

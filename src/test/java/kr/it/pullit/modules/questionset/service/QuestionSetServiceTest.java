@@ -24,14 +24,15 @@ import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
-import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
+import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.event.QuestionSetCreatedEvent;
 import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
@@ -57,6 +58,7 @@ class QuestionSetServiceTest {
 
   @Mock private QuestionSetRepository questionSetRepository;
   @Mock private CommonFolderPublicApi commonFolderPublicApi;
+  @Mock private QuestionRepository questionRepository;
   @Mock private SourcePublicApi sourcePublicApi;
   @Mock private MemberPublicApi memberPublicApi;
   @Mock private EventPublisher eventPublisher;
@@ -68,6 +70,7 @@ class QuestionSetServiceTest {
     questionSetService =
         new QuestionSetService(
             questionSetRepository,
+            questionRepository,
             commonFolderPublicApi,
             sourcePublicApi,
             memberPublicApi,
@@ -88,8 +91,7 @@ class QuestionSetServiceTest {
       when(questionSetRepository.findWithQuestionsForFirstSolving(11L, 5L))
           .thenReturn(Optional.of(questionSet));
 
-      QuestionSetResponse response =
-          questionSetService.getQuestionSetForSolving(11L, 5L, false);
+      QuestionSetResponse response = questionSetService.getQuestionSetForSolving(11L, 5L, false);
 
       assertThat(response.getId()).isEqualTo(11L);
       verify(questionSetRepository).findWithQuestionsForFirstSolving(11L, 5L);
@@ -142,8 +144,7 @@ class QuestionSetServiceTest {
       when(questionSetRepository.findQuestionSetForReviewing(51L, 3L))
           .thenReturn(Optional.of(questionSet));
 
-      QuestionSetResponse response =
-          questionSetService.getQuestionSetForSolving(51L, 3L, true);
+      QuestionSetResponse response = questionSetService.getQuestionSetForSolving(51L, 3L, true);
 
       assertThat(response.getId()).isEqualTo(51L);
       verify(questionSetRepository).findQuestionSetForReviewing(51L, 3L);
@@ -154,8 +155,7 @@ class QuestionSetServiceTest {
     void reviewingThrowsWhenPending() {
       QuestionSet questionSet = createQuestionSetWithId(61L);
 
-      when(questionSetRepository.findQuestionSetForReviewing(61L, 4L))
-          .thenReturn(Optional.empty());
+      when(questionSetRepository.findQuestionSetForReviewing(61L, 4L)).thenReturn(Optional.empty());
       when(questionSetRepository.findByIdAndMemberId(61L, 4L)).thenReturn(Optional.of(questionSet));
 
       assertThatThrownBy(() -> questionSetService.getQuestionSetForSolving(61L, 4L, true))
@@ -168,8 +168,7 @@ class QuestionSetServiceTest {
       QuestionSet questionSet = createQuestionSetWithId(71L);
       questionSet.completeProcessing();
 
-      when(questionSetRepository.findQuestionSetForReviewing(71L, 4L))
-          .thenReturn(Optional.empty());
+      when(questionSetRepository.findQuestionSetForReviewing(71L, 4L)).thenReturn(Optional.empty());
       when(questionSetRepository.findByIdAndMemberId(71L, 4L)).thenReturn(Optional.of(questionSet));
 
       assertThatThrownBy(() -> questionSetService.getQuestionSetForSolving(71L, 4L, true))
@@ -194,11 +193,7 @@ class QuestionSetServiceTest {
 
       QuestionSetCreateRequestDto request =
           new QuestionSetCreateRequestDto(
-              DifficultyType.HARD,
-              5,
-              QuestionType.SHORT_ANSWER,
-              List.of(10L),
-              null);
+              DifficultyType.HARD, 5, QuestionType.SHORT_ANSWER, List.of(10L), null);
 
       assertThatThrownBy(() -> questionSetService.create(request, ownerId))
           .isInstanceOf(SourceNotReadyException.class);
@@ -213,7 +208,8 @@ class QuestionSetServiceTest {
       Member member = MemberFixtures.basicUser();
       Source source = createSource(ownerId, "자료.pdf");
       source.markAsReady();
-      CommonFolder folder = CommonFolder.create("폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, ownerId);
+      CommonFolder folder =
+          CommonFolder.create("폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, ownerId);
       ReflectionTestUtils.setField(folder, "id", 5L);
 
       when(memberPublicApi.findById(ownerId)).thenReturn(Optional.of(member));
@@ -229,11 +225,7 @@ class QuestionSetServiceTest {
 
       QuestionSetCreateRequestDto request =
           new QuestionSetCreateRequestDto(
-              DifficultyType.EASY,
-              3,
-              QuestionType.MULTIPLE_CHOICE,
-              List.of(1L),
-              5L);
+              DifficultyType.EASY, 3, QuestionType.MULTIPLE_CHOICE, List.of(1L), 5L);
 
       QuestionSetResponse response = questionSetService.create(request, ownerId);
 
@@ -256,7 +248,11 @@ class QuestionSetServiceTest {
       source.markAsReady();
       CommonFolder defaultFolder =
           CommonFolder.create(
-              CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET, FolderScope.ALL, 0, ownerId);
+              CommonFolder.DEFAULT_NAME,
+              CommonFolderType.QUESTION_SET,
+              FolderScope.ALL,
+              0,
+              ownerId);
       ReflectionTestUtils.setField(defaultFolder, "id", 7L);
 
       when(memberPublicApi.findById(ownerId)).thenReturn(Optional.of(member));
@@ -273,11 +269,7 @@ class QuestionSetServiceTest {
 
       QuestionSetCreateRequestDto request =
           new QuestionSetCreateRequestDto(
-              DifficultyType.HARD,
-              4,
-              QuestionType.TRUE_FALSE,
-              List.of(2L),
-              null);
+              DifficultyType.HARD, 4, QuestionType.TRUE_FALSE, List.of(2L), null);
 
       QuestionSetResponse response = questionSetService.create(request, ownerId);
 
@@ -301,16 +293,11 @@ class QuestionSetServiceTest {
 
       when(memberPublicApi.findById(ownerId)).thenReturn(Optional.of(member));
       when(sourcePublicApi.findByIdIn(List.of(99L))).thenReturn(List.of(source));
-      when(commonFolderPublicApi.findFolderEntityById(ownerId, 123L))
-          .thenReturn(Optional.empty());
+      when(commonFolderPublicApi.findFolderEntityById(ownerId, 123L)).thenReturn(Optional.empty());
 
       QuestionSetCreateRequestDto request =
           new QuestionSetCreateRequestDto(
-              DifficultyType.HARD,
-              4,
-              QuestionType.MULTIPLE_CHOICE,
-              List.of(99L),
-              123L);
+              DifficultyType.HARD, 4, QuestionType.MULTIPLE_CHOICE, List.of(99L), 123L);
 
       assertThatThrownBy(() -> questionSetService.create(request, ownerId))
           .isInstanceOf(IllegalArgumentException.class);
@@ -327,11 +314,7 @@ class QuestionSetServiceTest {
 
       QuestionSetCreateRequestDto request =
           new QuestionSetCreateRequestDto(
-              DifficultyType.EASY,
-              3,
-              QuestionType.TRUE_FALSE,
-              List.of(),
-              null);
+              DifficultyType.EASY, 3, QuestionType.TRUE_FALSE, List.of(), null);
 
       assertThatThrownBy(() -> questionSetService.create(request, ownerId))
           .isInstanceOf(MemberNotFoundException.class);
@@ -402,11 +385,13 @@ class QuestionSetServiceTest {
       QuestionSet questionSet = createQuestionSetWithId(801L);
       Long memberId = 1L;
       CommonFolder folder =
-          CommonFolder.create("새 폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, memberId);
+          CommonFolder.create(
+              "새 폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, memberId);
       ReflectionTestUtils.setField(folder, "id", 9L);
 
       when(questionSetRepository.findById(801L)).thenReturn(Optional.of(questionSet));
-      when(commonFolderPublicApi.findFolderEntityById(memberId, 9L)).thenReturn(Optional.of(folder));
+      when(commonFolderPublicApi.findFolderEntityById(memberId, 9L))
+          .thenReturn(Optional.of(folder));
 
       QuestionSetUpdateRequestDto request =
           QuestionSetUpdateRequestDto.builder().title("새 제목").commonFolderId(9L).build();
@@ -472,7 +457,11 @@ class QuestionSetServiceTest {
       Long memberId = 1L;
       CommonFolder defaultFolder =
           CommonFolder.create(
-              CommonFolder.DEFAULT_NAME, CommonFolderType.QUESTION_SET, FolderScope.ALL, 0, memberId);
+              CommonFolder.DEFAULT_NAME,
+              CommonFolderType.QUESTION_SET,
+              FolderScope.ALL,
+              0,
+              memberId);
       QuestionSet q1 = createQuestionSetWithId(1101L);
       QuestionSet q2 = createQuestionSetWithId(1102L);
 

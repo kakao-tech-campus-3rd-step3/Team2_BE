@@ -24,8 +24,7 @@ class GeminiConfigBuilderTest {
     Map<String, Object> questionSchema = extractQuestionSchema(schema);
     Map<String, Object> questionProperties = cast(questionSchema.get("properties"));
 
-    assertThat(questionProperties)
-        .containsKey(LlmGeneratedQuestionResponse.Fields.options);
+    assertThat(questionProperties).containsKey(LlmGeneratedQuestionResponse.Fields.options);
 
     Map<String, Object> options =
         cast(questionProperties.get(LlmGeneratedQuestionResponse.Fields.options));
@@ -46,8 +45,7 @@ class GeminiConfigBuilderTest {
     Map<String, Object> schema = cast(config.responseJsonSchema().orElseThrow());
     Map<String, Object> questionSchema = extractQuestionSchema(schema);
     Map<String, Object> properties = cast(questionSchema.get("properties"));
-    Map<String, Object> answer =
-        cast(properties.get(LlmGeneratedQuestionResponse.Fields.answer));
+    Map<String, Object> answer = cast(properties.get(LlmGeneratedQuestionResponse.Fields.answer));
 
     assertThat(answer).containsEntry("type", "boolean");
   }
@@ -67,7 +65,8 @@ class GeminiConfigBuilderTest {
   @SuppressWarnings("unchecked")
   private Map<String, Object> extractQuestionSchema(Map<String, Object> rootSchema) {
     Map<String, Object> properties = cast(rootSchema.get("properties"));
-    Map<String, Object> questions = cast(properties.get(LlmGeneratedQuestionSetResponse.Fields.questions));
+    Map<String, Object> questions =
+        cast(properties.get(LlmGeneratedQuestionSetResponse.Fields.questions));
     return cast(questions.get("items"));
   }
 

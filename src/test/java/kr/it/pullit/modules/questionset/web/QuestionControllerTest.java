@@ -1,6 +1,19 @@
 package kr.it.pullit.modules.questionset.web;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
@@ -23,60 +36,33 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(
     value = QuestionController.class,
     excludeFilters =
-    @ComponentScan.Filter(
-        type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class))
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class))
 @AutoConfigureMockMvc(addFilters = false)
 class QuestionControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
-  @MockitoBean
-  private QuestionService questionService;
+  @MockitoBean private QuestionService questionService;
 
-  @MockitoBean
-  private LocalAuthenticationHandler localAuthenticationHandler;
+  @MockitoBean private LocalAuthenticationHandler localAuthenticationHandler;
 
-  @MockitoBean
-  private JwtTokenProvider jwtTokenProvider;
+  @MockitoBean private JwtTokenProvider jwtTokenProvider;
 
-  @MockitoBean
-  private JwtAuthenticator jwtAuthenticator;
+  @MockitoBean private JwtAuthenticator jwtAuthenticator;
 
-  @MockitoBean
-  private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  @MockitoBean private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
   @Test
   @DisplayName("문제를 생성하면 생성된 리소스 위치를 반환한다")
   void createQuestionReturnsLocationHeader() throws Exception {
     QuestionCreateRequest request =
         new QuestionCreateRequest(
-            1L,
-            QuestionType.MULTIPLE_CHOICE,
-            "문제를 작성합니다.",
-            List.of("A", "B", "C"),
-            "A",
-            "해설");
+            1L, QuestionType.MULTIPLE_CHOICE, "문제를 작성합니다.", List.of("A", "B", "C"), "A", "해설");
 
     QuestionResponse response =
         QuestionResponse.builder()

@@ -65,10 +65,6 @@ class QuestionServiceTest {
     void generatesQuestionsThroughLlm() {
       Long memberId = 10L;
       Long questionSetId = 20L;
-      QuestionGenerationSpecification specification =
-          new QuestionGenerationSpecification(DifficultyType.EASY, QuestionType.MULTIPLE_CHOICE, 3);
-      QuestionGenerationRequest request =
-          new QuestionGenerationRequest(memberId, questionSetId, List.of(1L, 2L), specification);
 
       QuestionSet questionSet = TestQuestionSetBuilder.builder().ownerId(memberId).build();
       ReflectionTestUtils.setField(questionSet, "id", questionSetId);
@@ -84,6 +80,12 @@ class QuestionServiceTest {
           new LlmGeneratedQuestionSetResponse("제목", List.of());
       when(llmClient.getLlmGeneratedQuestionContent(any(LlmGeneratedQuestionRequest.class)))
           .thenReturn(expected);
+
+      // [수정] 'specification' 변수 선언을 사용 직전으로 이동
+      QuestionGenerationSpecification specification =
+          new QuestionGenerationSpecification(DifficultyType.EASY, QuestionType.MULTIPLE_CHOICE, 3);
+      QuestionGenerationRequest request =
+          new QuestionGenerationRequest(memberId, questionSetId, List.of(1L, 2L), specification);
 
       LlmGeneratedQuestionSetResponse response = questionService.generateQuestions(request);
 
@@ -105,13 +107,15 @@ class QuestionServiceTest {
     void throwsWhenQuestionSetMissing() {
       Long memberId = 10L;
       Long questionSetId = 20L;
+
+      when(questionSetRepository.findByIdAndMemberId(questionSetId, memberId))
+          .thenReturn(Optional.empty());
+
+      // [수정] 'specification' 변수 선언을 사용 직전으로 이동
       QuestionGenerationSpecification specification =
           new QuestionGenerationSpecification(DifficultyType.EASY, QuestionType.MULTIPLE_CHOICE, 3);
       QuestionGenerationRequest request =
           new QuestionGenerationRequest(memberId, questionSetId, List.of(1L), specification);
-
-      when(questionSetRepository.findByIdAndMemberId(questionSetId, memberId))
-          .thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> questionService.generateQuestions(request))
           .isInstanceOf(QuestionSetNotFoundException.class);
@@ -137,7 +141,8 @@ class QuestionServiceTest {
               .explanation("해설")
               .build();
 
-      when(questionSetRepository.findByIdAndMemberId(100L, 5L)).thenReturn(Optional.of(questionSet));
+      when(questionSetRepository.findByIdAndMemberId(100L, 5L))
+          .thenReturn(Optional.of(questionSet));
       when(questionRepository.save(question)).thenReturn(question);
 
       questionService.saveQuestion(question);

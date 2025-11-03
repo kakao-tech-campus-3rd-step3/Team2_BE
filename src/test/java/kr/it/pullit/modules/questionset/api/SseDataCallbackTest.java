@@ -13,7 +13,6 @@ class SseDataCallbackTest {
     SseDataCallback callback = json -> {};
 
     assertThatCode(callback::onComplete).doesNotThrowAnyException();
-    assertThatCode(() -> callback.onError(new RuntimeException("boom")))
-        .doesNotThrowAnyException();
+    assertThatCode(() -> callback.onError(new RuntimeException("boom"))).doesNotThrowAnyException();
   }
 }

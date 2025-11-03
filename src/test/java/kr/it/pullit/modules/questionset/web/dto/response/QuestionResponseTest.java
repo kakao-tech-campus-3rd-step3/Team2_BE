@@ -38,11 +38,7 @@ class QuestionResponseTest {
   @DisplayName("OX 문제를 변환한다")
   void convertsTrueFalseQuestion() {
     TrueFalseQuestion question =
-        TrueFalseQuestion.builder()
-            .questionText("질문")
-            .answer(true)
-            .explanation("해설")
-            .build();
+        TrueFalseQuestion.builder().questionText("질문").answer(true).explanation("해설").build();
 
     QuestionResponse response = QuestionResponse.from(question);
 
@@ -54,11 +50,7 @@ class QuestionResponseTest {
   @DisplayName("단답형 문제를 변환한다")
   void convertsShortAnswerQuestion() {
     ShortAnswerQuestion question =
-        ShortAnswerQuestion.builder()
-            .questionText("질문")
-            .answer("답")
-            .explanation("해설")
-            .build();
+        ShortAnswerQuestion.builder().questionText("질문").answer("답").explanation("해설").build();
 
     QuestionResponse response = QuestionResponse.from(question);
 
