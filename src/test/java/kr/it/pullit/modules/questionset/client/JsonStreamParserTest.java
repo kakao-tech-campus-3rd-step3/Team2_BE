@@ -54,8 +54,7 @@ class JsonStreamParserTest {
   @Test
   @DisplayName("이스케이프된 따옴표는 문자열 종료로 처리되지 않는다")
   void respectsEscapedQuotesInsideString() {
-    // [수정] checkstyle 오류를 피하기 위해 문자열 내의 "{}" 를 "text"로 변경
-    String jsonWithEscapedQuotes = "{\"text\":\"value with \\\"quoted\\\" text\"}";
+    String jsonWithEscapedQuotes = "{\"text\":\"value with \\\"quoted\\\" braces {braces}\"}";
     List<String> results = parser.findCompleteJsonObject(jsonWithEscapedQuotes);
     assertThat(results).containsExactly(jsonWithEscapedQuotes);
   }

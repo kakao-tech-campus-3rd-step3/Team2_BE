@@ -58,12 +58,11 @@ class QuestionSetServiceTest {
 
   @Mock private QuestionSetRepository questionSetRepository;
   @Mock private CommonFolderPublicApi commonFolderPublicApi;
-  @Mock private QuestionRepository questionRepository;
   @Mock private SourcePublicApi sourcePublicApi;
   @Mock private MemberPublicApi memberPublicApi;
   @Mock private EventPublisher eventPublisher;
-
-  private QuestionSetService questionSetService;
+  @Mock private QuestionRepository questionRepository;
+  @Mock private QuestionSetService questionSetService;
 
   @BeforeEach
   void setUp() {
@@ -554,13 +553,12 @@ class QuestionSetServiceTest {
     }
 
     @Test
-    @DisplayName("문제집 수와 완료한 문제 수를 카운트한다")
+    @DisplayName("문제집 수와 전체 문제 수를 카운트한다")
     void countAggregations() {
       when(questionSetRepository.countByOwnerId(3L)).thenReturn(5L);
-      when(questionSetRepository.countCompletedQuestionsByMemberId(3L)).thenReturn(12L);
-
+      when(questionRepository.countByQuestionSetOwnerId(3L)).thenReturn(12L);
       assertThat(questionSetService.countByMemberId(3L)).isEqualTo(5L);
-      assertThat(questionSetService.countCompletedQuestionsByMemberId(3L)).isEqualTo(12L);
+      assertThat(questionSetService.countByQuestionSetOwnerId(3L)).isEqualTo(12L);
     }
 
     @Test

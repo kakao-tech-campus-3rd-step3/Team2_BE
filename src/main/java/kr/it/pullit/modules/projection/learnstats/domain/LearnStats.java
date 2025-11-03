@@ -40,9 +40,6 @@ public class LearnStats extends BaseEntity {
   private long totalSolvedQuestionCount; // 총 풀었던 문제 수
 
   @Column(nullable = false)
-  private long totalSolvedQuestionCount; // 총 시도한 문제 수
-
-  @Column(nullable = false)
   private long totalCorrectQuestionCount; // 총 맞은 문제 수
 
   @Column(nullable = false)
@@ -68,7 +65,6 @@ public class LearnStats extends BaseEntity {
       return 0;
     }
     return (int) (((double) this.totalSolvedQuestionCount / this.totalQuestionCount) * 100);
-
   }
 
   public void onWeeklyReset() {
@@ -92,7 +88,6 @@ public class LearnStats extends BaseEntity {
   public void updateTotalSolvedQuestionCount(long realCount) {
     this.totalSolvedQuestionCount = realCount;
   }
-
 
   public void increaseCorrectQuestionCount(long correctCount) {
     if (correctCount > 0) {

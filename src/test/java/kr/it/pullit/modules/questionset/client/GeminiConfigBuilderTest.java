@@ -11,6 +11,7 @@ import kr.it.pullit.modules.questionset.enums.QuestionType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@DisplayName("GeminiConfigBuilder 단위 테스트")
 class GeminiConfigBuilderTest {
 
   private final GeminiConfigBuilder builder = new GeminiConfigBuilder();

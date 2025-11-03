@@ -17,10 +17,6 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
-
-import kr.it.pullit.modules.member.domain.entity.Member;
-import kr.it.pullit.modules.member.repository.MemberRepository;
-import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.support.annotation.JpaSliceTest;
@@ -48,7 +44,6 @@ class QuestionSetRepositoryTest {
   @Autowired private EntityManager entityManager;
 
   @Autowired private CommonFolderRepository commonFolderRepository;
-
 
   @BeforeEach
   void setUp() {
@@ -310,28 +305,6 @@ class QuestionSetRepositoryTest {
   @Nested
   @DisplayName("통계 계산")
   class DescribeStatistics {
-
-    @Test
-    @DisplayName("완료된 문제집의 총 문항 수를 합산한다")
-    void countCompletedQuestionsByMemberId() {
-      Long ownerId = 82L;
-      CommonFolder folder = saveFolder(ownerId, "완료");
-
-      QuestionSet completed = createQuestionSetAssignedTo(folder, ownerId, "완료된 문제집");
-      addQuestion(completed, "문제1");
-      addQuestion(completed, "문제2");
-      completed.setQuestionLength(completed.getQuestions().size());
-      completed.completeProcessing();
-      repository.save(completed);
-
-      QuestionSet pending = createQuestionSetAssignedTo(folder, ownerId, "대기중");
-      pending.setQuestionLength(5);
-      repository.save(pending);
-
-      long totalCompleted = repository.countCompletedQuestionsByMemberId(ownerId);
-
-      assertThat(totalCompleted).isEqualTo(completed.getQuestionLength().longValue());
-    }
 
     @Test
     @DisplayName("사용자가 보유한 문제집 수를 계산한다")

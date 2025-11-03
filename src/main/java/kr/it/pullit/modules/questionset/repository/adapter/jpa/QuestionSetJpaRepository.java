@@ -13,33 +13,33 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-       SELECT qs
-       FROM QuestionSet qs
-       LEFT JOIN FETCH qs.questions
-       WHERE qs.id = :id
-       AND qs.ownerId = :memberId
-      """)
+           SELECT qs
+           FROM QuestionSet qs
+           LEFT JOIN FETCH qs.questions
+           WHERE qs.id = :id
+           AND qs.ownerId = :memberId
+          """)
   Optional<QuestionSet> findByIdAndMemberId(@Param("id") Long id, @Param("memberId") Long memberId);
 
   @Query(
       """
-       SELECT qs
-       FROM QuestionSet qs
-       LEFT JOIN FETCH qs.questions
-       LEFT JOIN FETCH qs.sources
-       WHERE qs.id = :id
-       AND qs.ownerId = :memberId
-       AND qs.status = 'COMPLETE'
-      """)
+           SELECT qs
+           FROM QuestionSet qs
+           LEFT JOIN FETCH qs.questions
+           LEFT JOIN FETCH qs.sources
+           WHERE qs.id = :id
+           AND qs.ownerId = :memberId
+           AND qs.status = 'COMPLETE'
+          """)
   Optional<QuestionSet> findByIdWithQuestionsForSolve(
       @Param("id") Long id, @Param("memberId") Long memberId);
 
   @Query(
       """
-      SELECT qs
-      FROM QuestionSet qs
-      WHERE qs.ownerId = :memberId
-      """)
+          SELECT qs
+          FROM QuestionSet qs
+          WHERE qs.ownerId = :memberId
+          """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
   List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
@@ -48,15 +48,15 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-        SELECT DISTINCT qs
-        FROM QuestionSet qs
-        LEFT JOIN FETCH qs.questions q
-        JOIN q.wrongAnswer wa
-        WHERE qs.id = :id
-        AND wa.memberId = :memberId
-        AND wa.isReviewed = false
-        AND qs.status = 'COMPLETE'
-      """)
+            SELECT DISTINCT qs
+            FROM QuestionSet qs
+            LEFT JOIN FETCH qs.questions q
+            JOIN q.wrongAnswer wa
+            WHERE qs.id = :id
+            AND wa.memberId = :memberId
+            AND wa.isReviewed = false
+            AND qs.status = 'COMPLETE'
+          """)
   Optional<QuestionSet> findWrongAnswersByIdAndMemberId(
       @Param("id") Long id, @Param("memberId") Long memberId);
 
@@ -64,23 +64,23 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-        SELECT qs
-        FROM QuestionSet qs
-        WHERE qs.id = :id
-        AND qs.ownerId = :memberId
-        AND qs.status != 'COMPLETE'
-      """)
+            SELECT qs
+            FROM QuestionSet qs
+            WHERE qs.id = :id
+            AND qs.ownerId = :memberId
+            AND qs.status != 'COMPLETE'
+          """)
   Optional<QuestionSet> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
   @Query(
       """
-        SELECT qs
-        FROM QuestionSet qs
-        WHERE qs.ownerId = :memberId
-        AND qs.commonFolder.id = :folderId
-        AND (:cursor IS NULL OR qs.id < :cursor)
-        ORDER BY qs.createdAt DESC, qs.id DESC
-      """)
+            SELECT qs
+            FROM QuestionSet qs
+            WHERE qs.ownerId = :memberId
+            AND qs.commonFolder.id = :folderId
+            AND (:cursor IS NULL OR qs.id < :cursor)
+            ORDER BY qs.createdAt DESC, qs.id DESC
+          """)
   List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
       @Param("memberId") Long memberId,
       @Param("folderId") Long folderId,
@@ -89,12 +89,12 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-        SELECT qs
-        FROM QuestionSet qs
-        WHERE qs.ownerId = :memberId
-        AND (:cursor IS NULL OR qs.id < :cursor)
-        ORDER BY qs.createdAt DESC, qs.id DESC
-      """)
+            SELECT qs
+            FROM QuestionSet qs
+            WHERE qs.ownerId = :memberId
+            AND (:cursor IS NULL OR qs.id < :cursor)
+            ORDER BY qs.createdAt DESC, qs.id DESC
+          """)
   List<QuestionSet> findByMemberIdWithCursor(
       @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
 
@@ -102,25 +102,11 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-          SELECT SUM(q.questionLength) FROM QuestionSet q
-          WHERE q.ownerId = :memberId
-          AND q.status = 'COMPLETE'
-          AND q.createdAt BETWEEN :start AND :end
-      """)
-  Long countCompletedQuestionsByMemberIdAndDateBetween(
-      @Param("memberId") Long memberId,
-      @Param("start") LocalDateTime start,
-      @Param("end") LocalDateTime end);
-
-  long countByOwnerId(Long memberId);
-
-  @Query(
-      """
-          SELECT SUM(q.questionLength) FROM QuestionSet q
-          WHERE q.ownerId = :memberId
-          AND q.status = 'COMPLETE'
-          AND q.createdAt BETWEEN :start AND :end
-      """)
+              SELECT SUM(q.questionLength) FROM QuestionSet q
+              WHERE q.ownerId = :memberId
+              AND q.status = 'COMPLETE'
+              AND q.createdAt BETWEEN :start AND :end
+          """)
   Long countCompletedQuestionsByMemberIdAndDateBetween(
       @Param("memberId") Long memberId,
       @Param("start") LocalDateTime start,
@@ -128,11 +114,11 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-          SELECT DISTINCT q.createdAt
-          FROM QuestionSet q
-          WHERE q.ownerId = :memberId
-          AND q.status = 'COMPLETE'
-          ORDER BY q.createdAt ASC
-      """)
+              SELECT DISTINCT q.createdAt
+              FROM QuestionSet q
+              WHERE q.ownerId = :memberId
+              AND q.status = 'COMPLETE'
+              ORDER BY q.createdAt ASC
+          """)
   List<LocalDateTime> findCompletedDatesByMemberId(@Param("memberId") Long memberId);
 }

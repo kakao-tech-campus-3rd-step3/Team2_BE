@@ -50,12 +50,9 @@ import org.springframework.http.ProblemDetail;
                             {
                               \"id\": 10,
                               \"questionType\": \"SHORT_ANSWER\",
-                              \"questionText\": \"Spring Data JPA의 Repository
-                              인터페이스를 상속하면 자동으로 구현되는 기능은?\",
+                              \"questionText\": \"Spring Data JPA Repository 상속 시 제공 기능은?\",
                               \"answer\": \"기본 CRUD 메서드\",
-                              \"explanation\": \"JpaRepository를 상속하면 save,
-                              findAll 등 기본 메서드를 사용할 수 있습니다.\"
-                            }
+                              \"explanation\": \"JpaRepository 상속 시 CRUD(save, findAll) 사용.\"
                             """))),
       @ApiResponse(
           responseCode = "400",

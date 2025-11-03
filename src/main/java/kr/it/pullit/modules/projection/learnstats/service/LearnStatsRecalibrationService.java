@@ -70,7 +70,6 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
     LearnStats stats =
         learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
 
-
     stats.recalibrate(totalAttemptedCount, totalCorrectCount, weeklySolvedCount, completedDates);
     stats.updateTotalQuestionCount(totalQuestionCount);
 

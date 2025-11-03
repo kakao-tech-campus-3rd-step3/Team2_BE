@@ -81,12 +81,10 @@ class QuestionServiceTest {
       when(llmClient.getLlmGeneratedQuestionContent(any(LlmGeneratedQuestionRequest.class)))
           .thenReturn(expected);
 
-      // [수정] 'specification' 변수 선언을 사용 직전으로 이동
       QuestionGenerationSpecification specification =
           new QuestionGenerationSpecification(DifficultyType.EASY, QuestionType.MULTIPLE_CHOICE, 3);
       QuestionGenerationRequest request =
           new QuestionGenerationRequest(memberId, questionSetId, List.of(1L, 2L), specification);
-
       LlmGeneratedQuestionSetResponse response = questionService.generateQuestions(request);
 
       assertThat(response).isEqualTo(expected);

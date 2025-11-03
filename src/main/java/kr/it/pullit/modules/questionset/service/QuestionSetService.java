@@ -288,23 +288,6 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionRepository.countByQuestionSetOwnerId(ownerId);
   }
 
-  @Override
-  public long countCompletedQuestionsByMemberIdAndDateBetween(
-      Long memberId, LocalDateTime start, LocalDateTime end) {
-    return questionSetRepository.countCompletedQuestionsByMemberIdAndDateBetween(
-        memberId, start, end);
-  }
-
-  @Override
-  public List<LocalDateTime> findCompletedDatesByMemberId(Long memberId) {
-    return questionSetRepository.findCompletedDatesByMemberId(memberId);
-  }
-
-  @Override
-  public long countByQuestionSetOwnerId(Long ownerId) {
-    return questionRepository.countByQuestionSetOwnerId(ownerId);
-  }
-
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {
     QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
 

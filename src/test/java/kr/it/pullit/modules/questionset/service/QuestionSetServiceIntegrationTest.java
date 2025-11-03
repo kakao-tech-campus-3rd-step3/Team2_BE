@@ -42,7 +42,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @IntegrationTest
 @DisplayName("QuestionSetService 통합 테스트")
@@ -55,7 +55,7 @@ class QuestionSetServiceIntegrationTest {
   @Autowired private SourceFolderRepository sourceFolderRepository;
   @Autowired private CommonFolderRepository commonFolderRepository;
   @Autowired private EntityManager entityManager;
-  @SpyBean private EventPublisher eventPublisher;
+  @MockitoBean private EventPublisher eventPublisher;
 
   @BeforeEach
   void setUp() {

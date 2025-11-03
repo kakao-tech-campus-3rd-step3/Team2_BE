@@ -43,7 +43,6 @@ class LearnStatsRecalibrationServiceTest {
     List<LocalDateTime> completedDates =
         List.of(today.minusDays(1), today.minusDays(2), today.minusDays(4));
 
-
     given(markingResultPublicApi.countTotalCorrectQuestionsByMemberId(member.getId()))
         .willReturn(120L);
     given(markingResultPublicApi.countTotalAttemptedQuestionsByMemberId(member.getId()))

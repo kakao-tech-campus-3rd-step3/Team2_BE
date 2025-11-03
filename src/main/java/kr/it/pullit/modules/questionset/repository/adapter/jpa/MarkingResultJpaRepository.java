@@ -11,6 +11,7 @@ public interface MarkingResultJpaRepository extends JpaRepository<MarkingResult,
 
   long countByQuestion_QuestionSetIdAndMemberIdAndIsCorrectIsTrue(
       Long questionSetId, Long memberId);
+
   @Query(
       """
       SELECT COUNT(DISTINCT mr.question.id) FROM marking_result mr WHERE mr.memberId = :memberId
