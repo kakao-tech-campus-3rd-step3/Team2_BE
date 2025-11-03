@@ -8,13 +8,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.test.util.ReflectionTestUtils;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
-import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 
@@ -26,11 +27,9 @@ class QuestionSetWithStatsFacadeImplTest {
 
   @Mock private QuestionSetPublicApi questionSetPublicApi;
 
+  @Mock private LearnStatsPublicApi learnStatsPublicApi;
+
   @Mock private CommonFolderPublicApi commonFolderPublicApi;
-
-  @Mock private MarkingResultRepository markingResultRepository;
-
-  @Mock private QuestionRepository questionRepository;
 
   @Test
   @DisplayName("folderId가 null이면, 폴더 필터링 없이 모든 문제집을 조회한다")
@@ -93,8 +92,11 @@ class QuestionSetWithStatsFacadeImplTest {
   void shouldCalculateLearningProgressCorrectly() {
     // given
     Long memberId = 1L;
-    given(markingResultRepository.countByMemberIdAndIsCorrectIsTrue(memberId)).willReturn(5L);
-    given(questionRepository.countByQuestionSetOwnerId(memberId)).willReturn(10L);
+    LearnStats learnStats = LearnStats.newOf(memberId);
+    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionCount", 5L);
+    ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 10L);
+
+    given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
 
     // when
     MyQuestionSetsWithProgressResponse response =
@@ -109,8 +111,11 @@ class QuestionSetWithStatsFacadeImplTest {
   void shouldReturnZeroProgressWhenTotalQuestionsIsZero() {
     // given
     Long memberId = 1L;
-    given(markingResultRepository.countByMemberIdAndIsCorrectIsTrue(memberId)).willReturn(0L);
-    given(questionRepository.countByQuestionSetOwnerId(memberId)).willReturn(0L);
+    LearnStats learnStats = LearnStats.newOf(memberId);
+    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionCount", 0L);
+    ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 0L);
+
+    given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
 
     // when
     MyQuestionSetsWithProgressResponse response =

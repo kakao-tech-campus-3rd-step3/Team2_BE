@@ -19,7 +19,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class MigrationControllerTest extends ControllerTest {
 
   @MockitoBean private MigrationPublicApi migrationPublicApi;
-  @MockitoBean private LearnStatsRecalibrationPublicApi recalibrationApi;
 
   @Test
   @WithMockMember(role = Role.ADMIN)
@@ -40,7 +39,7 @@ class MigrationControllerTest extends ControllerTest {
         .perform(post("/api/admin/migrations/recalibrate/learn-stats"))
         .andExpect(status().isOk());
 
-    verify(recalibrationApi).recalibrateLearnStatsAllMembers();
+    verify(migrationPublicApi).runLearnStatsRecalibration();
   }
 
   @Test
