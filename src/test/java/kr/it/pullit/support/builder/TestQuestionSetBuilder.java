@@ -8,6 +8,7 @@ import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import lombok.Builder;
 
@@ -20,7 +21,12 @@ public record TestQuestionSetBuilder() {
       String title,
       DifficultyType difficulty,
       QuestionType type,
-      List<Question> questions) {
+      List<Question> questions,
+      Integer questionLength,
+      QuestionSetStatus status) {
+
+    int finalQuestionLength =
+        (questionLength != null) ? questionLength : (questions != null ? questions.size() : 0);
 
     QuestionSet questionSet =
         QuestionSet.builder()
@@ -29,12 +35,21 @@ public record TestQuestionSetBuilder() {
             .title(title)
             .difficulty(difficulty)
             .type(type)
-            .questionLength(questions != null ? questions.size() : 0)
+            .questionLength(finalQuestionLength)
             .build();
 
     if (questions != null) {
       questions.forEach(questionSet::addQuestion);
     }
+
+    if (status != null && status != QuestionSetStatus.PENDING) {
+      switch (status) {
+        case COMPLETE -> questionSet.completeProcessing();
+        case FAILED -> questionSet.failProcessing();
+        default -> {}
+      }
+    }
+
     return questionSet;
   }
 
@@ -45,6 +60,8 @@ public record TestQuestionSetBuilder() {
         .title("기본 문제집")
         .difficulty(DifficultyType.EASY)
         .type(QuestionType.MULTIPLE_CHOICE)
-        .questions(new ArrayList<>());
+        .questions(new ArrayList<>())
+        .questionLength(10)
+        .status(QuestionSetStatus.PENDING);
   }
 }

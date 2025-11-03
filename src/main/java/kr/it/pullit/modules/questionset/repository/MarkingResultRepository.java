@@ -4,4 +4,8 @@ import kr.it.pullit.modules.questionset.domain.entity.MarkingResult;
 
 public interface MarkingResultRepository {
   MarkingResult save(MarkingResult markingResult);
+
+  long countByQuestionSetIdAndMemberId(Long questionSetId, Long memberId);
+
+  long countCorrectByQuestionSetIdAndMemberId(Long questionSetId, Long memberId);
 }

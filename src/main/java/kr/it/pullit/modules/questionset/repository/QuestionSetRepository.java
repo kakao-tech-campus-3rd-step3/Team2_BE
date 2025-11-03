@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -39,4 +40,9 @@ public interface QuestionSetRepository {
   long countCompletedQuestionsByMemberId(Long memberId);
 
   long countByOwnerId(Long memberId);
+
+  long countCompletedQuestionsByMemberIdAndDateBetween(
+      Long memberId, LocalDateTime start, LocalDateTime end);
+
+  List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
 }

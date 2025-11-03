@@ -1,6 +1,7 @@
 package kr.it.pullit.platform.migration.service;
 
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.platform.migration.api.MigrationPublicApi;
 import kr.it.pullit.platform.migration.repository.MigrationHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MigrationService implements MigrationPublicApi {
 
   private static final String SOURCE_STATUS_MIGRIGRATION_V1 = "SOURCE_STATUS_MIGRATION_V1";
+  private static final String LEARN_STATS_RECALIBRATION_MIGRATION_V1 =
+      "LEARN_STATS_RECALIBRATION_MIGRATION_V1";
 
   private final MigrationHistoryRepository migrationHistoryRepository;
   private final SourcePublicApi sourcePublicApi;
+  private final LearnStatsRecalibrationPublicApi learnStatsRecalibrationPublicApi;
 
   @Override
   @Transactional
@@ -31,5 +35,20 @@ public class MigrationService implements MigrationPublicApi {
 
     migrationHistoryRepository.save(SOURCE_STATUS_MIGRIGRATION_V1);
     log.info("마이그레이션 '{}' 실행을 성공적으로 완료하고 실행 기록을 저장했습니다.", SOURCE_STATUS_MIGRIGRATION_V1);
+  }
+
+  @Override
+  @Transactional
+  public void runLearnStatsRecalibration() {
+    if (migrationHistoryRepository.existsByMigrationName(LEARN_STATS_RECALIBRATION_MIGRATION_V1)) {
+      log.info("마이그레이션 '{}'는 이미 실행되었습니다. 작업을 건너뜁니다.", LEARN_STATS_RECALIBRATION_MIGRATION_V1);
+      return;
+    }
+
+    log.info("마이그레이션 '{}' 실행을 시작합니다.", LEARN_STATS_RECALIBRATION_MIGRATION_V1);
+    learnStatsRecalibrationPublicApi.recalibrateLearnStatsAllMembers();
+
+    migrationHistoryRepository.save(LEARN_STATS_RECALIBRATION_MIGRATION_V1);
+    log.info("마이그레이션 '{}' 실행을 성공적으로 완료하고 실행 기록을 저장했습니다.", LEARN_STATS_RECALIBRATION_MIGRATION_V1);
   }
 }
