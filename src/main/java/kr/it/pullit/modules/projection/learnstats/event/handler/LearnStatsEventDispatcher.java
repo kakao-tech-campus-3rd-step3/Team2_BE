@@ -2,6 +2,7 @@ package kr.it.pullit.modules.projection.learnstats.event.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.it.pullit.modules.projection.learnstats.event.LearnStatsEventType;
+import kr.it.pullit.modules.projection.learnstats.event.dto.CorrectAnswerPayload;
 import kr.it.pullit.modules.projection.learnstats.event.dto.MemberIdPayload;
 import kr.it.pullit.modules.projection.learnstats.event.dto.QuestionSetSolvedPayload;
 import kr.it.pullit.modules.projection.learnstats.service.LearnStatsService;
@@ -36,6 +37,11 @@ public class LearnStatsEventDispatcher {
         QuestionSetSolvedPayload payload =
             objectMapper.readValue(e.getPayload(), QuestionSetSolvedPayload.class);
         projectionService.applyQuestionSetSolved(payload.memberId(), payload.solvedQuestionCount());
+      }
+      case CORRECT_ANSWER_COUNT_INCREASED -> {
+        CorrectAnswerPayload payload =
+            objectMapper.readValue(e.getPayload(), CorrectAnswerPayload.class);
+        projectionService.increaseCorrectQuestionCount(payload.memberId(), payload.correctCount());
       }
       default -> {
         return false;

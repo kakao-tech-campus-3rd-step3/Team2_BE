@@ -13,6 +13,7 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
+import kr.it.pullit.modules.questionset.api.MarkingResultPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,8 @@ class LearnStatsRecalibrationServiceTest {
 
   @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
 
+  @MockitoBean private MarkingResultPublicApi markingResultPublicApi;
+
   @Test
   @DisplayName("모든 회원의 학습 통계를 성공적으로 재보정한다")
   void shouldRecalibrateLearnStatsForAllMembers() {
@@ -40,7 +43,11 @@ class LearnStatsRecalibrationServiceTest {
     List<LocalDateTime> completedDates =
         List.of(today.minusDays(1), today.minusDays(2), today.minusDays(4));
 
-    given(questionSetPublicApi.countCompletedQuestionsByMemberId(member.getId())).willReturn(120L);
+    given(markingResultPublicApi.countTotalCorrectQuestionsByMemberId(member.getId()))
+        .willReturn(120L);
+    given(markingResultPublicApi.countTotalAttemptedQuestionsByMemberId(member.getId()))
+        .willReturn(150L);
+    given(questionSetPublicApi.countByQuestionSetOwnerId(member.getId())).willReturn(200L);
     given(
             questionSetPublicApi.countCompletedQuestionsByMemberIdAndDateBetween(
                 eq(member.getId()), any(LocalDateTime.class), any(LocalDateTime.class)))
@@ -53,7 +60,9 @@ class LearnStatsRecalibrationServiceTest {
 
     // then
     LearnStats stats = learnStatsRepository.findById(member.getId()).get();
-    assertThat(stats.getTotalSolvedQuestionCount()).isEqualTo(120L);
+    assertThat(stats.getTotalQuestionCount()).isEqualTo(200L);
+    assertThat(stats.getTotalSolvedQuestionCount()).isEqualTo(150L);
+    assertThat(stats.getTotalCorrectQuestionCount()).isEqualTo(120L);
     assertThat(stats.getWeeklySolvedQuestionCount()).isEqualTo(35);
     assertThat(stats.getConsecutiveLearningDays()).isEqualTo(2);
     assertThat(stats.getLastLearningDate()).isEqualTo(today.minusDays(1).toLocalDate());

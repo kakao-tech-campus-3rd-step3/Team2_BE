@@ -101,11 +101,6 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public long countCompletedQuestionsByMemberId(Long memberId) {
-    return questionSetJpaRepository.countCompletedQuestionsByMemberId(memberId);
-  }
-
-  @Override
   public long countByOwnerId(Long memberId) {
     return questionSetJpaRepository.countByOwnerId(memberId);
   }
