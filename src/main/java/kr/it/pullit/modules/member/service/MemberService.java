@@ -44,9 +44,9 @@ public class MemberService implements MemberPublicApi {
     }
 
     Optional<Member> byEmail = memberRepository.findByEmail(command.email());
-    return byEmail.map(member -> linkKakaoToExistingEmailMember(member, command))
+    return byEmail
+        .map(member -> linkKakaoToExistingEmailMember(member, command))
         .orElseGet(() -> createNewMember(command));
-
   }
 
   @Override
