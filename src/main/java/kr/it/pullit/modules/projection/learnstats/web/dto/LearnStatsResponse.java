@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.projection.learnstats.web.dto;
 
 import jakarta.validation.constraints.PositiveOrZero;
+import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,14 +16,16 @@ import lombok.NoArgsConstructor;
 public class LearnStatsResponse {
 
   @PositiveOrZero private int totalQuestionSetCount; // 총 문제집 수
-
   @PositiveOrZero private int totalSolvedQuestionSetCount; // 완료한 문제집 수
 
+  @PositiveOrZero private long totalQuestionCount; // 전체 문제 수
   @PositiveOrZero private long totalSolvedQuestionCount; // 총 푼 문제 수
 
   @PositiveOrZero private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
 
   @PositiveOrZero private int consecutiveLearningDays; // 연속 학습일
+
+  private LocalDate lastLearningDate; // 마지막 학습일(처음은 null)
 
   public static LearnStatsResponse of(LearnStats p, int totalQuestionSetCount) {
     if (p == null) {
@@ -31,9 +34,11 @@ public class LearnStatsResponse {
     return LearnStatsResponse.builder()
         .totalQuestionSetCount(totalQuestionSetCount)
         .totalSolvedQuestionSetCount(p.getTotalSolvedQuestionSetCount())
+        .totalQuestionCount(p.getTotalQuestionCount())
         .totalSolvedQuestionCount(p.getTotalSolvedQuestionCount())
         .weeklySolvedQuestionCount(p.getWeeklySolvedQuestionCount())
         .consecutiveLearningDays(p.getConsecutiveLearningDays())
+        .lastLearningDate(p.getLastLearningDate())
         .build();
   }
 
