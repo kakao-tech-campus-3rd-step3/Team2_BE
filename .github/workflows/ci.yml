@@ -55,6 +55,13 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: build/reports/tests/test
+
       - name: Build and push image with tags (latest and sha)
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         uses: docker/build-push-action@v5
