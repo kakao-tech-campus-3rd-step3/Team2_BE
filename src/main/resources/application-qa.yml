@@ -61,7 +61,7 @@ management:
     web:
       # QA 환경에서는 액추에이터 엔드포인트 노출 최소화
       exposure:
-        include: "health,info,metrics,prometheus"
+        include: "health,info,metrics,prometheus,scheduledtasks"
       base-path: "/actuator"
   endpoint:
     health:
