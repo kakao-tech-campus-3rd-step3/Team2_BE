@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 학습 통계 응답 DTO
+ */
 @Data
 @Builder
 @NoArgsConstructor
