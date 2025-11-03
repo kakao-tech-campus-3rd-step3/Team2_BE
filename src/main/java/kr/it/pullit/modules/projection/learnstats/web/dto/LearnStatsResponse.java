@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** 학습 통계 응답 DTO */
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,9 +20,10 @@ public class LearnStatsResponse {
   @PositiveOrZero private int totalSolvedQuestionSetCount; // 완료한 문제집 수
 
   @PositiveOrZero private long totalQuestionCount; // 전체 문제 수
-  @PositiveOrZero private long totalSolvedQuestionCount; // 총 푼 문제 수
+  @PositiveOrZero private long totalSolvedQuestionCount; // 총 시도한 문제 수
+  @PositiveOrZero private long totalCorrectQuestionCount; // 총 맞은 문제 수
 
-  @PositiveOrZero private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
+  @PositiveOrZero private int weeklySolvedQuestionCount; // 이번 주 시도한 문제 수
 
   @PositiveOrZero private int consecutiveLearningDays; // 연속 학습일
 
@@ -36,6 +38,7 @@ public class LearnStatsResponse {
         .totalSolvedQuestionSetCount(p.getTotalSolvedQuestionSetCount())
         .totalQuestionCount(p.getTotalQuestionCount())
         .totalSolvedQuestionCount(p.getTotalSolvedQuestionCount())
+        .totalCorrectQuestionCount(p.getTotalCorrectQuestionCount())
         .weeklySolvedQuestionCount(p.getWeeklySolvedQuestionCount())
         .consecutiveLearningDays(p.getConsecutiveLearningDays())
         .lastLearningDate(p.getLastLearningDate())

@@ -129,10 +129,11 @@ class LearnStatsTest {
               );
 
       // when
-      projection.recalibrate(100L, 20, completedDates);
+      projection.recalibrate(150L, 120L, 20, completedDates);
 
       // then
-      assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(100L);
+      assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(150L);
+      assertThat(projection.getTotalCorrectQuestionCount()).isEqualTo(120L);
       assertThat(projection.getWeeklySolvedQuestionCount()).isEqualTo(20);
       assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
       assertThat(projection.getLastLearningDate()).isEqualTo(today.plusDays(1));
@@ -145,9 +146,13 @@ class LearnStatsTest {
       projection.onQuestionSetSolved(10, today); // 기존 기록 생성
 
       // when
-      projection.recalibrate(10L, 5, List.of());
+
+      projection.recalibrate(10L, 8L, 5, List.of());
 
       // then
+      assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(10L);
+      assertThat(projection.getTotalCorrectQuestionCount()).isEqualTo(8L);
+      assertThat(projection.getWeeklySolvedQuestionCount()).isEqualTo(5);
       assertThat(projection.getConsecutiveLearningDays()).isZero();
       assertThat(projection.getLastLearningDate()).isNull();
     }

@@ -98,13 +98,19 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
   List<QuestionSet> findByMemberIdWithCursor(
       @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
 
+  long countByOwnerId(Long memberId);
+
   @Query(
       """
-            SELECT COALESCE(SUM(qs.questionLength), 0)
-            FROM QuestionSet qs
-            WHERE qs.ownerId = :memberId AND qs.status = 'COMPLETE'
+          SELECT SUM(q.questionLength) FROM QuestionSet q
+          WHERE q.ownerId = :memberId
+          AND q.status = 'COMPLETE'
+          AND q.createdAt BETWEEN :start AND :end
       """)
-  long countCompletedQuestionsByMemberId(@Param("memberId") Long memberId);
+  Long countCompletedQuestionsByMemberIdAndDateBetween(
+      @Param("memberId") Long memberId,
+      @Param("start") LocalDateTime start,
+      @Param("end") LocalDateTime end);
 
   long countByOwnerId(Long memberId);
 

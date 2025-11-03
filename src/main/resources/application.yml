@@ -143,7 +143,10 @@ management:
     web:
       exposure:
         include: "*"
-
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 
 cors:

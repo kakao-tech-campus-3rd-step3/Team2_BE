@@ -203,6 +203,7 @@ class MarkingServiceTest {
 
       assertThatThrownBy(() -> markingService.markQuestions(request))
           .isInstanceOf(QuestionNotFoundException.class);
+
     }
   }
 }

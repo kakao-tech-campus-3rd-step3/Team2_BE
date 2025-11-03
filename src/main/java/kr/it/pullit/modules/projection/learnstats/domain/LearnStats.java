@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 학습 통계 도메인 */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -39,7 +40,13 @@ public class LearnStats extends BaseEntity {
   private long totalSolvedQuestionCount; // 총 풀었던 문제 수
 
   @Column(nullable = false)
-  private int weeklySolvedQuestionCount; // 이번 주 푼 문제 수
+  private long totalSolvedQuestionCount; // 총 시도한 문제 수
+
+  @Column(nullable = false)
+  private long totalCorrectQuestionCount; // 총 맞은 문제 수
+
+  @Column(nullable = false)
+  private int weeklySolvedQuestionCount; // 이번 주 시도한 문제 수
 
   // 활동
   @Column(nullable = false)
@@ -61,6 +68,7 @@ public class LearnStats extends BaseEntity {
       return 0;
     }
     return (int) (((double) this.totalSolvedQuestionCount / this.totalQuestionCount) * 100);
+
   }
 
   public void onWeeklyReset() {
@@ -85,11 +93,20 @@ public class LearnStats extends BaseEntity {
     this.totalSolvedQuestionCount = realCount;
   }
 
+
+  public void increaseCorrectQuestionCount(long correctCount) {
+    if (correctCount > 0) {
+      this.totalCorrectQuestionCount += correctCount;
+    }
+  }
+
   public void recalibrate(
-      long totalSolvedQuestionCount,
+      long totalAttemptedQuestionCount,
+      long totalCorrectQuestionCount,
       int weeklySolvedQuestionCount,
       List<LocalDateTime> completedDates) {
-    this.totalSolvedQuestionCount = totalSolvedQuestionCount;
+    this.totalSolvedQuestionCount = totalAttemptedQuestionCount;
+    this.totalCorrectQuestionCount = totalCorrectQuestionCount;
     this.weeklySolvedQuestionCount = weeklySolvedQuestionCount;
     this.consecutiveLearningDays = calculateConsecutiveDaysFrom(completedDates);
     this.lastLearningDate = findLastLearningDateFrom(completedDates);

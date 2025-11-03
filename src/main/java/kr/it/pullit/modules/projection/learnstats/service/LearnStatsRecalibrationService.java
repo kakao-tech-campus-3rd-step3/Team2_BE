@@ -10,6 +10,7 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
+import kr.it.pullit.modules.questionset.api.MarkingResultPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
 
   private final MemberPublicApi memberPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
+  private final MarkingResultPublicApi markingResultPublicApi;
   private final LearnStatsRepository learnStatsRepository;
   private final Clock clock;
 
@@ -57,7 +59,9 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
   }
 
   private void recalibrateMember(Long memberId) {
-    long totalSolvedCount = questionSetPublicApi.countCompletedQuestionsByMemberId(memberId);
+    long totalCorrectCount = markingResultPublicApi.countTotalCorrectQuestionsByMemberId(memberId);
+    long totalAttemptedCount =
+        markingResultPublicApi.countTotalAttemptedQuestionsByMemberId(memberId);
     long totalQuestionCount = questionSetPublicApi.countByQuestionSetOwnerId(memberId);
     int weeklySolvedCount = calculateWeeklySolvedCount(memberId);
     List<LocalDateTime> completedDates =
@@ -66,15 +70,18 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
     LearnStats stats =
         learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
 
-    stats.recalibrate(totalSolvedCount, weeklySolvedCount, completedDates);
+
+    stats.recalibrate(totalAttemptedCount, totalCorrectCount, weeklySolvedCount, completedDates);
     stats.updateTotalQuestionCount(totalQuestionCount);
 
     learnStatsRepository.save(stats);
 
     log.info(
-        "{}번 회원의 학습 통계를 보정했습니다: 총 문제 수={}, 주간 문제 수={}, 연속 학습일={}",
+        "{}번 회원의 학습 통계를 보정했습니다: 총 문제 수={}, 총 푼 문제 수={}, 총 맞힌 문제 수={}, 주간 문제 수={}, 연속 학습일={}",
         memberId,
+        stats.getTotalQuestionCount(),
         stats.getTotalSolvedQuestionCount(),
+        stats.getTotalCorrectQuestionCount(),
         stats.getWeeklySolvedQuestionCount(),
         stats.getConsecutiveLearningDays());
   }

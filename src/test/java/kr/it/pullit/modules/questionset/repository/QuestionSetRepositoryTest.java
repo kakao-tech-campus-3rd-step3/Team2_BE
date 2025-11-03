@@ -17,6 +17,10 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
+
+import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.repository.MemberRepository;
+import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.support.annotation.JpaSliceTest;
@@ -44,6 +48,7 @@ class QuestionSetRepositoryTest {
   @Autowired private EntityManager entityManager;
 
   @Autowired private CommonFolderRepository commonFolderRepository;
+
 
   @BeforeEach
   void setUp() {
