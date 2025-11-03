@@ -1,12 +1,11 @@
 package kr.it.pullit.modules.projection.learnstats.domain;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-
+import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
 import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.AccessLevel;
@@ -98,5 +97,14 @@ public class LearnStats extends BaseEntity {
 
   private boolean isSameOrPastDay(int delta) {
     return delta <= 0;
+  }
+
+  public void resetConsecutiveDaysIfMissed(LocalDate today) {
+    if (lastLearningDate != null) {
+      long daysBetween = DAYS.between(lastLearningDate, today);
+      if (daysBetween > 1) {
+        consecutiveLearningDays = 0;
+      }
+    }
   }
 }
