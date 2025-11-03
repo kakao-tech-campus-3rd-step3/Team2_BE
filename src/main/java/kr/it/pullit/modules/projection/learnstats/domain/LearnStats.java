@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 학습 통계 도메인 */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
