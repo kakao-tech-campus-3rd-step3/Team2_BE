@@ -9,7 +9,7 @@ import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
-import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithStatsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +59,7 @@ public class QuestionSetController {
    * @return 회원의 모든 문제집 목록
    */
   @GetMapping
-  public ResponseEntity<MyQuestionSetsWithProgressResponse> getMyQuestionSets(
+  public ResponseEntity<MyQuestionSetsWithStatsResponse> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId,
       @RequestParam(required = false) Long cursor,
       @RequestParam(defaultValue = "10") int size,
