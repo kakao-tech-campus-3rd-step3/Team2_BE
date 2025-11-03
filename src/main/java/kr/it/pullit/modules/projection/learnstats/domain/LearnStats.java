@@ -2,6 +2,9 @@ package kr.it.pullit.modules.projection.learnstats.domain;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -65,6 +68,59 @@ public class LearnStats extends BaseEntity {
 
   public void updateTotalSolvedQuestionCount(long realCount) {
     this.totalSolvedQuestionCount = realCount;
+  }
+
+  public void recalibrate(
+      long totalSolvedQuestionCount,
+      int weeklySolvedQuestionCount,
+      List<LocalDateTime> completedDates) {
+    this.totalSolvedQuestionCount = totalSolvedQuestionCount;
+    this.weeklySolvedQuestionCount = weeklySolvedQuestionCount;
+    this.consecutiveLearningDays = calculateConsecutiveDaysFrom(completedDates);
+    this.lastLearningDate = findLastLearningDateFrom(completedDates);
+  }
+
+  private int calculateConsecutiveDaysFrom(List<LocalDateTime> completedDates) {
+    if (completedDates == null || completedDates.isEmpty()) {
+      return 0;
+    }
+
+    int consecutiveDays = 0;
+    LocalDate previousDate = null;
+
+    for (LocalDateTime completedDateTime : completedDates) {
+      LocalDate currentDate = completedDateTime.toLocalDate();
+      consecutiveDays = updateConsecutiveCount(consecutiveDays, previousDate, currentDate);
+      previousDate = currentDate;
+    }
+    return consecutiveDays;
+  }
+
+  private int updateConsecutiveCount(
+      int currentConsecutiveDays, LocalDate previousDate, LocalDate currentDate) {
+    if (previousDate == null) {
+      return 1;
+    }
+
+    long daysBetween = ChronoUnit.DAYS.between(previousDate, currentDate);
+
+    if (daysBetween == 1) {
+      return currentConsecutiveDays + 1;
+    }
+    if (daysBetween > 1) {
+      return 1;
+    }
+    return currentConsecutiveDays;
+  }
+
+  private LocalDate findLastLearningDateFrom(List<LocalDateTime> completedDates) {
+    if (completedDates == null || completedDates.isEmpty()) {
+      return null;
+    }
+    return completedDates.stream()
+        .map(LocalDateTime::toLocalDate)
+        .max(LocalDate::compareTo)
+        .orElse(null);
   }
 
   private void updateConsecutiveStreak(LocalDate today) {
