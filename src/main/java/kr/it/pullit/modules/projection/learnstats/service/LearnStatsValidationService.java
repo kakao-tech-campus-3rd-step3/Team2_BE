@@ -23,18 +23,21 @@ public class LearnStatsValidationService {
     log.info("모든 회원의 연속 학습일 검증을 시작합니다.");
 
     Pageable pageable = PageRequest.of(0, 100);
-    var learnStatsPage = learnStatsRepository.findAll(pageable);
 
-    do {
+    while (true) {
+      var learnStatsPage = learnStatsRepository.findAll(pageable);
       learnStatsPage
           .getContent()
           .forEach(
               learnStats -> {
                 learnStats.resetConsecutiveDaysIfMissed(LocalDate.now(clock));
               });
+
+      if (!learnStatsPage.hasNext()) {
+        break;
+      }
       pageable = learnStatsPage.nextPageable();
-      learnStatsPage = learnStatsRepository.findAll(pageable);
-    } while (learnStatsPage.hasNext());
+    }
 
     log.info("모든 회원의 연속 학습일 검증을 완료했습니다.");
   }

@@ -6,14 +6,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -25,6 +20,12 @@ import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.support.annotation.SpringUnitTest;
 import kr.it.pullit.support.fixture.QuestionFixtures;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringUnitTest
 @DisplayName("MarkingService 단위 테스트")
@@ -93,7 +94,8 @@ class MarkingServiceTest {
           .willReturn(Optional.of(correctQuestion));
       given(questionPublicApi.findEntityById(incorrectQuestionId))
           .willReturn(Optional.of(incorrectQuestion));
-      given(markingResultRepository.countByQuestionSetIdAndMemberId(any(), any())).willReturn(1L, 2L);
+      given(markingResultRepository.countByQuestionSetIdAndMemberId(any(), any()))
+          .willReturn(1L, 2L);
 
       MarkingServiceRequest request =
           MarkingServiceRequest.of(

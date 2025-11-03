@@ -1,13 +1,13 @@
 package kr.it.pullit.platform.migration.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.platform.migration.api.MigrationPublicApi;
 import kr.it.pullit.platform.migration.repository.MigrationHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -49,7 +49,6 @@ public class MigrationService implements MigrationPublicApi {
     learnStatsRecalibrationPublicApi.recalibrateLearnStatsAllMembers();
 
     migrationHistoryRepository.save(LEARN_STATS_RECALIBRATION_MIGRATION_V1);
-    log.info(
-        "마이그레이션 '{}' 실행을 성공적으로 완료하고 실행 기록을 저장했습니다.", LEARN_STATS_RECALIBRATION_MIGRATION_V1);
+    log.info("마이그레이션 '{}' 실행을 성공적으로 완료하고 실행 기록을 저장했습니다.", LEARN_STATS_RECALIBRATION_MIGRATION_V1);
   }
 }
