@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
@@ -19,6 +20,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
@@ -37,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
+  private final QuestionRepository questionRepository;
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
@@ -271,6 +274,23 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   public long countCompletedQuestionsByMemberId(Long memberId) {
     return questionSetRepository.countCompletedQuestionsByMemberId(memberId);
+  }
+
+  @Override
+  public long countCompletedQuestionsByMemberIdAndDateBetween(
+      Long memberId, LocalDateTime start, LocalDateTime end) {
+    return questionSetRepository.countCompletedQuestionsByMemberIdAndDateBetween(
+        memberId, start, end);
+  }
+
+  @Override
+  public List<LocalDateTime> findCompletedDatesByMemberId(Long memberId) {
+    return questionSetRepository.findCompletedDatesByMemberId(memberId);
+  }
+
+  @Override
+  public long countByQuestionSetOwnerId(Long ownerId) {
+    return questionRepository.countByQuestionSetOwnerId(ownerId);
   }
 
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {

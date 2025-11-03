@@ -44,7 +44,7 @@ public class LearnStatsBatchScheduler {
     log.info("주간 학습 통계 초기화 및 보정 작업을 완료했습니다.");
 
     log.info("총 푼 문제 수 보정 작업을 시작합니다.");
-    recalibrationApi.recalibrateAllMembers();
+    recalibrationApi.recalibrateLearnStatsAllMembers();
     log.info("총 푼 문제 수 보정 작업을 완료했습니다.");
   }
 }

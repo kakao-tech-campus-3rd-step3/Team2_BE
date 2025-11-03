@@ -1,13 +1,23 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import static kr.it.pullit.support.fixture.MemberFixtures.basicUser;
+import static kr.it.pullit.support.fixture.QuestionSetFixtures.createCompletedQuestionSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.repository.MemberRepository;
+import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
+import kr.it.pullit.support.clock.MutableClock;
+import kr.it.pullit.support.config.MutableClockConfig;
 import kr.it.pullit.support.fixture.QuestionSetFixtures;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,11 +25,69 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 @JpaSliceTest
-@Import(QuestionSetRepositoryImpl.class)
+@Import({QuestionSetRepositoryImpl.class, MemberRepositoryImpl.class, MutableClockConfig.class})
 @DisplayName("QuestionSetRepository 슬라이스 테스트")
 class QuestionSetRepositoryTest {
 
   @Autowired private QuestionSetRepository repository;
+  @Autowired private MemberRepository memberRepository;
+  @Autowired private MutableClock mutableClock;
+  private Member member;
+
+  @BeforeEach
+  void setUp() {
+    mutableClock.setInstant(
+        LocalDateTime.of(2025, 1, 1, 0, 0).atZone(ZoneId.of("UTC")).toInstant());
+    member = memberRepository.save(basicUser());
+  }
+
+  @Nested
+  @DisplayName("통계 쿼리")
+  class DescribeStatisticQueries {
+    private final LocalDateTime today = LocalDateTime.of(2025, 1, 1, 0, 0);
+
+    @Test
+    @DisplayName("특정 기간 동안 회원이 완료한 문제의 총 개수를 조회한다")
+    void shouldCountCompletedQuestionsBetweenDates() {
+      // given
+      mutableClock.setInstant(today.minusDays(1).atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 10)); // 어제
+
+      mutableClock.setInstant(today.atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 15)); // 오늘
+
+      mutableClock.setInstant(today.plusDays(1).atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 20)); // 내일
+
+      // when
+      long count =
+          repository.countCompletedQuestionsByMemberIdAndDateBetween(
+              member.getId(), today.withHour(0), today.withHour(23).withMinute(59));
+
+      // then
+      assertThat(count).isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("회원이 문제를 완료한 날짜 목록을 중복 없이 오름차순으로 조회한다")
+    void shouldFindCompletedDatesInAscOrder() {
+      // given
+      mutableClock.setInstant(today.plusDays(1).atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 10)); // 내일
+
+      mutableClock.setInstant(today.atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 15)); // 오늘
+
+      // when
+      List<LocalDateTime> completedDates = repository.findCompletedDatesByMemberId(member.getId());
+
+      // then
+      assertThat(completedDates).hasSize(2);
+      assertThat(completedDates).isSorted();
+      assertThat(completedDates.get(0).toLocalDate()).isEqualTo(today.toLocalDate());
+      assertThat(completedDates.get(1).toLocalDate()).isEqualTo(today.toLocalDate().plusDays(1));
+    }
+  }
 
   @Nested
   @DisplayName("단건 조회")

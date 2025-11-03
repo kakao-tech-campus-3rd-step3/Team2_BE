@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -9,12 +10,15 @@ import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @MockitoUnitTest
 @DisplayName("QuestionSetWithStatsFacadeImpl 단위 테스트")
@@ -82,5 +86,43 @@ class QuestionSetWithStatsFacadeImplTest {
 
     // then
     verify(questionSetPublicApi).getMemberQuestionSets(memberId, cursor, size, folderId);
+  }
+
+  @Test
+  @DisplayName("학습 진행률을 올바르게 계산한다 (맞힌 문제 5개 / 전체 10개 -> 50%)")
+  void shouldCalculateLearningProgressCorrectly() {
+    // given
+    Long memberId = 1L;
+    LearnStats learnStats = LearnStats.newOf(memberId);
+    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionCount", 5L);
+    ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 10L);
+
+    given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
+
+    // when
+    MyQuestionSetsWithProgressResponse response =
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(memberId, null, 10, null);
+
+    // then
+    assertThat(response.learningProgress()).isEqualTo(50);
+  }
+
+  @Test
+  @DisplayName("전체 문제가 0개일 경우, 학습 진행률은 0%이다")
+  void shouldReturnZeroProgressWhenTotalQuestionsIsZero() {
+    // given
+    Long memberId = 1L;
+    LearnStats learnStats = LearnStats.newOf(memberId);
+    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionCount", 0L);
+    ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 0L);
+
+    given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
+
+    // when
+    MyQuestionSetsWithProgressResponse response =
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(memberId, null, 10, null);
+
+    // then
+    assertThat(response.learningProgress()).isZero();
   }
 }
