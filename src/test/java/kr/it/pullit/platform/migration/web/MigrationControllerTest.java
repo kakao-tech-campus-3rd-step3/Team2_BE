@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import kr.it.pullit.modules.member.domain.entity.Role;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.platform.migration.api.MigrationPublicApi;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
 import kr.it.pullit.support.security.WithMockMember;
@@ -19,11 +18,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class MigrationControllerTest extends ControllerTest {
 
   @MockitoBean private MigrationPublicApi migrationPublicApi;
-  @MockitoBean private LearnStatsRecalibrationPublicApi recalibrationApi;
 
   @Test
   @WithMockMember(role = Role.ADMIN)
-  @DisplayName("[성공] 어드민은 데이터 마이그레이션을 실행할 수 있다")
+  @DisplayName("POST /api/admin/migrations/source-status-v1 - 어드민은 데이터 마이그레이션을 실행할 수 있다")
   void shouldRunMigrationByAdmin() throws Exception {
     // when & then
     mockMvc.perform(post("/api/admin/migrations/source-status-v1")).andExpect(status().isOk());
@@ -33,14 +31,14 @@ class MigrationControllerTest extends ControllerTest {
 
   @Test
   @WithMockMember(role = Role.ADMIN)
-  @DisplayName("[성공] 어드민은 학습 통계 보정 작업을 실행할 수 있다")
-  void shouldRunLearnStatsRecalibrationByAdmin() throws Exception {
+  @DisplayName("POST /api/admin/migrations/recalibrate/learn-stats - 학습 통계 보정 API를 호출한다")
+  void shouldCallRecalibrateLearnStats() throws Exception {
     // when & then
     mockMvc
         .perform(post("/api/admin/migrations/recalibrate/learn-stats"))
         .andExpect(status().isOk());
 
-    verify(recalibrationApi).recalibrateAllMembers();
+    verify(migrationPublicApi).runLearnStatsRecalibration();
   }
 
   @Test

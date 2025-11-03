@@ -1,7 +1,6 @@
 package kr.it.pullit.platform.migration.web;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.platform.migration.api.MigrationPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class MigrationController {
 
   private final MigrationPublicApi migrationPublicApi;
-  private final LearnStatsRecalibrationPublicApi recalibrationApi;
 
   @PostMapping("/source-status-v1")
   public ResponseEntity<String> runSourceStatusMigration() {
@@ -28,7 +26,7 @@ public class MigrationController {
 
   @PostMapping("/recalibrate/learn-stats")
   public ResponseEntity<String> runLearnStatsRecalibration() {
-    recalibrationApi.recalibrateAllMembers();
-    return ResponseEntity.ok("모든 회원의 총 푼 문제 수 보정 작업이 시작되었습니다.");
+    migrationPublicApi.runLearnStatsRecalibration();
+    return ResponseEntity.ok("모든 회원의 학습 통계(총 문제, 주간 문제, 연속 학습일) 보정 작업이 시작되었습니다.");
   }
 }

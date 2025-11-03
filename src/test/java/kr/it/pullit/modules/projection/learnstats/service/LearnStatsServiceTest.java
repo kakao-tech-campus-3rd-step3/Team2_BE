@@ -11,7 +11,7 @@ import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.support.annotation.SpringUnitTest;
-import kr.it.pullit.support.config.FixedClockConfig;
+import kr.it.pullit.support.config.MutableClockConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringUnitTest
-@ContextConfiguration(classes = {LearnStatsService.class, FixedClockConfig.class})
+@ContextConfiguration(classes = {LearnStatsService.class, MutableClockConfig.class})
 @DisplayName("LearnStatsService 단위 테스트")
 class LearnStatsServiceTest {
 

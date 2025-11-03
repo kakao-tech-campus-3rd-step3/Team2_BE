@@ -13,4 +13,6 @@ public interface QuestionRepository {
   Question save(Question question);
 
   void deleteById(Long id);
+
+  long countByQuestionSetOwnerId(Long ownerId);
 }

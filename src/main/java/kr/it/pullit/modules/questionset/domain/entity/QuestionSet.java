@@ -25,6 +25,7 @@ import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.LearningStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.shared.jpa.BaseEntity;
@@ -75,6 +76,9 @@ public class QuestionSet extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private QuestionSetStatus status;
 
+  @Enumerated(EnumType.STRING)
+  private LearningStatus learningStatus;
+
   @Builder
   public QuestionSet(
       Long ownerId,
@@ -90,6 +94,7 @@ public class QuestionSet extends BaseEntity {
     this.type = type;
     this.questionLength = questionLength;
     this.status = QuestionSetStatus.PENDING;
+    this.learningStatus = LearningStatus.NOT_STARTED;
   }
 
   public static QuestionSet create(
@@ -107,6 +112,21 @@ public class QuestionSet extends BaseEntity {
         .type(param.type())
         .questionLength(param.questionCount())
         .build();
+  }
+
+  public void updateLearningStatus(long solvedCount) {
+    if (this.questionLength == null || this.questionLength == 0) {
+      this.learningStatus = LearningStatus.NOT_STARTED;
+      return;
+    }
+
+    if (solvedCount == 0) {
+      this.learningStatus = LearningStatus.NOT_STARTED;
+    } else if (solvedCount < this.questionLength) {
+      this.learningStatus = LearningStatus.IN_PROGRESS;
+    } else {
+      this.learningStatus = LearningStatus.COMPLETED;
+    }
   }
 
   private static void validateSources(List<Source> sources) {
