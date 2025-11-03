@@ -3,6 +3,7 @@ package kr.it.pullit.modules.projection.learnstats.event.publisher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.projection.learnstats.event.LearnStatsEventType;
+import kr.it.pullit.modules.projection.learnstats.event.dto.CorrectAnswerPayload;
 import kr.it.pullit.modules.projection.learnstats.event.dto.MemberIdPayload;
 import kr.it.pullit.modules.projection.learnstats.event.dto.QuestionSetSolvedPayload;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
@@ -35,6 +36,17 @@ public class LearnStatsEventPublisher implements LearnStatsEventPublicApi {
     String jsonPayload = objectMapper.writeValueAsString(payload);
     OutboxEvent event =
         OutboxEvent.of(LearnStatsEventType.QUESTION_SET_SOLVED.getEventType(), jsonPayload);
+    outboxPublisher.publish(event);
+  }
+
+  @Override
+  @SneakyThrows
+  public void publishCorrectAnswerCount(Long memberId, long correctCount) {
+    CorrectAnswerPayload payload = new CorrectAnswerPayload(memberId, correctCount);
+    String jsonPayload = objectMapper.writeValueAsString(payload);
+    OutboxEvent event =
+        OutboxEvent.of(
+            LearnStatsEventType.CORRECT_ANSWER_COUNT_INCREASED.getEventType(), jsonPayload);
     outboxPublisher.publish(event);
   }
 }

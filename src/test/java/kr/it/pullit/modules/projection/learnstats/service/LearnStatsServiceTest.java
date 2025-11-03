@@ -5,7 +5,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.time.Clock;
 import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
@@ -29,8 +28,6 @@ class LearnStatsServiceTest {
   @MockitoBean private LearnStatsRepository learnStatsRepository;
 
   @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
-
-  @Autowired private Clock clock;
 
   @Nested
   @DisplayName("주간 초기화 적용 시")
@@ -96,6 +93,42 @@ class LearnStatsServiceTest {
 
       // when
       sut.applyQuestionSetSolved(memberId, questionCount);
+
+      // then
+      verify(learnStatsRepository, times(1)).save(any(LearnStats.class));
+    }
+  }
+
+  @Nested
+  @DisplayName("정답 수 증가 적용 시")
+  class IncreaseCorrectQuestionCount {
+
+    @Test
+    @DisplayName("기존 통계가 있으면 해당 객체에 정답 수를 누적하고 저장한다")
+    void givenExistingProjectionThenUpdatesAndSaves() {
+      // given
+      Long memberId = 1L;
+      long correctCount = 5L;
+      LearnStats existingProjection = LearnStats.newOf(memberId);
+      given(learnStatsRepository.findById(memberId)).willReturn(Optional.of(existingProjection));
+
+      // when
+      sut.increaseCorrectQuestionCount(memberId, correctCount);
+
+      // then
+      verify(learnStatsRepository, times(1)).save(existingProjection);
+    }
+
+    @Test
+    @DisplayName("기존 통계가 없으면 새 객체를 생성하여 정답 수를 반영하고 저장한다")
+    void givenNoProjectionThenCreatesUpdatesAndSaves() {
+      // given
+      Long memberId = 1L;
+      long correctCount = 5L;
+      given(learnStatsRepository.findById(memberId)).willReturn(Optional.empty());
+
+      // when
+      sut.increaseCorrectQuestionCount(memberId, correctCount);
 
       // then
       verify(learnStatsRepository, times(1)).save(any(LearnStats.class));

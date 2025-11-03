@@ -25,6 +25,37 @@ class MarkingCompletedEventHandlerTest {
   @Mock private LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
   @Test
+  @DisplayName("채점 완료 시 정답 개수가 0보다 크면 정답 수 이벤트를 발행한다")
+  void shouldPublishCorrectAnswerCountEventWhenCorrectAnswersExist() {
+    // given
+    var memberId = 1L;
+    var results = List.of(new MarkingResultDto(1L, true), new MarkingResultDto(2L, false));
+    var event = new MarkingCompletedEvent(memberId, results, false);
+    long expectedCorrectCount = 1L;
+
+    // when
+    sut.handleMarkingCompletedEvent(event);
+
+    // then
+    verify(learnStatsEventPublicApi).publishCorrectAnswerCount(memberId, expectedCorrectCount);
+  }
+
+  @Test
+  @DisplayName("채점 완료 시 정답 개수가 0이면 정답 수 이벤트를 발행하지 않는다")
+  void shouldNotPublishCorrectAnswerCountEventWhenNoCorrectAnswers() {
+    // given
+    var memberId = 1L;
+    var results = List.of(new MarkingResultDto(1L, false), new MarkingResultDto(2L, false));
+    var event = new MarkingCompletedEvent(memberId, results, false);
+
+    // when
+    sut.handleMarkingCompletedEvent(event);
+
+    // then
+    verify(learnStatsEventPublicApi, never()).publishCorrectAnswerCount(memberId, 0L);
+  }
+
+  @Test
   @DisplayName("채점 완료 시 solvedQuestionCount가 0보다 크면 이벤트를 발행한다")
   void shouldPublishEventWhenResultExists() {
     // given

@@ -272,11 +272,6 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  public long countCompletedQuestionsByMemberId(Long memberId) {
-    return questionSetRepository.countCompletedQuestionsByMemberId(memberId);
-  }
-
-  @Override
   public long countCompletedQuestionsByMemberIdAndDateBetween(
       Long memberId, LocalDateTime start, LocalDateTime end) {
     return questionSetRepository.countCompletedQuestionsByMemberIdAndDateBetween(
