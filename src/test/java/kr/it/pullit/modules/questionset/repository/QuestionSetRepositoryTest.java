@@ -4,14 +4,21 @@ import static kr.it.pullit.support.fixture.MemberFixtures.basicUser;
 import static kr.it.pullit.support.fixture.QuestionSetFixtures.createCompletedQuestionSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
+import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
 import kr.it.pullit.support.clock.MutableClock;
@@ -33,6 +40,10 @@ class QuestionSetRepositoryTest {
   @Autowired private MemberRepository memberRepository;
   @Autowired private MutableClock mutableClock;
   private Member member;
+
+  @Autowired private EntityManager entityManager;
+
+  @Autowired private CommonFolderRepository commonFolderRepository;
 
   @BeforeEach
   void setUp() {
@@ -247,5 +258,119 @@ class QuestionSetRepositoryTest {
       assertThat(projection).isPresent();
       assertThat(projection.get().getId()).isEqualTo(saved.getId());
     }
+  }
+
+  @Nested
+  @DisplayName("폴더 기반 조회/집계")
+  class DescribeFolderQueries {
+
+    @Test
+    @DisplayName("폴더 ID로 문제집을 모두 조회한다")
+    void findAllByCommonFolderId() {
+      Long ownerId = 80L;
+      CommonFolder folder = saveFolder(ownerId, "폴더");
+
+      QuestionSet inFolderA = createQuestionSetAssignedTo(folder, ownerId, "A");
+      QuestionSet inFolderB = createQuestionSetAssignedTo(folder, ownerId, "B");
+      QuestionSet otherFolder =
+          TestQuestionSetBuilder.builder().ownerId(ownerId).title("기타").build();
+
+      repository.save(inFolderA);
+      repository.save(inFolderB);
+      repository.save(otherFolder);
+
+      List<QuestionSet> results = repository.findAllByCommonFolderId(folder.getId());
+
+      assertThat(results).hasSize(2);
+      assertThat(results)
+          .allMatch(qs -> qs.getCommonFolder() != null)
+          .allMatch(qs -> qs.getCommonFolder().getId().equals(folder.getId()));
+    }
+
+    @Test
+    @DisplayName("폴더에 속한 문제집 수를 계산한다")
+    void countByCommonFolderId() {
+      Long ownerId = 81L;
+      CommonFolder folder = saveFolder(ownerId, "카운트");
+
+      repository.save(createQuestionSetAssignedTo(folder, ownerId, "1"));
+      repository.save(createQuestionSetAssignedTo(folder, ownerId, "2"));
+
+      long count = repository.countByCommonFolderId(folder.getId());
+
+      assertThat(count).isEqualTo(2L);
+    }
+  }
+
+  @Nested
+  @DisplayName("통계 계산")
+  class DescribeStatistics {
+
+    @Test
+    @DisplayName("사용자가 보유한 문제집 수를 계산한다")
+    void countByOwnerId() {
+      Long ownerId = 83L;
+
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("1").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("2").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(999L).title("다른 사용자").build());
+
+      long count = repository.countByOwnerId(ownerId);
+
+      assertThat(count).isEqualTo(2L);
+    }
+  }
+
+  @Nested
+  @DisplayName("복습 조회")
+  class DescribeReviewing {
+
+    @Test
+    @DisplayName("틀린 문제가 남아 있으면 복습용 문제집을 조회한다")
+    void findQuestionSetForReviewing() {
+      Long ownerId = 84L;
+      CommonFolder folder = saveFolder(ownerId, "복습");
+
+      QuestionSet questionSet = createQuestionSetAssignedTo(folder, ownerId, "복습 문제집");
+      MultipleChoiceQuestion question = addQuestion(questionSet, "틀린 문제");
+      questionSet.setQuestionLength(questionSet.getQuestions().size());
+      questionSet.completeProcessing();
+      QuestionSet saved = repository.save(questionSet);
+
+      WrongAnswer wrongAnswer = WrongAnswer.create(ownerId, question);
+      entityManager.persist(wrongAnswer);
+      entityManager.flush();
+
+      Optional<QuestionSet> found = repository.findQuestionSetForReviewing(saved.getId(), ownerId);
+
+      assertThat(found).isPresent();
+      assertThat(found.get().getQuestions()).hasSize(1);
+    }
+  }
+
+  private CommonFolder saveFolder(Long ownerId, String name) {
+    CommonFolder folder =
+        CommonFolder.create(name, CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, ownerId);
+    return commonFolderRepository.save(folder);
+  }
+
+  private QuestionSet createQuestionSetAssignedTo(CommonFolder folder, Long ownerId, String title) {
+    QuestionSet questionSet =
+        TestQuestionSetBuilder.builder().ownerId(ownerId).title(title).build();
+    questionSet.assignToFolder(folder);
+    return questionSet;
+  }
+
+  private MultipleChoiceQuestion addQuestion(QuestionSet questionSet, String text) {
+    MultipleChoiceQuestion question =
+        MultipleChoiceQuestion.builder()
+            .questionSet(questionSet)
+            .questionText(text)
+            .options(List.of("1", "2", "3", "4"))
+            .answer("1")
+            .explanation("해설")
+            .build();
+    questionSet.addQuestion(question);
+    return question;
   }
 }

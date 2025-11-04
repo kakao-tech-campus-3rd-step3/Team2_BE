@@ -146,6 +146,7 @@ class LearnStatsTest {
       projection.onQuestionSetSolved(10, today); // 기존 기록 생성
 
       // when
+
       projection.recalibrate(10L, 8L, 5, List.of());
 
       // then
