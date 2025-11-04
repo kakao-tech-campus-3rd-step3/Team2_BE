@@ -3,6 +3,8 @@ package kr.it.pullit.modules.questionset.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -12,6 +14,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.event.QuestionSetCreatedEvent;
@@ -31,8 +34,6 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -262,14 +263,15 @@ public class QuestionSetService implements QuestionSetPublicApi {
   public void delete(Long questionSetId, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findById(questionSetId)
+            .findWithQuestionsById(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 
-    questionSetRepository.deleteById(questionSet.getId());
+    questionSet.softDelete();
+    questionSet.getQuestions().forEach(Question::softDelete);
   }
 
   @Override

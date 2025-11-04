@@ -3,12 +3,12 @@ package kr.it.pullit.modules.questionset.repository.adapter.jpa;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 
 public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Long> {
 
@@ -22,6 +22,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
        LEFT JOIN FETCH qs.questions
        WHERE qs.id = :id
        AND qs.ownerId = :memberId
+       AND qs.deletedAt IS NULL
       """)
   Optional<QuestionSet> findByIdAndMemberId(@Param("id") Long id, @Param("memberId") Long memberId);
 
@@ -34,6 +35,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
        WHERE qs.id = :id
        AND qs.ownerId = :memberId
        AND qs.status = 'COMPLETE'
+       AND qs.deletedAt IS NULL
       """)
   Optional<QuestionSet> findByIdWithQuestionsForSolve(
       @Param("id") Long id, @Param("memberId") Long memberId);
@@ -43,6 +45,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       SELECT qs
       FROM QuestionSet qs
       WHERE qs.ownerId = :memberId
+      AND qs.deletedAt IS NULL
       """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
@@ -60,6 +63,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         AND wa.memberId = :memberId
         AND wa.isReviewed = false
         AND qs.status = 'COMPLETE'
+        AND qs.deletedAt IS NULL
       """)
   Optional<QuestionSet> findWrongAnswersByIdAndMemberId(
       @Param("id") Long id, @Param("memberId") Long memberId);
@@ -73,6 +77,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         WHERE qs.id = :id
         AND qs.ownerId = :memberId
         AND qs.status != 'COMPLETE'
+        AND qs.deletedAt IS NULL
       """)
   Optional<QuestionSet> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
@@ -83,6 +88,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         WHERE qs.ownerId = :memberId
         AND qs.commonFolder.id = :folderId
         AND (:cursor IS NULL OR qs.id < :cursor)
+        AND qs.deletedAt IS NULL
         ORDER BY qs.createdAt DESC, qs.id DESC
       """)
   List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
@@ -97,6 +103,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
         FROM QuestionSet qs
         WHERE qs.ownerId = :memberId
         AND (:cursor IS NULL OR qs.id < :cursor)
+        AND qs.deletedAt IS NULL
         ORDER BY qs.createdAt DESC, qs.id DESC
       """)
   List<QuestionSet> findByMemberIdWithCursor(
@@ -110,6 +117,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
           WHERE q.ownerId = :memberId
           AND q.status = 'COMPLETE'
           AND q.createdAt BETWEEN :start AND :end
+          AND q.deletedAt IS NULL
       """)
   Long countCompletedQuestionsByMemberIdAndDateBetween(
       @Param("memberId") Long memberId,
@@ -122,6 +130,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
           FROM QuestionSet q
           WHERE q.ownerId = :memberId
           AND q.status = 'COMPLETE'
+          AND q.deletedAt IS NULL
           ORDER BY q.createdAt ASC
       """)
   List<LocalDateTime> findCompletedDatesByMemberId(@Param("memberId") Long memberId);

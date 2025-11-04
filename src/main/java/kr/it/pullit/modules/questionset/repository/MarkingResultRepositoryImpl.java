@@ -1,9 +1,9 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import org.springframework.stereotype.Repository;
 import kr.it.pullit.modules.questionset.domain.entity.MarkingResult;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.MarkingResultJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor

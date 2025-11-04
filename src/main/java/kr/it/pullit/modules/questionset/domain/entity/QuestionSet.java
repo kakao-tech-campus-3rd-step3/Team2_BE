@@ -1,7 +1,13 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
 import static kr.it.pullit.modules.questionset.domain.QuestionSetConstants.TITLE_MAX_LENGTH;
-
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,10 +22,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
@@ -37,6 +39,8 @@ import lombok.Setter;
 @Entity
 @Getter
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE question_set SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class QuestionSet extends BaseEntity {
 
   @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -78,6 +82,8 @@ public class QuestionSet extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   private LearningStatus learningStatus;
+
+  private LocalDateTime deletedAt;
 
   @Builder
   public QuestionSet(
@@ -174,5 +180,9 @@ public class QuestionSet extends BaseEntity {
 
   public void updateTitle(String title) {
     this.title = title;
+  }
+
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
   }
 }
