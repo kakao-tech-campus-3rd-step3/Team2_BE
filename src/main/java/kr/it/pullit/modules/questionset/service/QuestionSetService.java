@@ -3,8 +3,6 @@ package kr.it.pullit.modules.questionset.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -34,6 +32,8 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -259,11 +259,17 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
+    return questionSetRepository.findFirstFailedSetForRetry(maxRetryCount);
+  }
+
+  @Override
   @Transactional
   public void delete(Long questionSetId, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findWithQuestionsById(questionSetId)
+            .findById(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     if (!questionSet.getOwnerId().equals(memberId)) {

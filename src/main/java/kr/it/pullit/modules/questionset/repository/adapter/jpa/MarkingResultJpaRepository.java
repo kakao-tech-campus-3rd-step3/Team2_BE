@@ -1,9 +1,9 @@
 package kr.it.pullit.modules.questionset.repository.adapter.jpa;
 
+import kr.it.pullit.modules.questionset.domain.entity.MarkingResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import kr.it.pullit.modules.questionset.domain.entity.MarkingResult;
 
 public interface MarkingResultJpaRepository extends JpaRepository<MarkingResult, Long> {
 

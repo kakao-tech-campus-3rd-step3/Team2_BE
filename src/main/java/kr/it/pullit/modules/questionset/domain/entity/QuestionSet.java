@@ -1,13 +1,7 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
 import static kr.it.pullit.modules.questionset.domain.QuestionSetConstants.TITLE_MAX_LENGTH;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,6 +16,11 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
@@ -35,6 +34,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
@@ -85,6 +86,8 @@ public class QuestionSet extends BaseEntity {
 
   private LocalDateTime deletedAt;
 
+  private int retryCount;
+
   @Builder
   public QuestionSet(
       Long ownerId,
@@ -101,6 +104,7 @@ public class QuestionSet extends BaseEntity {
     this.questionLength = questionLength;
     this.status = QuestionSetStatus.PENDING;
     this.learningStatus = LearningStatus.NOT_STARTED;
+    this.retryCount = 0;
   }
 
   public static QuestionSet create(
@@ -184,5 +188,10 @@ public class QuestionSet extends BaseEntity {
 
   public void softDelete() {
     this.deletedAt = LocalDateTime.now();
+  }
+
+  public void retry() {
+    this.status = QuestionSetStatus.PENDING;
+    this.retryCount++;
   }
 }

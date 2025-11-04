@@ -5,33 +5,31 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.support.annotation.SpringUnitTest;
+import kr.it.pullit.support.config.MutableClockConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.support.annotation.SpringUnitTest;
-import kr.it.pullit.support.config.MutableClockConfig;
 
 @SpringUnitTest
 @Import({QuestionSetCleanupScheduler.class, MutableClockConfig.class})
 @DisplayName("QuestionSetCleanupScheduler 단위 테스트")
 class QuestionSetCleanupSchedulerTest {
 
-  @Autowired
-  private QuestionSetCleanupScheduler questionSetCleanupScheduler;
+  @Autowired private QuestionSetCleanupScheduler questionSetCleanupScheduler;
 
-  @MockitoBean
-  private QuestionSetPublicApi questionSetPublicApi;
+  @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
 
-  @Autowired
-  private Clock clock;
+  @Autowired private Clock clock;
 
   @Test
   @DisplayName("60분 이상 PENDING 상태인 문제집이 있으면 FAILED로 변경한다")

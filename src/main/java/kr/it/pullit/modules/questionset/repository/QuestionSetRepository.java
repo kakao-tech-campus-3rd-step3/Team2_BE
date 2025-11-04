@@ -31,6 +31,8 @@ public interface QuestionSetRepository {
   List<QuestionSet> findByStatusAndCreatedAtBefore(
       QuestionSetStatus status, LocalDateTime threshold);
 
+  Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount);
+
   QuestionSet save(QuestionSet questionSet);
 
   void deleteById(Long questionSetId);

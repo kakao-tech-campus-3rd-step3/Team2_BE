@@ -32,6 +32,8 @@ public interface QuestionSetPublicApi {
 
   List<QuestionSet> findStalePending(LocalDateTime threshold);
 
+  Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   long countCompletedQuestionsByMemberIdAndDateBetween(

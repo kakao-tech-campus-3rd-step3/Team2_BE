@@ -1,8 +1,5 @@
 package kr.it.pullit.modules.questionset.domain.entity;
 
-import java.time.LocalDateTime;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -16,6 +13,7 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
@@ -23,6 +21,8 @@ import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity(name = "question")
 @Getter

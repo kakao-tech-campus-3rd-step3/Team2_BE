@@ -2,6 +2,7 @@ package kr.it.pullit.modules.questionset.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
@@ -18,6 +19,12 @@ class QuestionSetServiceIntegrationTest {
 
   @Autowired private QuestionSetPublicApi publicApi;
   @Autowired private QuestionSetRepository repository;
+  @Autowired private EntityManager entityManager;
+
+  private void flushAndClear() {
+    entityManager.flush();
+    entityManager.clear();
+  }
 
   @Test
   @DisplayName("제목을 수정하면 DB에 반영된다")
@@ -36,8 +43,8 @@ class QuestionSetServiceIntegrationTest {
   }
 
   @Test
-  @DisplayName("삭제하면 조회되지 않는다")
-  void delete_removesRow() {
+  @DisplayName("삭제하면 논리적으로 삭제되어 조회되지 않는다")
+  void delete_softDeletesAndIsNotVisible() {
     // given
     Long ownerId = 102L;
     QuestionSet saved =
@@ -46,6 +53,7 @@ class QuestionSetServiceIntegrationTest {
 
     // when
     publicApi.delete(saved.getId(), ownerId);
+    flushAndClear(); // 영속성 컨텍스트 초기화
 
     // then
     assertThat(repository.findById(saved.getId())).isEmpty();

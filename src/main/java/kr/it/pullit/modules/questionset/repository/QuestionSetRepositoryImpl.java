@@ -98,6 +98,12 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
+    return questionSetJpaRepository.findFirstByStatusAndRetryCountLessThanOrderByCreatedAtAsc(
+        QuestionSetStatus.FAILED, maxRetryCount);
+  }
+
+  @Override
   public long countByCommonFolderId(Long commonFolderId) {
     return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
   }

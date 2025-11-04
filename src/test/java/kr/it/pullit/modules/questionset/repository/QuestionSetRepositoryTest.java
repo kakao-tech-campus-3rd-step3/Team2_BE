@@ -4,9 +4,11 @@ import static kr.it.pullit.support.fixture.MemberFixtures.basicUser;
 import static kr.it.pullit.support.fixture.QuestionSetFixtures.createCompletedQuestionSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.repository.MemberRepository;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @JpaSliceTest
 @Import({QuestionSetRepositoryImpl.class, MemberRepositoryImpl.class, MutableClockConfig.class})
@@ -32,6 +35,8 @@ class QuestionSetRepositoryTest {
   @Autowired private QuestionSetRepository repository;
   @Autowired private MemberRepository memberRepository;
   @Autowired private MutableClock mutableClock;
+  @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private EntityManager entityManager;
   private Member member;
 
   @BeforeEach
@@ -189,16 +194,26 @@ class QuestionSetRepositoryTest {
     }
 
     @Test
-    @DisplayName("문제집을 삭제하면 조회되지 않는다")
+    @DisplayName("문제집을 삭제하면 논리적으로 삭제되고 조회되지 않는다")
     void delete() {
+      // given
       Long ownerId = 41L;
       QuestionSet saved =
           repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("삭제 대상").build());
 
+      // when
       repository.deleteById(saved.getId());
+      entityManager.flush();
 
+      // then
+      // 1. @SQLRestriction에 의해 조회되지 않는지 확인
       Optional<QuestionSet> found = repository.findById(saved.getId());
       assertThat(found).isEmpty();
+
+      // 2. DB에는 deleted_at이 설정된 채로 남아있는지 직접 확인
+      Map<String, Object> dbRow =
+          jdbcTemplate.queryForMap("SELECT * FROM question_set WHERE id = ?", saved.getId());
+      assertThat(dbRow.get("deleted_at")).isNotNull();
     }
   }
 
