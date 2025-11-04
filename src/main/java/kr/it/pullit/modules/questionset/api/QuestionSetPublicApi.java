@@ -36,12 +36,12 @@ public interface QuestionSetPublicApi {
 
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
-  long countCompletedQuestionsByMemberIdAndDateBetween(
-      Long memberId, LocalDateTime start, LocalDateTime end);
-
   List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
 
   long countByQuestionSetOwnerId(Long ownerId);
+
+  long countCompletedQuestionsByMemberIdAndDateBetween(
+      Long memberId, LocalDateTime start, LocalDateTime end);
 
   CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
       Long memberId, Long cursor, int size);
