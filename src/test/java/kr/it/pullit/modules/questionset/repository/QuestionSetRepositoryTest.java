@@ -45,8 +45,6 @@ class QuestionSetRepositoryTest {
   @Autowired private EntityManager entityManager;
   private Member member;
 
-  @Autowired private EntityManager entityManager;
-
   @Autowired private CommonFolderRepository commonFolderRepository;
 
   @BeforeEach
