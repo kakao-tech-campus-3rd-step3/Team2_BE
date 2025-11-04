@@ -5,6 +5,7 @@ import kr.it.pullit.modules.auth.kakaoauth.domain.KakaoPrincipal;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.domain.entity.Role;
+import kr.it.pullit.modules.member.exception.MemberErrorCode;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -24,12 +26,27 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
   private final MemberPublicApi memberPublicApi;
 
+  protected OAuth2User fetchOAuth2User(OAuth2UserRequest userRequest)
+      throws OAuth2AuthenticationException {
+    return super.loadUser(userRequest);
+  }
+
   @Override
   @Transactional
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-    OAuth2User oauth2User = super.loadUser(userRequest);
+    OAuth2User oauth2User = fetchOAuth2User(userRequest);
 
-    Member member = findOrCreateMember(oauth2User);
+    Member member;
+    try {
+      member = findOrCreateMember(oauth2User);
+    } catch (MemberNotFoundException e) {
+      OAuth2Error error =
+          new OAuth2Error(
+              MemberErrorCode.MEMBER_NOT_FOUND.toString(),
+              "Member not found for kakaoId=" + KakaoPrincipal.from(oauth2User).kakaoId(),
+              null);
+      throw new OAuth2AuthenticationException(error, e);
+    }
 
     return buildPrincipal(oauth2User, member);
   }
