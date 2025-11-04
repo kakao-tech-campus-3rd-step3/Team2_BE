@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -50,9 +51,12 @@ class QuestionGenerationEventHandlerTest {
 
   @Test
   @DisplayName("문제집 생성 성공 시, 관련 API들이 순차적으로 호출되고 완료 상태로 변경된다")
-  void handleQuestionSetCreatedEvent_Success() {
+  void handleQuestionSetCreatedEvent_Success() throws Exception {
     // given
-    var event = QuestionSetCreatedEvent.from(QuestionSetFixtures.basic());
+    var questionSetWithoutId = QuestionSetFixtures.basic();
+    setIdUsingReflection(questionSetWithoutId, 1L);
+    var event = QuestionSetCreatedEvent.from(questionSetWithoutId);
+
     var questionSetResponse = mock(QuestionSetResponse.class);
     var llmResponse = mock(LlmGeneratedQuestionSetResponse.class);
     var questionSet = mock(QuestionSet.class);
@@ -91,11 +95,10 @@ class QuestionGenerationEventHandlerTest {
     // then
     verify(sourceValidator).validateSourcesAreReady(any(), eq(event.questionSetId()));
     verify(questionPublicApi).generateQuestions(any());
-    verify(questionSetPublicApi)
-        .update(
-            eq(event.questionSetId()), any(QuestionSetUpdateRequestDto.class), eq(event.ownerId()));
     verify(questionPublicApi).saveQuestion(any(Question.class));
-    verify(questionSetPublicApi).markAsComplete(event.questionSetId());
+    verify(questionSetPublicApi)
+        .updateAndMarkAsComplete(
+            eq(event.questionSetId()), any(QuestionSetUpdateRequestDto.class), eq(event.ownerId()));
     verify(notificationEventPublicApi)
         .publishQuestionSetCreationComplete(
             eq(event.ownerId()), any(QuestionSetCreationCompleteResponse.class));
@@ -106,9 +109,12 @@ class QuestionGenerationEventHandlerTest {
 
   @Test
   @DisplayName("문제집 생성 중 예외 발생 시, 실패 상태로 변경되고 관련 API가 호출되지 않는다")
-  void handleQuestionSetCreatedEvent_Failure() {
+  void handleQuestionSetCreatedEvent_Failure() throws Exception {
     // given
-    var event = QuestionSetCreatedEvent.from(QuestionSetFixtures.basic());
+    var questionSetWithoutId = QuestionSetFixtures.basic();
+    setIdUsingReflection(questionSetWithoutId, 1L);
+    var event = QuestionSetCreatedEvent.from(questionSetWithoutId);
+
     var questionSetResponse = mock(QuestionSetResponse.class);
 
     given(
@@ -129,12 +135,17 @@ class QuestionGenerationEventHandlerTest {
 
     // then
     verify(questionSetPublicApi).markAsFailed(event.questionSetId());
-    verify(questionSetPublicApi, never()).update(anyLong(), any(), anyLong());
+    verify(questionSetPublicApi, never()).updateAndMarkAsComplete(anyLong(), any(), anyLong());
     verify(questionPublicApi, never()).saveQuestion(any());
-    verify(questionSetPublicApi, never()).markAsComplete(anyLong());
     verify(notificationEventPublicApi, never())
         .publishQuestionSetCreationComplete(anyLong(), any());
     verify(learnStatsRecalibrationPublicApi, never())
         .recalibrateTotalQuestionCountForMember(anyLong());
+  }
+
+  private void setIdUsingReflection(QuestionSet questionSet, Long id) throws Exception {
+    Field idField = QuestionSet.class.getDeclaredField("id");
+    idField.setAccessible(true);
+    idField.set(questionSet, id);
   }
 }

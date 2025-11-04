@@ -66,9 +66,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void handlesAuthenticationSuccess() throws IOException {
       // given
       Long kakaoId = 123456L;
-      Long memberId = 1L;
-      var member = mock(Member.class);
-      var authTokens = new AuthTokens("access-token", "refresh-token");
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 
@@ -95,9 +95,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void usesRedirectUriFromSession() throws IOException {
       // given
       Long kakaoId = 123456L;
-      Long memberId = 1L;
-      var member = mock(Member.class);
-      var authTokens = new AuthTokens("access-token", "refresh-token");
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
       String customRedirectUri = "https://frontend.pull.it.kr/custom";
@@ -126,9 +126,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void setsCookieDomainToNullForLocalhost() throws IOException {
       // given
       Long kakaoId = 123456L;
-      Long memberId = 1L;
-      var member = mock(Member.class);
-      var authTokens = new AuthTokens("access-token", "refresh-token");
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 
@@ -197,10 +197,10 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
     private String invokeDetermineTargetUrl(String accessToken) {
       try {
-        var authTokens = new AuthTokens(accessToken, "refresh-token");
+        final var authTokens = new AuthTokens(accessToken, "refresh-token");
         Long kakaoId = 123456L;
-        Long memberId = 1L;
-        var member = mock(Member.class);
+        final Long memberId = 1L;
+        final var member = mock(Member.class);
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("id", kakaoId);
 
@@ -268,9 +268,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     private boolean invokeIsAuthorizedRedirectUri(String uri) {
       try {
         Long kakaoId = 123456L;
-        Long memberId = 1L;
-        var member = mock(Member.class);
-        var authTokens = new AuthTokens("access-token", "refresh-token");
+        final Long memberId = 1L;
+        final var member = mock(Member.class);
+        final var authTokens = new AuthTokens("access-token", "refresh-token");
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("id", kakaoId);
 
@@ -302,9 +302,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void returnsNullForLocalhost() throws IOException {
       // given
       Long kakaoId = 123456L;
-      Long memberId = 1L;
-      var member = mock(Member.class);
-      var authTokens = new AuthTokens("access-token", "refresh-token");
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 
@@ -328,9 +328,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void returnsPullItKrDomainForMatchingHost() throws IOException {
       // given
       Long kakaoId = 123456L;
-      Long memberId = 1L;
-      var member = mock(Member.class);
-      var authTokens = new AuthTokens("access-token", "refresh-token");
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 
@@ -354,9 +354,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void returnsDefaultDomainWhenNoMatch() throws IOException {
       // given
       Long kakaoId = 123456L;
-      Long memberId = 1L;
-      var member = mock(Member.class);
-      var authTokens = new AuthTokens("access-token", "refresh-token");
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 

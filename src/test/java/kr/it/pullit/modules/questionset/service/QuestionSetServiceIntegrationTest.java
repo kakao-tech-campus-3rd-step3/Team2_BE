@@ -69,6 +69,8 @@ class QuestionSetServiceIntegrationTest {
     Long ownerId = 101L;
     QuestionSet saved =
         repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("old").build());
+    entityManager.flush();
+    entityManager.clear();
 
     // when
     publicApi.update(saved.getId(), new QuestionSetUpdateRequestDto("new-title", null), ownerId);
@@ -86,6 +88,8 @@ class QuestionSetServiceIntegrationTest {
     QuestionSet saved =
         repository.save(
             TestQuestionSetBuilder.builder().ownerId(ownerId).title("to-delete").build());
+    entityManager.flush();
+    entityManager.clear();
 
     // when
     publicApi.delete(saved.getId(), ownerId);
@@ -234,7 +238,10 @@ class QuestionSetServiceIntegrationTest {
     QuestionSet questionSet =
         TestQuestionSetBuilder.builder().ownerId(ownerId).title("대기중").build();
     questionSet.assignToFolder(folder);
-    return repository.save(questionSet);
+    QuestionSet saved = repository.save(questionSet);
+    entityManager.flush();
+    entityManager.clear();
+    return saved;
   }
 
   private QuestionSet persistCompleteQuestionSet(Long ownerId, String title) {
@@ -245,7 +252,10 @@ class QuestionSetServiceIntegrationTest {
     addQuestion(questionSet, "문제");
     questionSet.setQuestionLength(questionSet.getQuestions().size());
     questionSet.completeProcessing();
-    return repository.save(questionSet);
+    QuestionSet saved = repository.save(questionSet);
+    entityManager.flush();
+    entityManager.clear();
+    return saved;
   }
 
   private void persistWrongAnswer(Long memberId, MultipleChoiceQuestion question) {

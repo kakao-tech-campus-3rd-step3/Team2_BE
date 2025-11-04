@@ -64,6 +64,10 @@ public record TestQuestionSetBuilder() {
       Field idField = QuestionSet.class.getDeclaredField("id");
       idField.setAccessible(true);
       idField.set(questionSet, id);
+
+      Field versionField = QuestionSet.class.getDeclaredField("version");
+      versionField.setAccessible(true);
+      versionField.set(questionSet, 0L);
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException("리플렉션을 사용하여 ID를 설정하는 중 오류가 발생했습니다.", e);
     }
@@ -71,7 +75,6 @@ public record TestQuestionSetBuilder() {
 
   public static QuestionSetBuilder builder() {
     return internalBuilder()
-        .id(1L)
         .ownerId(1L)
         .sources(new HashSet<>())
         .title("기본 문제집")

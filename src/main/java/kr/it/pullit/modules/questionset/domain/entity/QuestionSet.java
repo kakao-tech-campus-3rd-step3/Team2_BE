@@ -16,6 +16,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,7 +41,8 @@ import org.hibernate.annotations.SQLRestriction;
 @Entity
 @Getter
 @NoArgsConstructor
-@SQLDelete(sql = "UPDATE question_set SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLDelete(
+    sql = "UPDATE question_set SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND version = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class QuestionSet extends BaseEntity {
 
@@ -50,6 +52,10 @@ public class QuestionSet extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Version
+  @Column(nullable = false)
+  private Long version;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "common_folder_id")
