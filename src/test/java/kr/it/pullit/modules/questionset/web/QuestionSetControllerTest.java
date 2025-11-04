@@ -26,7 +26,7 @@ import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
-import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithStatsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
@@ -140,7 +140,7 @@ class QuestionSetControllerTest extends ControllerTest {
       given(
               questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(
                   anyLong(), any(), anyInt(), any()))
-          .willReturn(new MyQuestionSetsWithProgressResponse(page, 0));
+          .willReturn(new MyQuestionSetsWithStatsResponse(page, null));
 
       mockMvc
           .perform(get("/api/question-set").param("cursor", "11").param("size", "2"))

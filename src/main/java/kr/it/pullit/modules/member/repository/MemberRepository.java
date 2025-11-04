@@ -15,7 +15,5 @@ public interface MemberRepository {
 
   Optional<Member> findByKakaoId(Long kakaoId);
 
-  Optional<Member> findByRefreshToken(String refreshToken);
-
   Page<Member> findAll(Pageable pageable);
 }
