@@ -4,12 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-
 import java.io.IOException;
 import java.util.function.Consumer;
-import kr.it.pullit.modules.notification.domain.events.NotificationChannelClosedEvent;
-import kr.it.pullit.shared.event.EventPublisher;
-import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import kr.it.pullit.modules.notification.domain.events.NotificationChannelClosedEvent;
+import kr.it.pullit.shared.event.EventPublisher;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 
 @MockitoUnitTest
 @DisplayName("NotificationChannel 단위 테스트")
@@ -61,7 +60,7 @@ class NotificationChannelTest {
 
     @Test
     @DisplayName("전송 중 IOException 발생 시 에러와 함께 complete한다")
-    void givenIOExceptionOccursCompletesWithError() throws IOException {
+    void givenIoExceptionOccursCompletesWithError() throws IOException {
       // given
       EventData event = EventData.of(memberId, "test-event", "test-data");
       doThrow(IOException.class).when(mockEmitter).send(any(SseEmitter.SseEventBuilder.class));
