@@ -1,15 +1,16 @@
 package kr.it.pullit.modules.notification.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.util.Map;
 import java.util.Optional;
+import kr.it.pullit.modules.notification.domain.NotificationChannel;
+import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import kr.it.pullit.modules.notification.domain.NotificationChannel;
-import kr.it.pullit.support.annotation.MockitoUnitTest;
 
 @MockitoUnitTest
 @DisplayName("NotificationChannelRepositoryImpl 단위 테스트")
@@ -20,23 +21,18 @@ class NotificationChannelRepositoryImplTest {
   private static final Long USER_ID_1 = 1L;
   private static final Long USER_ID_2 = 2L;
 
-  private NotificationChannel channel1;
-  private NotificationChannel channel2;
-
   @BeforeEach
   void setUp() {
     repository = new NotificationChannelRepositoryImpl();
-
-    channel1 = Mockito.mock(NotificationChannel.class);
-    when(channel1.memberId()).thenReturn(USER_ID_1);
-
-    channel2 = Mockito.mock(NotificationChannel.class);
-    when(channel2.memberId()).thenReturn(USER_ID_2);
   }
 
   @Test
   @DisplayName("채널을 저장하고 ID로 조회한다")
   void saveAndFindById() {
+    // given
+    NotificationChannel channel1 = mock(NotificationChannel.class);
+    when(channel1.memberId()).thenReturn(USER_ID_1);
+
     // when
     repository.save(channel1);
     Optional<NotificationChannel> found = repository.findById(USER_ID_1);
@@ -50,6 +46,8 @@ class NotificationChannelRepositoryImplTest {
   @DisplayName("ID로 채널을 삭제한다")
   void deleteById() {
     // given
+    NotificationChannel channel1 = mock(NotificationChannel.class);
+    when(channel1.memberId()).thenReturn(USER_ID_1);
     repository.save(channel1);
 
     // when
@@ -74,14 +72,22 @@ class NotificationChannelRepositoryImplTest {
   @DisplayName("모든 채널을 조회한다")
   void findAll() {
     // given
+    NotificationChannel channel1 = mock(NotificationChannel.class);
+    when(channel1.memberId()).thenReturn(USER_ID_1);
     repository.save(channel1);
+
+    NotificationChannel channel2 = mock(NotificationChannel.class);
+    when(channel2.memberId()).thenReturn(USER_ID_2);
     repository.save(channel2);
 
     // when
     Map<Long, NotificationChannel> all = repository.findAll();
 
     // then
-    assertThat(all).hasSize(2).containsEntry(USER_ID_1, channel1).containsEntry(USER_ID_2, channel2);
+    assertThat(all)
+        .hasSize(2)
+        .containsEntry(USER_ID_1, channel1)
+        .containsEntry(USER_ID_2, channel2);
   }
 
   @Test
@@ -98,6 +104,8 @@ class NotificationChannelRepositoryImplTest {
   @DisplayName("ID로 채널 존재 여부를 확인한다 (notExistsById, 존재할 때)")
   void notExistsById_WhenExists() {
     // given
+    NotificationChannel channel1 = mock(NotificationChannel.class);
+    when(channel1.memberId()).thenReturn(USER_ID_1);
     repository.save(channel1);
 
     // when
