@@ -16,6 +16,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,10 +34,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE question_set SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class QuestionSet extends BaseEntity {
 
   @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -79,6 +84,10 @@ public class QuestionSet extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private LearningStatus learningStatus;
 
+  private LocalDateTime deletedAt;
+
+  private int retryCount;
+
   @Builder
   public QuestionSet(
       Long ownerId,
@@ -95,6 +104,7 @@ public class QuestionSet extends BaseEntity {
     this.questionLength = questionLength;
     this.status = QuestionSetStatus.PENDING;
     this.learningStatus = LearningStatus.NOT_STARTED;
+    this.retryCount = 0;
   }
 
   public static QuestionSet create(
@@ -174,5 +184,14 @@ public class QuestionSet extends BaseEntity {
 
   public void updateTitle(String title) {
     this.title = title;
+  }
+
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
+  }
+
+  public void retry() {
+    this.status = QuestionSetStatus.PENDING;
+    this.retryCount++;
   }
 }

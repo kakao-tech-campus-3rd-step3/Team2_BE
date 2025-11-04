@@ -30,6 +30,10 @@ public interface QuestionSetPublicApi {
 
   List<QuestionSet> findAllByFolderId(Long folderId);
 
+  List<QuestionSet> findStalePending(LocalDateTime threshold);
+
+  Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
