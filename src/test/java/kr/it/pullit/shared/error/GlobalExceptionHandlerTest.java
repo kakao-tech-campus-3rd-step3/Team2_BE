@@ -1,11 +1,15 @@
-
 package kr.it.pullit.shared.error;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
+import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
+import kr.it.pullit.shared.error.dto.TestEnum;
+import kr.it.pullit.support.config.PermitAllSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,20 +21,17 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
-import kr.it.pullit.shared.error.dto.TestEnum;
-import kr.it.pullit.support.config.PermitAllSecurityConfig;
 
 @WebMvcTest(
     controllers = TestController.class,
     excludeFilters = {
-        @ComponentScan.Filter(
-            type = FilterType.ASSIGNABLE_TYPE,
-            classes = {kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter.class, kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter.class}
-        )
-    }
-)
+      @ComponentScan.Filter(
+          type = FilterType.ASSIGNABLE_TYPE,
+          classes = {
+            kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter.class,
+            kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter.class
+          })
+    })
 @Import({PermitAllSecurityConfig.class, GlobalExceptionHandler.class})
 class GlobalExceptionHandlerTest {
 
@@ -42,16 +43,15 @@ class GlobalExceptionHandlerTest {
   @Test
   void handleHttpMessageNotReadable_withInvalidEnumValue() throws Exception {
     // given
-    String invalidRequest = """
+    String invalidRequest =
+        """
             { "testEnum" : "INVALID_VALUE" }
             """;
 
     // when & then
     mockMvc
         .perform(
-            post("/api/test/enum")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidRequest))
+            post("/api/test/enum").contentType(MediaType.APPLICATION_JSON).content(invalidRequest))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT_VALUE.getCode()))
         .andExpect(
@@ -79,9 +79,7 @@ class GlobalExceptionHandlerTest {
   }
 
   static Stream<BusinessException> questionSetExceptions() {
-    return Stream.of(
-        QuestionSetNotReadyException.byId(1L)
-    );
+    return Stream.of(QuestionSetNotReadyException.byId(1L));
   }
 
   @DisplayName("QuestionSet 관련 예외 발생 시, 정의된 상태 코드와 에러 코드를 반환한다")
@@ -98,7 +96,6 @@ class GlobalExceptionHandlerTest {
         .andExpect(status().is(errorCode.getStatus().value()))
         .andExpect(jsonPath("$.code").value(errorCode.getCode()));
   }
-
 
   @DisplayName("IllegalArgumentException 발생 시, 400 Bad Request와 함께 지정된 코드를 반환한다")
   @Test

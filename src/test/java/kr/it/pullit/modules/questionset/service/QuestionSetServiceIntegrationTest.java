@@ -4,15 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
+
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import jakarta.persistence.EntityManager;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
@@ -42,6 +37,12 @@ import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
 import kr.it.pullit.support.fixture.MemberFixtures;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @IntegrationTest
 @DisplayName("QuestionSetService 통합 테스트")
