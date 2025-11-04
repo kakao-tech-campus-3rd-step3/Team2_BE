@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,12 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
     PageRequest pageableWithOneExtra = PageRequest.of(0, size + 1);
     return questionSetJpaRepository.findByMemberIdWithCursor(
         memberId, cursor, pageableWithOneExtra);
+  }
+
+  @Override
+  public List<QuestionSet> findByStatusAndCreatedAtBefore(
+      QuestionSetStatus status, LocalDateTime threshold) {
+    return questionSetJpaRepository.findByStatusAndCreatedAtBefore(status, threshold);
   }
 
   @Override

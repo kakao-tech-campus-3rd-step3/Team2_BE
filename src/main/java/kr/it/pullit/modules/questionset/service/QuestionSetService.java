@@ -251,6 +251,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<QuestionSet> findStalePending(LocalDateTime threshold) {
+    return questionSetRepository.findByStatusAndCreatedAtBefore(
+        QuestionSetStatus.PENDING, threshold);
+  }
+
+  @Override
   @Transactional
   public void delete(Long questionSetId, Long memberId) {
     QuestionSet questionSet =

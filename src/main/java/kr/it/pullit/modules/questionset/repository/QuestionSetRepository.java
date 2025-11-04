@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 
 public interface QuestionSetRepository {
@@ -26,6 +27,9 @@ public interface QuestionSetRepository {
       Long memberId, Long folderId, Long cursor, int size);
 
   List<QuestionSet> findByMemberIdWithCursorAndNextPageCheck(Long memberId, Long cursor, int size);
+
+  List<QuestionSet> findByStatusAndCreatedAtBefore(
+      QuestionSetStatus status, LocalDateTime threshold);
 
   QuestionSet save(QuestionSet questionSet);
 

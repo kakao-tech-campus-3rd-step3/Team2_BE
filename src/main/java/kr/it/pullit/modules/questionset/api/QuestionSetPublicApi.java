@@ -30,6 +30,8 @@ public interface QuestionSetPublicApi {
 
   List<QuestionSet> findAllByFolderId(Long folderId);
 
+  List<QuestionSet> findStalePending(LocalDateTime threshold);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
   long countCompletedQuestionsByMemberIdAndDateBetween(
