@@ -8,10 +8,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import kr.it.pullit.modules.notification.domain.EventData;
+import kr.it.pullit.modules.notification.domain.NotificationChannel;
+import kr.it.pullit.modules.notification.repository.NotificationChannelRepository;
+import kr.it.pullit.modules.notification.repository.SseEventCache;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
+import kr.it.pullit.support.annotation.SpringUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,12 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import kr.it.pullit.modules.notification.domain.EventData;
-import kr.it.pullit.modules.notification.domain.NotificationChannel;
-import kr.it.pullit.modules.notification.repository.NotificationChannelRepository;
-import kr.it.pullit.modules.notification.repository.SseEventCache;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
-import kr.it.pullit.support.annotation.SpringUnitTest;
 
 @SpringUnitTest
 @ContextConfiguration(classes = NotificationEventService.class)

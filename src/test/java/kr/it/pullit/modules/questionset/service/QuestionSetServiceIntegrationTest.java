@@ -90,6 +90,8 @@ class QuestionSetServiceIntegrationTest {
     // when
     publicApi.delete(saved.getId(), ownerId);
 
+    entityManager.flush();
+
     // then
     assertThat(repository.findById(saved.getId())).isEmpty();
   }
