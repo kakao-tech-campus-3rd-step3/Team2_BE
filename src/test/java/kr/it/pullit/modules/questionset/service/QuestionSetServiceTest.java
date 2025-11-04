@@ -483,7 +483,7 @@ class QuestionSetServiceTest {
 
       questionSetService.delete(1201L, questionSet.getOwnerId());
 
-      verify(questionSetRepository).deleteById(1201L);
+      assertThat(questionSet.getDeletedAt()).isNotNull();
     }
 
     @Test

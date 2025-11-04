@@ -13,6 +13,7 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionUpdateParam;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
@@ -20,6 +21,8 @@ import kr.it.pullit.shared.jpa.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity(name = "question")
 @Getter
@@ -27,6 +30,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
+@SQLDelete(sql = "UPDATE question SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 public abstract class Question extends BaseEntity {
 
   @Id
@@ -45,6 +50,8 @@ public abstract class Question extends BaseEntity {
 
   @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
   private WrongAnswer wrongAnswer;
+
+  private LocalDateTime deletedAt;
 
   // 생성자는 SuperBuilder가 처리하므로 비워둡니다.
 
@@ -67,6 +74,10 @@ public abstract class Question extends BaseEntity {
   public abstract boolean isCorrect(Object userAnswer);
 
   public abstract QuestionType getQuestionType();
+
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
+  }
 
   @Override
   public boolean equals(Object o) {

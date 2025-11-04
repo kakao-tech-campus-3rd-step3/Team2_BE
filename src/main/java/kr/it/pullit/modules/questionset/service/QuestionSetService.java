@@ -12,6 +12,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.event.QuestionSetCreatedEvent;
@@ -251,6 +252,19 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<QuestionSet> findStalePending(LocalDateTime threshold) {
+    return questionSetRepository.findByStatusAndCreatedAtBefore(
+        QuestionSetStatus.PENDING, threshold);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
+    return questionSetRepository.findFirstFailedSetForRetry(maxRetryCount);
+  }
+
+  @Override
   @Transactional
   public void delete(Long questionSetId, Long memberId) {
     QuestionSet questionSet =
@@ -262,7 +276,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 
-    questionSetRepository.deleteById(questionSet.getId());
+    questionSet.softDelete();
+    questionSet.getQuestions().forEach(Question::softDelete);
   }
 
   @Override

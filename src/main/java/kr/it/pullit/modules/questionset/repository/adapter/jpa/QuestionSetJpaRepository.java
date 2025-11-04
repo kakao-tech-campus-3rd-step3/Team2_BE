@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,35 +12,44 @@ import org.springframework.data.repository.query.Param;
 
 public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Long> {
 
+  List<QuestionSet> findByStatusAndCreatedAtBefore(
+      QuestionSetStatus status, LocalDateTime threshold);
+
+  Optional<QuestionSet> findFirstByStatusAndRetryCountLessThanOrderByCreatedAtAsc(
+      QuestionSetStatus status, int maxRetryCount);
+
   @Query(
       """
-           SELECT qs
-           FROM QuestionSet qs
-           LEFT JOIN FETCH qs.questions
-           WHERE qs.id = :id
-           AND qs.ownerId = :memberId
-          """)
+       SELECT qs
+       FROM QuestionSet qs
+       LEFT JOIN FETCH qs.questions
+       WHERE qs.id = :id
+       AND qs.ownerId = :memberId
+       AND qs.deletedAt IS NULL
+      """)
   Optional<QuestionSet> findByIdAndMemberId(@Param("id") Long id, @Param("memberId") Long memberId);
 
   @Query(
       """
-           SELECT qs
-           FROM QuestionSet qs
-           LEFT JOIN FETCH qs.questions
-           LEFT JOIN FETCH qs.sources
-           WHERE qs.id = :id
-           AND qs.ownerId = :memberId
-           AND qs.status = 'COMPLETE'
-          """)
+       SELECT qs
+       FROM QuestionSet qs
+       LEFT JOIN FETCH qs.questions
+       LEFT JOIN FETCH qs.sources
+       WHERE qs.id = :id
+       AND qs.ownerId = :memberId
+       AND qs.status = 'COMPLETE'
+       AND qs.deletedAt IS NULL
+      """)
   Optional<QuestionSet> findByIdWithQuestionsForSolve(
       @Param("id") Long id, @Param("memberId") Long memberId);
 
   @Query(
       """
-          SELECT qs
-          FROM QuestionSet qs
-          WHERE qs.ownerId = :memberId
-          """)
+      SELECT qs
+      FROM QuestionSet qs
+      WHERE qs.ownerId = :memberId
+      AND qs.deletedAt IS NULL
+      """)
   List<QuestionSet> findByMemberId(@Param("memberId") Long memberId);
 
   List<QuestionSet> findAllByCommonFolderId(Long commonFolderId);
@@ -48,15 +58,16 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-            SELECT DISTINCT qs
-            FROM QuestionSet qs
-            LEFT JOIN FETCH qs.questions q
-            JOIN q.wrongAnswer wa
-            WHERE qs.id = :id
-            AND wa.memberId = :memberId
-            AND wa.isReviewed = false
-            AND qs.status = 'COMPLETE'
-          """)
+        SELECT DISTINCT qs
+        FROM QuestionSet qs
+        LEFT JOIN FETCH qs.questions q
+        JOIN q.wrongAnswer wa
+        WHERE qs.id = :id
+        AND wa.memberId = :memberId
+        AND wa.isReviewed = false
+        AND qs.status = 'COMPLETE'
+        AND qs.deletedAt IS NULL
+      """)
   Optional<QuestionSet> findWrongAnswersByIdAndMemberId(
       @Param("id") Long id, @Param("memberId") Long memberId);
 
@@ -64,23 +75,25 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-            SELECT qs
-            FROM QuestionSet qs
-            WHERE qs.id = :id
-            AND qs.ownerId = :memberId
-            AND qs.status != 'COMPLETE'
-          """)
+        SELECT qs
+        FROM QuestionSet qs
+        WHERE qs.id = :id
+        AND qs.ownerId = :memberId
+        AND qs.status != 'COMPLETE'
+        AND qs.deletedAt IS NULL
+      """)
   Optional<QuestionSet> findQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
 
   @Query(
       """
-            SELECT qs
-            FROM QuestionSet qs
-            WHERE qs.ownerId = :memberId
-            AND qs.commonFolder.id = :folderId
-            AND (:cursor IS NULL OR qs.id < :cursor)
-            ORDER BY qs.createdAt DESC, qs.id DESC
-          """)
+        SELECT qs
+        FROM QuestionSet qs
+        WHERE qs.ownerId = :memberId
+        AND qs.commonFolder.id = :folderId
+        AND (:cursor IS NULL OR qs.id < :cursor)
+        AND qs.deletedAt IS NULL
+        ORDER BY qs.createdAt DESC, qs.id DESC
+      """)
   List<QuestionSet> findByMemberIdAndFolderIdWithCursor(
       @Param("memberId") Long memberId,
       @Param("folderId") Long folderId,
@@ -89,12 +102,13 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-            SELECT qs
-            FROM QuestionSet qs
-            WHERE qs.ownerId = :memberId
-            AND (:cursor IS NULL OR qs.id < :cursor)
-            ORDER BY qs.createdAt DESC, qs.id DESC
-          """)
+        SELECT qs
+        FROM QuestionSet qs
+        WHERE qs.ownerId = :memberId
+        AND (:cursor IS NULL OR qs.id < :cursor)
+        AND qs.deletedAt IS NULL
+        ORDER BY qs.createdAt DESC, qs.id DESC
+      """)
   List<QuestionSet> findByMemberIdWithCursor(
       @Param("memberId") Long memberId, @Param("cursor") Long cursor, Pageable pageable);
 
@@ -102,11 +116,12 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-              SELECT SUM(q.questionLength) FROM QuestionSet q
-              WHERE q.ownerId = :memberId
-              AND q.status = 'COMPLETE'
-              AND q.createdAt BETWEEN :start AND :end
-          """)
+          SELECT SUM(q.questionLength) FROM QuestionSet q
+          WHERE q.ownerId = :memberId
+          AND q.status = 'COMPLETE'
+          AND q.createdAt BETWEEN :start AND :end
+          AND q.deletedAt IS NULL
+      """)
   Long countCompletedQuestionsByMemberIdAndDateBetween(
       @Param("memberId") Long memberId,
       @Param("start") LocalDateTime start,
@@ -114,11 +129,12 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Query(
       """
-              SELECT DISTINCT q.createdAt
-              FROM QuestionSet q
-              WHERE q.ownerId = :memberId
-              AND q.status = 'COMPLETE'
-              ORDER BY q.createdAt ASC
-          """)
+          SELECT DISTINCT q.createdAt
+          FROM QuestionSet q
+          WHERE q.ownerId = :memberId
+          AND q.status = 'COMPLETE'
+          AND q.deletedAt IS NULL
+          ORDER BY q.createdAt ASC
+      """)
   List<LocalDateTime> findCompletedDatesByMemberId(@Param("memberId") Long memberId);
 }
