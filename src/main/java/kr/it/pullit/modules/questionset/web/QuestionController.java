@@ -4,6 +4,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import kr.it.pullit.modules.questionset.service.QuestionService;
+import kr.it.pullit.modules.questionset.web.apidocs.CreateQuestionApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.DeleteQuestionApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.GetQuestionApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.QuestionApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.UpdateQuestionApiDocs;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
@@ -23,11 +28,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/question")
+@QuestionApiDocs
 public class QuestionController {
 
   private final QuestionService questionService;
 
   @PostMapping
+  @CreateQuestionApiDocs
   public ResponseEntity<Void> createQuestion(
       @Valid @RequestBody QuestionCreateRequest questionCreateRequest) {
 
@@ -43,12 +50,14 @@ public class QuestionController {
   }
 
   @GetMapping("/{id}")
+  @GetQuestionApiDocs
   public ResponseEntity<QuestionResponse> getQuestionById(@PathVariable Long id) {
     QuestionResponse questionResponse = questionService.getQuestionById(id);
     return ResponseEntity.ok(questionResponse);
   }
 
   @PutMapping("/{id}")
+  @UpdateQuestionApiDocs
   public ResponseEntity<QuestionResponse> updateQuestion(
       @PathVariable Long id,
       @Valid @RequestBody QuestionUpdateRequestDto questionUpdateRequestDto) {
@@ -59,6 +68,7 @@ public class QuestionController {
   }
 
   @DeleteMapping("/{id}")
+  @DeleteQuestionApiDocs
   public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
     questionService.deleteQuestion(id);
     return ResponseEntity.noContent().build();

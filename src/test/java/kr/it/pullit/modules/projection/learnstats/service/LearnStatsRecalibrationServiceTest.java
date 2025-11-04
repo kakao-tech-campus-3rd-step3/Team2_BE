@@ -60,6 +60,7 @@ class LearnStatsRecalibrationServiceTest {
 
     // then
     LearnStats stats = learnStatsRepository.findById(member.getId()).get();
+
     assertThat(stats.getTotalQuestionCount()).isEqualTo(200L);
     assertThat(stats.getTotalSolvedQuestionCount()).isEqualTo(150L);
     assertThat(stats.getTotalCorrectQuestionCount()).isEqualTo(120L);
