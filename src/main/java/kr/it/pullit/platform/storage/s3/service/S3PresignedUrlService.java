@@ -5,6 +5,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import org.springframework.stereotype.Service;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.core.FilePathPolicy;
 import kr.it.pullit.platform.storage.core.FileValidation;
@@ -13,7 +14,6 @@ import kr.it.pullit.platform.storage.s3.client.FileStorageClient;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class S3PresignedUrlService implements S3PublicApi {
   @SneakyThrows
   @Override
   public Path downloadFileToTemp(String filePath) {
-    Path tempFile = Files.createTempFile("pullit-source-", ".pdf");
+    Path tempFile = Files.createTempFile("question-generation-", ".pdf");
     try (InputStream inputStream = fileStorageClient.downloadFileAsStream(filePath)) {
       Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
     }
