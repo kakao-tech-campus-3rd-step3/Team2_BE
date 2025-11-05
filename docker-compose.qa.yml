@@ -29,10 +29,15 @@ services:
       # Redis 연결 설정
       - REDIS_HOST=pullit-qa-redis
       - REDIS_PORT=6379
+      # RabbitMQ 연결 설정
+      - RABBITMQ_HOST=pullit-qa-rabbitmq
+      - SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=2 # 워커 수를 2로 고정하여 순차 처리
     depends_on:
       pullit-qa-db:
         condition: service_healthy
       pullit-qa-redis:
+        condition: service_started
+      pullit-qa-rabbitmq:
         condition: service_started
     networks:
       - pullit-qa-network
@@ -75,6 +80,23 @@ services:
       - --slow_query_log=1
       - --log_output=TABLE
       - --long_query_time=1
+
+  # QA용 RabbitMQ 메시지 큐
+  pullit-qa-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: pullit-qa-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - pullit-qa-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   prometheus:
     container_name: prometheus

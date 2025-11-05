@@ -1,6 +1,8 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -104,6 +106,16 @@ public class SourceService implements SourcePublicApi {
             .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
 
     return s3PublicApi.downloadFileAsStream(source.getFilePath());
+  }
+
+  @Override
+  public Path downloadFileToTemp(long sourceId, long memberId) throws IOException {
+    Source source =
+        sourceRepository
+            .findByIdAndMemberId(sourceId, memberId)
+            .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
+
+    return s3PublicApi.downloadFileToTemp(source.getFilePath());
   }
 
   @Override
