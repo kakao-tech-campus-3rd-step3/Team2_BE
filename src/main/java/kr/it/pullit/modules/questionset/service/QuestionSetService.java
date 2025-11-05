@@ -230,6 +230,23 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  public void updateAndMarkAsComplete(
+      Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId) {
+    QuestionSet questionSet = findQuestionSetByIdAndMemberIdOrThrow(questionSetId, memberId);
+
+    if (request.title() != null) {
+      questionSet.updateTitle(request.title());
+    }
+
+    if (request.commonFolderId() != null) {
+      assignFolderToQuestionSet(request.commonFolderId(), questionSet, memberId);
+    }
+
+    questionSet.completeProcessing();
+  }
+
+  @Override
+  @Transactional
   public void deleteAllByFolderId(Long folderId) {
     List<QuestionSet> questionSetsToDelete =
         questionSetRepository.findAllByCommonFolderId(folderId);

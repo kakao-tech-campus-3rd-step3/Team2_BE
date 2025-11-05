@@ -22,6 +22,9 @@ public interface QuestionSetPublicApi {
 
   void update(Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId);
 
+  void updateAndMarkAsComplete(
+      Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId);
+
   void delete(Long questionSetId, Long memberId);
 
   void deleteAllByFolderId(Long folderId);

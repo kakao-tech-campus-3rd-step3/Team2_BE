@@ -1,5 +1,6 @@
 package kr.it.pullit.support.builder;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ public record TestQuestionSetBuilder() {
 
   @Builder(builderMethodName = "internalBuilder")
   private static QuestionSet build(
+      Long id,
       Long ownerId,
       Set<Source> sources,
       String title,
@@ -38,6 +40,10 @@ public record TestQuestionSetBuilder() {
             .questionLength(finalQuestionLength)
             .build();
 
+    if (id != null) {
+      setIdUsingReflection(questionSet, id);
+    }
+
     if (questions != null) {
       questions.forEach(questionSet::addQuestion);
     }
@@ -51,6 +57,20 @@ public record TestQuestionSetBuilder() {
     }
 
     return questionSet;
+  }
+
+  private static void setIdUsingReflection(QuestionSet questionSet, Long id) {
+    try {
+      Field idField = QuestionSet.class.getDeclaredField("id");
+      idField.setAccessible(true);
+      idField.set(questionSet, id);
+
+      Field versionField = QuestionSet.class.getDeclaredField("version");
+      versionField.setAccessible(true);
+      versionField.set(questionSet, 0L);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("리플렉션을 사용하여 ID를 설정하는 중 오류가 발생했습니다.", e);
+    }
   }
 
   public static QuestionSetBuilder builder() {
