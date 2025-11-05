@@ -16,6 +16,8 @@ spring:
 
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
   jpa:
     defer-datasource-initialization: true

@@ -31,14 +31,16 @@ services:
       - REDIS_PORT=6379
       # RabbitMQ 연결 설정
       - RABBITMQ_HOST=pullit-qa-rabbitmq
+      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
+      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
       - SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=2 # 워커 수를 2로 고정하여 순차 처리
     depends_on:
       pullit-qa-db:
         condition: service_healthy
       pullit-qa-redis:
-        condition: service_started
+        condition: service_healthy
       pullit-qa-rabbitmq:
-        condition: service_started
+        condition: service_healthy
     networks:
       - pullit-qa-network
     healthcheck:
@@ -86,6 +88,9 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: pullit-qa-rabbitmq
     restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -150,6 +155,8 @@ volumes:
   pullit_qa_data:
     driver: local
   grafana_storage:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:
