@@ -52,11 +52,10 @@ public class QuestionGenerationEventHandler {
     QuestionGenerationRequest request = createGenerationRequest(event);
     LlmGeneratedQuestionSetResponse response = questionPublicApi.generateQuestions(request);
 
-    questionSetPublicApi.update(
-        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
     saveQuestions(event.questionSetId(), event.ownerId(), response.questions());
 
-    questionSetPublicApi.markAsComplete(event.questionSetId());
+    questionSetPublicApi.updateAndMarkAsComplete(
+        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
   }
 
   private static QuestionSetUpdateRequestDto toQuestionSetUpdateRequestDto(
