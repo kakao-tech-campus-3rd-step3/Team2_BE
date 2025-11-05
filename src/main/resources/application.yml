@@ -14,6 +14,14 @@ spring:
     username: myuser
     password: secret
 
+<<<<<<< Updated upstream
+=======
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+
+>>>>>>> Stashed changes
   jpa:
     defer-datasource-initialization: true
     generate-ddl: true # Explicitly enable DDL generation by Hibernate
