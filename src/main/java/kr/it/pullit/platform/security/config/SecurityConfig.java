@@ -1,6 +1,13 @@
 package kr.it.pullit.platform.security.config;
 
 import java.util.Optional;
+import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
+import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
+import kr.it.pullit.platform.security.jwt.exception.JwtAuthenticationEntryPoint;
+import kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter;
+import kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter;
+import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,18 +25,8 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.util.UriComponentsBuilder;
-import kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService;
-import kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler;
-import kr.it.pullit.platform.security.jwt.exception.JwtAuthenticationEntryPoint;
-import kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter;
-import kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter;
-import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
-import lombok.RequiredArgsConstructor;
 
-/**
- * 활성화된 Spring 프로필에 따라 다른 보안 필터 체인(SecurityFilterChain)을 구성하여
- * 인증/인가 정책을 환경별로 다르게 적용.
- */
+/** 활성화된 Spring 프로필에 따라 다른 보안 필터 체인(SecurityFilterChain)을 구성하여 인증/인가 정책을 환경별로 다르게 적용. */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
