@@ -1,5 +1,6 @@
 package kr.it.pullit.platform.storage.api;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
@@ -11,7 +12,7 @@ public interface S3PublicApi {
 
   InputStream downloadFileAsStream(String filePath);
 
-  Path downloadFileToTemp(String filePath);
+  Path downloadFileToTemp(String filePath) throws IOException;
 
   boolean fileExists(String filePath);
 

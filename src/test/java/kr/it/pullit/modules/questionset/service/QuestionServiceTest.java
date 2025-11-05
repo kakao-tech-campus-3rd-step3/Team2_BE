@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +69,7 @@ class QuestionServiceTest {
 
     @Test
     @DisplayName("LLM 클라이언트를 호출하여 문제를 생성하고 임시 파일을 정리한다")
-    void generatesQuestionsThroughLlmAndCleansUpFiles() {
+    void generatesQuestionsThroughLlmAndCleansUpFiles() throws IOException {
       Long memberId = 10L;
       Long questionSetId = 20L;
 

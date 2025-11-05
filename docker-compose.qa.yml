@@ -31,11 +31,7 @@ services:
       - REDIS_PORT=6379
       # RabbitMQ 연결 설정
       - RABBITMQ_HOST=pullit-qa-rabbitmq
-    spring:
-      rabbitmq:
-        listener:
-          simple:
-            concurrency: 2 # 워커 수를 2로 고정하여 순차 처리
+      - SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=2 # 워커 수를 2로 고정하여 순차 처리
     depends_on:
       pullit-qa-db:
         condition: service_healthy

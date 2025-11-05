@@ -1,7 +1,9 @@
 package kr.it.pullit.modules.questionset.service;
 
 import jakarta.transaction.Transactional;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -47,9 +49,9 @@ public class QuestionService implements QuestionPublicApi {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
-    List<Path> sourceFilePaths = getSourceFilePaths(request.sourceIds(), request.ownerId());
-
+    List<Path> sourceFilePaths = new ArrayList<>();
     try {
+      sourceFilePaths = getSourceFilePaths(request.sourceIds(), request.ownerId());
       return callLlmClient(
           request.questionSetId(), llmPrompt, sourceFilePaths, request.specification());
     } finally {
@@ -118,9 +120,16 @@ public class QuestionService implements QuestionPublicApi {
   }
 
   private List<Path> getSourceFilePaths(List<Long> sourceIds, Long ownerId) {
-    return sourceIds.stream()
-        .map(sourceId -> sourcePublicApi.downloadFileToTemp(sourceId, ownerId))
-        .toList();
+    List<Path> downloadedPaths = new ArrayList<>();
+    try {
+      for (Long sourceId : sourceIds) {
+        downloadedPaths.add(sourcePublicApi.downloadFileToTemp(sourceId, ownerId));
+      }
+      return downloadedPaths;
+    } catch (IOException e) {
+      questionSetFileTempManager.cleanUp(downloadedPaths);
+      throw new RuntimeException("소스파일 다운로드 중 오류가 발생했습니다.", e);
+    }
   }
 
   private LlmGeneratedQuestionSetResponse callLlmClient(

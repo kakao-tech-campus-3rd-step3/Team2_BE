@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
@@ -108,7 +109,7 @@ public class SourceService implements SourcePublicApi {
   }
 
   @Override
-  public Path downloadFileToTemp(long sourceId, long memberId) {
+  public Path downloadFileToTemp(long sourceId, long memberId) throws IOException {
     Source source =
         sourceRepository
             .findByIdAndMemberId(sourceId, memberId)
