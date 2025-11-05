@@ -6,6 +6,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import org.springframework.stereotype.Service;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.core.FilePathPolicy;
 import kr.it.pullit.platform.storage.core.FileValidation;
@@ -13,7 +14,6 @@ import kr.it.pullit.platform.storage.core.S3StorageProps;
 import kr.it.pullit.platform.storage.s3.client.FileStorageClient;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +27,11 @@ public class S3PresignedUrlService implements S3PublicApi {
   @Override
   public PresignedUrlResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId) {
-    // 파일 검증
+
     fileValidation.validatePdfFile(contentType, fileSize);
 
-    // 파일 경로 생성
     String filePath = filePathPolicy.generateFilePath(fileName, memberId);
 
-    // Presigned URL 생성
     URL presignedUrl =
         fileStorageClient.generatePresignedUploadUrl(
             filePath, contentType, s3StorageProps.getPresignedUrlExpiration());
