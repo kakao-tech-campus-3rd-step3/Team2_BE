@@ -63,6 +63,8 @@ jobs:
             export SENTRY_DSN='${{ secrets.SENTRY_DSN }}' && \
             export SENTRY_AUTH_TOKEN='${{ secrets.SENTRY_AUTH_TOKEN }}' && \
             export GRAFANA_ADMIN_PASSWORD='${{ secrets.GRAFANA_ADMIN_PASSWORD }}' && \
+            export RABBITMQ_DEFAULT_USER='${{ secrets.RABBITMQ_DEFAULT_USER }}' && \
+            export RABBITMQ_DEFAULT_PASS='${{ secrets.RABBITMQ_DEFAULT_PASS }}' && \
             cd /home/ubuntu/app && \
             docker compose -f docker-compose.qa.yml down --remove-orphans && \
             docker compose -f docker-compose.qa.yml pull && \
