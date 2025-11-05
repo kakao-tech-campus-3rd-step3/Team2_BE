@@ -1,6 +1,11 @@
 package kr.it.pullit.modules.questionset.event;
 
 import java.util.List;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -16,18 +21,16 @@ import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreatio
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.platform.mq.RabbitMQConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class QuestionGenerationEventHandler {
 
+  private final RabbitTemplate rabbitTemplate;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationEventPublicApi notificationEventPublicApi;
@@ -38,13 +41,17 @@ public class QuestionGenerationEventHandler {
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleQuestionSetCreatedEvent(QuestionSetCreatedEvent event) {
-    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}", event.questionSetId());
+    log.info("QuestionSet ID: {} 에 대한 AI 문제 생성 요청을 메시지 큐에 발행합니다.", event.questionSetId());
 
     try {
-      processQuestionGeneration(event);
-      handleSuccess(event);
+      rabbitTemplate.convertAndSend(
+          RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, event);
     } catch (Exception e) {
-      handleFailure(event, e);
+      log.error(
+          "문제 생성 요청 메시지 발행에 실패했습니다. QuestionSet ID: {}",
+          event.questionSetId(),
+          e);
+      questionSetPublicApi.markAsFailed(event.questionSetId());
     }
   }
 

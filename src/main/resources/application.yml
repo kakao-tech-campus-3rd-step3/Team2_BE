@@ -14,6 +14,9 @@ spring:
     username: myuser
     password: secret
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+
   jpa:
     defer-datasource-initialization: true
     generate-ddl: true # Explicitly enable DDL generation by Hibernate

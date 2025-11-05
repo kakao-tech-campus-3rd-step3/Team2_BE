@@ -2,6 +2,10 @@ package kr.it.pullit.platform.storage.s3.service;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import org.springframework.stereotype.Service;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.core.FilePathPolicy;
 import kr.it.pullit.platform.storage.core.FileValidation;
@@ -9,7 +13,7 @@ import kr.it.pullit.platform.storage.core.S3StorageProps;
 import kr.it.pullit.platform.storage.s3.client.FileStorageClient;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import lombok.SneakyThrows;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +44,16 @@ public class S3PresignedUrlService implements S3PublicApi {
   @Override
   public InputStream downloadFileAsStream(String filePath) {
     return fileStorageClient.downloadFileAsStream(filePath);
+  }
+
+  @SneakyThrows
+  @Override
+  public Path downloadFileToTemp(String filePath) {
+    Path tempFile = Files.createTempFile("pullit-source-", ".pdf");
+    try (InputStream inputStream = fileStorageClient.downloadFileAsStream(filePath)) {
+      Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+    return tempFile;
   }
 
   @Override

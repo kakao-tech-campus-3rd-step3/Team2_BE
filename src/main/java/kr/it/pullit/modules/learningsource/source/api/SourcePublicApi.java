@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.learningsource.source.api;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -18,6 +19,8 @@ public interface SourcePublicApi {
   List<SourceResponse> getMySources(Long memberId);
 
   InputStream getContentStream(Long sourceId, Long memberId);
+
+  Path downloadFileToTemp(long sourceId, long memberId);
 
   Optional<Source> findById(Long id);
 

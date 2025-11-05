@@ -1,9 +1,10 @@
 package kr.it.pullit.modules.questionset.service;
 
-import jakarta.transaction.Transactional;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -27,7 +28,6 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionUpdateRequestDto
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -40,17 +40,22 @@ public class QuestionService implements QuestionPublicApi {
   private final QuestionSetRepository questionSetRepository;
   private final SourcePublicApi sourcePublicApi;
   private final LlmClient llmClient;
+  private final QuestionSetFileTempManager questionSetFileTempManager;
 
   @Override
   public LlmGeneratedQuestionSetResponse generateQuestions(QuestionGenerationRequest request) {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
-    List<InputStream> sourceFileDataStreams =
-        getSourceFileStreams(request.sourceIds(), request.ownerId());
+    List<Path> sourceFilePaths =
+        getSourceFilePaths(request.sourceIds(), request.ownerId());
 
-    return callLlmClient(
-        request.questionSetId(), llmPrompt, sourceFileDataStreams, request.specification());
+    try {
+      return callLlmClient(
+          request.questionSetId(), llmPrompt, sourceFilePaths, request.specification());
+    } finally {
+      questionSetFileTempManager.cleanUp(sourceFilePaths);
+    }
   }
 
   @Override
@@ -113,20 +118,20 @@ public class QuestionService implements QuestionPublicApi {
     return LlmPrompt.compose(spec.difficultyType(), spec.questionType());
   }
 
-  private List<InputStream> getSourceFileStreams(List<Long> sourceIds, Long ownerId) {
+  private List<Path> getSourceFilePaths(List<Long> sourceIds, Long ownerId) {
     return sourceIds.stream()
-        .map(sourceId -> sourcePublicApi.getContentStream(sourceId, ownerId))
+        .map(sourceId -> sourcePublicApi.downloadFileToTemp(sourceId, ownerId))
         .toList();
   }
 
   private LlmGeneratedQuestionSetResponse callLlmClient(
       Long questionSetId,
       LlmPrompt llmPrompt,
-      List<InputStream> sourceFileDataStreams,
+      List<Path> sourceFilePaths,
       QuestionGenerationSpecification spec) {
     logLlmCall(questionSetId, DEFAULT_MODEL_NAME);
     LlmGeneratedQuestionRequest request =
-        createLlmRequest(llmPrompt, sourceFileDataStreams, spec, DEFAULT_MODEL_NAME);
+        createLlmRequest(llmPrompt, sourceFilePaths, spec, DEFAULT_MODEL_NAME);
     return llmClient.getLlmGeneratedQuestionContent(request);
   }
 
@@ -136,11 +141,11 @@ public class QuestionService implements QuestionPublicApi {
 
   private LlmGeneratedQuestionRequest createLlmRequest(
       LlmPrompt llmPrompt,
-      List<InputStream> sourceFileDataStreams,
+      List<Path> sourceFilePaths,
       QuestionGenerationSpecification spec,
       String modelName) {
     return new LlmGeneratedQuestionRequest(
-        llmPrompt.value(), sourceFileDataStreams, modelName, spec);
+        llmPrompt.value(), sourceFilePaths, modelName, spec);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId) {
