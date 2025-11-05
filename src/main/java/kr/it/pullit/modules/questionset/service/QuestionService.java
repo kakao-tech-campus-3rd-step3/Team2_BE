@@ -1,10 +1,9 @@
 package kr.it.pullit.modules.questionset.service;
 
+import jakarta.transaction.Transactional;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
@@ -28,6 +27,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionUpdateRequestDto
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -47,8 +47,7 @@ public class QuestionService implements QuestionPublicApi {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
-    List<Path> sourceFilePaths =
-        getSourceFilePaths(request.sourceIds(), request.ownerId());
+    List<Path> sourceFilePaths = getSourceFilePaths(request.sourceIds(), request.ownerId());
 
     try {
       return callLlmClient(
@@ -144,8 +143,7 @@ public class QuestionService implements QuestionPublicApi {
       List<Path> sourceFilePaths,
       QuestionGenerationSpecification spec,
       String modelName) {
-    return new LlmGeneratedQuestionRequest(
-        llmPrompt.value(), sourceFilePaths, modelName, spec);
+    return new LlmGeneratedQuestionRequest(llmPrompt.value(), sourceFilePaths, modelName, spec);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId) {

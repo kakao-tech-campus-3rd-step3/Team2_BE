@@ -1,4 +1,4 @@
-package kr.it.pullit.platform.mq;
+package kr.it.pullit.platform.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class RabbitMQConfig {
+public class RabbitMqConfig {
 
   public static final String EXCHANGE_NAME = "question.exchange";
   public static final String QUEUE_NAME = "question.generation.queue";
@@ -36,7 +36,8 @@ public class RabbitMQConfig {
   }
 
   @Bean
-  public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
+  public RabbitTemplate rabbitTemplate(
+      ConnectionFactory connectionFactory, MessageConverter messageConverter) {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
     rabbitTemplate.setMessageConverter(messageConverter);
     return rabbitTemplate;

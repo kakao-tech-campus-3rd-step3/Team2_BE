@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -47,13 +47,19 @@ class QuestionServiceTest {
   @Mock private QuestionSetRepository questionSetRepository;
   @Mock private SourcePublicApi sourcePublicApi;
   @Mock private LlmClient llmClient;
+  @Mock private QuestionSetFileTempManager questionSetFileTempManager;
 
   private QuestionService questionService;
 
   @BeforeEach
   void setUp() {
     questionService =
-        new QuestionService(questionRepository, questionSetRepository, sourcePublicApi, llmClient);
+        new QuestionService(
+            questionRepository,
+            questionSetRepository,
+            sourcePublicApi,
+            llmClient,
+            questionSetFileTempManager);
   }
 
   @Nested
@@ -61,8 +67,8 @@ class QuestionServiceTest {
   class DescribeGenerateQuestions {
 
     @Test
-    @DisplayName("LLM 클라이언트를 호출하여 문제를 생성한다")
-    void generatesQuestionsThroughLlm() {
+    @DisplayName("LLM 클라이언트를 호출하여 문제를 생성하고 임시 파일을 정리한다")
+    void generatesQuestionsThroughLlmAndCleansUpFiles() {
       Long memberId = 10L;
       Long questionSetId = 20L;
 
@@ -71,10 +77,12 @@ class QuestionServiceTest {
 
       when(questionSetRepository.findByIdAndMemberId(questionSetId, memberId))
           .thenReturn(Optional.of(questionSet));
-      when(sourcePublicApi.getContentStream(1L, memberId))
-          .thenReturn(new ByteArrayInputStream(new byte[] {1}));
-      when(sourcePublicApi.getContentStream(2L, memberId))
-          .thenReturn(new ByteArrayInputStream(new byte[] {2}));
+
+      Path path1 = Path.of("temp1.pdf");
+      Path path2 = Path.of("temp2.pdf");
+
+      when(sourcePublicApi.downloadFileToTemp(1L, memberId)).thenReturn(path1);
+      when(sourcePublicApi.downloadFileToTemp(2L, memberId)).thenReturn(path2);
 
       LlmGeneratedQuestionSetResponse expected =
           new LlmGeneratedQuestionSetResponse("제목", List.of());
@@ -94,10 +102,11 @@ class QuestionServiceTest {
       verify(llmClient).getLlmGeneratedQuestionContent(captor.capture());
       assertThat(captor.getValue().model()).isEqualTo("gemini-2.5-flash-lite");
       assertThat(captor.getValue().specification()).isEqualTo(specification);
-      assertThat(captor.getValue().fileDataList()).hasSize(2);
+      assertThat(captor.getValue().fileDataList()).containsExactly(path1, path2);
 
-      verify(sourcePublicApi).getContentStream(1L, memberId);
-      verify(sourcePublicApi).getContentStream(2L, memberId);
+      verify(sourcePublicApi).downloadFileToTemp(1L, memberId);
+      verify(sourcePublicApi).downloadFileToTemp(2L, memberId);
+      verify(questionSetFileTempManager).cleanUp(List.of(path1, path2));
     }
 
     @Test
