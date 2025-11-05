@@ -19,18 +19,14 @@ import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.platform.config.RabbitMqConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class QuestionGenerationEventHandler {
+public class QuestionGenerationWorker {
 
-  private final RabbitTemplate rabbitTemplate;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationEventPublicApi notificationEventPublicApi;
@@ -38,17 +34,15 @@ public class QuestionGenerationEventHandler {
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
   private final LearnStatsRecalibrationPublicApi learnStatsRecalibrationPublicApi;
 
-  @Async("applicationTaskExecutor")
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-  public void handleQuestionSetCreatedEvent(QuestionSetCreatedEvent event) {
-    log.info("QuestionSet ID: {} 에 대한 AI 문제 생성 요청을 메시지 큐에 발행합니다.", event.questionSetId());
+  @RabbitListener(queues = RabbitMqConfig.QUEUE_NAME)
+  public void handleQuestionGenerationRequest(QuestionSetCreatedEvent event) {
+    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}", event.questionSetId());
 
     try {
-      rabbitTemplate.convertAndSend(
-          RabbitMqConfig.EXCHANGE_NAME, RabbitMqConfig.ROUTING_KEY, event);
+      processQuestionGeneration(event);
+      handleSuccess(event);
     } catch (Exception e) {
-      log.error("문제 생성 요청 메시지 발행에 실패했습니다. QuestionSet ID: {}", event.questionSetId(), e);
-      questionSetPublicApi.markAsFailed(event.questionSetId());
+      handleFailure(event, e);
     }
   }
 
@@ -56,10 +50,11 @@ public class QuestionGenerationEventHandler {
     QuestionGenerationRequest request = createGenerationRequest(event);
     LlmGeneratedQuestionSetResponse response = questionPublicApi.generateQuestions(request);
 
+    questionSetPublicApi.update(
+        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
     saveQuestions(event.questionSetId(), event.ownerId(), response.questions());
 
-    questionSetPublicApi.updateAndMarkAsComplete(
-        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
+    questionSetPublicApi.markAsComplete(event.questionSetId());
   }
 
   private static QuestionSetUpdateRequestDto toQuestionSetUpdateRequestDto(
