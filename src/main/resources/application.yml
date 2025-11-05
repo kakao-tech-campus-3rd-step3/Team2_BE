@@ -14,14 +14,11 @@ spring:
     username: myuser
     password: secret
 
-<<<<<<< Updated upstream
-=======
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     username: ${SPRING_RABBITMQ_USERNAME:guest}
     password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
->>>>>>> Stashed changes
   jpa:
     defer-datasource-initialization: true
     generate-ddl: true # Explicitly enable DDL generation by Hibernate
@@ -159,7 +156,7 @@ management:
 
 cors:
   allowed-origins:
-    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:https://localhost:5173, https://local.pull.it.kr:5173, https://pull.it.kr, https://www.pull.it.kr}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:https://localhost:5173, https://pull.it.kr, https://www.pull.it.kr}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
@@ -176,6 +173,8 @@ app:
       base-path: learning-sources
   notification:
     sse-cache-size: 10000
+  oauth2:
+    authorized-redirect-uri: ${PULLIT_OAUTH2_REDIRECT_URI:https://localhost:5173/login-success}
 
 # OpenAPI/Swagger 설정
 springdoc:
