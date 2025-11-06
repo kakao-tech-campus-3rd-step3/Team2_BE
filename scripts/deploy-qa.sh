@@ -1,11 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# ===================================================================
-# EC2 호스트 Nginx와 연동하는 블루/그린 무중단 배포 스크립트
-# 단일 Nginx 설정 파일의 'upstream api_backend' 블록을 수정한다.
-# ===================================================================
-
 # 0. 필수 변수 및 경로 설정
 NGINX_CONF="/etc/nginx/conf.d/qa.api.pull.it.kr.conf"
 
@@ -40,12 +35,15 @@ docker compose -f docker-compose.qa.yml up -d --no-deps "pullit-qa-$INACTIVE_COL
 echo "API 서버($INACTIVE_COLOR)가 정상 상태가 되기를 기다리는 중..."
 HEALTH_STATUS="unhealthy"
 for i in {1..30}; do
-    if docker inspect --format="{{.State.Health.Status}}" "pullit-qa-$INACTIVE_COLOR" 2>/dev/null | grep -q "healthy"; then
-        echo "API 서버($INACTIVE_COLOR)가 성공적으로 시작되었습니다!"
+    # /api/health 엔드포인트로 직접 헬스 체크하여 200 OK 응답을 확인
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$INACTIVE_PORT/api/health" || echo "000")
+
+    if [ "$HTTP_CODE" -eq 200 ]; then
+        echo "API 서버($INACTIVE_COLOR)가 성공적으로 시작되었습니다! (HTTP 200 OK)"
         HEALTH_STATUS="healthy"
         break
     fi
-    echo "API 서버 헬스 체크 실패 (시도: $i). 10초 후 재시도합니다..."
+    echo "API 서버 헬스 체크 실패 (시도: $i, HTTP Status: $HTTP_CODE). 10초 후 재시도합니다..."
     sleep 10
 done
 

@@ -36,7 +36,7 @@ class MemberServiceUnitTest {
     SocialLoginCommand command = SocialLoginCommand.kakao(12345L, "test@example.com", "Test User");
     when(memberRepository.findByKakaoId(command.kakaoId())).thenReturn(Optional.empty());
     when(memberRepository.findByEmail(command.email())).thenReturn(Optional.empty());
-    when(memberRepository.save(any(Member.class)))
+    when(memberRepository.saveAndFlush(any(Member.class)))
         .thenAnswer(
             invocation -> {
               Member memberToSave = invocation.getArgument(0);
