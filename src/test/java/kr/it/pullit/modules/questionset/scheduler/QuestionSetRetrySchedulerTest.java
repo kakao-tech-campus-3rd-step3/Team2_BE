@@ -32,14 +32,14 @@ class QuestionSetRetrySchedulerTest {
 
   @Test
   @DisplayName("재시도할 FAILED 상태의 문제집이 있으면, 해당 문제집 하나만 재시도하고 이벤트를 발행한다")
-  void retryFailedQuestionSets_whenRetryableSetExists_republishesEventForOne() {
+  void retryFailedQuestionSetGeneration_whenRetryableSetExists_republishesEventForOne() {
     // given
     QuestionSet retryableSet = mock(QuestionSet.class);
 
     when(questionSetPublicApi.findFirstFailedSetForRetry(3)).thenReturn(Optional.of(retryableSet));
 
     // when
-    questionSetRetryScheduler.retryFailedQuestionSets();
+    questionSetRetryScheduler.retryFailedQuestionSetGeneration();
 
     // then
     verify(retryableSet, times(1)).retry();
@@ -48,12 +48,12 @@ class QuestionSetRetrySchedulerTest {
 
   @Test
   @DisplayName("재시도할 문제집이 없으면 아무 작업도 하지 않는다")
-  void retryFailedQuestionSets_whenNoRetryableSets_doesNothing() {
+  void retryFailedQuestionSetGeneration_whenNoRetryableSets_doesNothing() {
     // given
     when(questionSetPublicApi.findFirstFailedSetForRetry(3)).thenReturn(Optional.empty());
 
     // when
-    questionSetRetryScheduler.retryFailedQuestionSets();
+    questionSetRetryScheduler.retryFailedQuestionSetGeneration();
 
     // then
     verify(eventPublisher, never()).publish(any(QuestionSetCreatedEvent.class));

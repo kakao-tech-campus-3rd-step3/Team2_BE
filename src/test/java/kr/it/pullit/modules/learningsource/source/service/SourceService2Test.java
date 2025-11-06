@@ -14,6 +14,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.exception.SourceFileSizeExceededException;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
@@ -88,7 +89,7 @@ public class SourceService2Test {
     // given
     String fileName = "large-document.pdf";
     String contentType = "application/pdf";
-    Long fileSize = 50 * 1024 * 1024L; // 50MB
+    Long fileSize = 19 * 1024 * 1024L; // 19MiB (20MiB 제한 이내)
     Long memberId = 1L;
 
     given(s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
@@ -172,17 +173,13 @@ public class SourceService2Test {
     // given
     String fileName = "too-large.pdf";
     String contentType = "application/pdf";
-    Long fileSize = 51 * 1024 * 1024L; // 51MB (50MB 초과)
+    Long fileSize = 21 * 1024 * 1024L; // 21MiB (20MiB 초과)
     Long memberId = 1L;
-
-    given(s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-        .willThrow(new IllegalArgumentException("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다."));
 
     // when & then
     assertThatThrownBy(
             () -> sourcePublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다.");
+        .isInstanceOf(SourceFileSizeExceededException.class);
   }
 
   @Test

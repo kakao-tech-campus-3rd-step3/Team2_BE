@@ -7,6 +7,7 @@ import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,10 @@ public class QuestionSetCleanupScheduler {
   private final Clock clock;
 
   @Scheduled(cron = "0 */10 * * * *") // 매 10분마다 실행
+  @SchedulerLock(
+      name = "cleanupStalePendingQuestionSets",
+      lockAtMostFor = "9m",
+      lockAtLeastFor = "1m")
   @Transactional
   public void cleanupStalePendingQuestionSets() {
     log.info("오래된 '생성중' 상태의 문제집 정리 작업을 시작합니다.");

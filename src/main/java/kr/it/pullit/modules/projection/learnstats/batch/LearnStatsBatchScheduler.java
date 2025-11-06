@@ -6,6 +6,7 @@ import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,10 @@ public class LearnStatsBatchScheduler {
 
   /** 매주 월요일 오전 4시에 실행 */
   @Scheduled(cron = "0 0 4 * * MON", zone = "Asia/Seoul")
+  @SchedulerLock(
+      name = "triggerWeeklyResetAndRecalibration",
+      lockAtMostFor = "50m",
+      lockAtLeastFor = "10m")
   public void triggerWeeklyResetAndRecalibration() {
     log.info("주간 학습 통계 초기화 및 보정 작업을 시작합니다.");
 

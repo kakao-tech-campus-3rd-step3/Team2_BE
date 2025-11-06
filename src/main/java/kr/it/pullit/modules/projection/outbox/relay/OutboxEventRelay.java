@@ -8,6 +8,7 @@ import kr.it.pullit.modules.projection.outbox.repository.OutboxEventJpaRepositor
 import kr.it.pullit.modules.projection.outbox.repository.ProcessedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -23,6 +24,7 @@ public class OutboxEventRelay {
   private final TransactionTemplate transactionTemplate;
 
   @Scheduled(fixedDelay = 1000)
+  @SchedulerLock(name = "relayOutboxEvents", lockAtMostFor = "900ms", lockAtLeastFor = "100ms")
   public void relayOutboxEvents() {
     List<OutboxEvent> events = outboxEventRepository.findTop100ByOrderByCreatedAtAsc();
 
