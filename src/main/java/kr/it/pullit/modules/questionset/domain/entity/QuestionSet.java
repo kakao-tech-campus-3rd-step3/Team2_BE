@@ -16,6 +16,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Version;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +27,7 @@ import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
+import kr.it.pullit.modules.questionset.enums.LearningStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.shared.jpa.BaseEntity;
@@ -32,10 +35,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@SQLDelete(
+    sql = "UPDATE question_set SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND version = ?")
+@SQLRestriction("deleted_at IS NULL")
 public class QuestionSet extends BaseEntity {
 
   @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -44,6 +52,10 @@ public class QuestionSet extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Version
+  @Column(nullable = false)
+  private Long version;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "common_folder_id")
@@ -75,6 +87,13 @@ public class QuestionSet extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private QuestionSetStatus status;
 
+  @Enumerated(EnumType.STRING)
+  private LearningStatus learningStatus;
+
+  private LocalDateTime deletedAt;
+
+  private int retryCount;
+
   @Builder
   public QuestionSet(
       Long ownerId,
@@ -90,6 +109,8 @@ public class QuestionSet extends BaseEntity {
     this.type = type;
     this.questionLength = questionLength;
     this.status = QuestionSetStatus.PENDING;
+    this.learningStatus = LearningStatus.NOT_STARTED;
+    this.retryCount = 0;
   }
 
   public static QuestionSet create(
@@ -107,6 +128,21 @@ public class QuestionSet extends BaseEntity {
         .type(param.type())
         .questionLength(param.questionCount())
         .build();
+  }
+
+  public void updateLearningStatus(long solvedCount) {
+    if (this.questionLength == null || this.questionLength == 0) {
+      this.learningStatus = LearningStatus.NOT_STARTED;
+      return;
+    }
+
+    if (solvedCount == 0) {
+      this.learningStatus = LearningStatus.NOT_STARTED;
+    } else if (solvedCount < this.questionLength) {
+      this.learningStatus = LearningStatus.IN_PROGRESS;
+    } else {
+      this.learningStatus = LearningStatus.COMPLETED;
+    }
   }
 
   private static void validateSources(List<Source> sources) {
@@ -154,5 +190,14 @@ public class QuestionSet extends BaseEntity {
 
   public void updateTitle(String title) {
     this.title = title;
+  }
+
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
+  }
+
+  public void retry() {
+    this.status = QuestionSetStatus.PENDING;
+    this.retryCount++;
   }
 }

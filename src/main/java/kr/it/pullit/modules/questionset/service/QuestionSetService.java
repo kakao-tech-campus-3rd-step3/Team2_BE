@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
@@ -11,6 +12,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
+import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.event.QuestionSetCreatedEvent;
@@ -19,6 +21,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
@@ -29,6 +32,9 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
+  private final QuestionRepository questionRepository;
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
@@ -212,6 +219,10 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  @Retryable(
+      value = {ObjectOptimisticLockingFailureException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 200))
   public void update(Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId) {
     QuestionSet questionSet = findQuestionSetByIdAndMemberIdOrThrow(questionSetId, memberId);
 
@@ -226,6 +237,23 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  public void updateAndMarkAsComplete(
+      Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId) {
+    QuestionSet questionSet = findQuestionSetByIdAndMemberIdOrThrow(questionSetId, memberId);
+
+    if (request.title() != null) {
+      questionSet.updateTitle(request.title());
+    }
+
+    if (request.commonFolderId() != null) {
+      assignFolderToQuestionSet(request.commonFolderId(), questionSet, memberId);
+    }
+
+    questionSet.completeProcessing();
+  }
+
+  @Override
+  @Transactional
   public void deleteAllByFolderId(Long folderId) {
     List<QuestionSet> questionSetsToDelete =
         questionSetRepository.findAllByCommonFolderId(folderId);
@@ -236,10 +264,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional
   public void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId) {
+    commonFolderPublicApi
+        .findFolderEntityById(memberId, folderId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없거나 권한이 없습니다."));
+
     CommonFolder defaultFolder =
         commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);
-    List<QuestionSet> questionSets = questionSetRepository.findAllByCommonFolderId(folderId);
-    questionSets.forEach(questionSet -> questionSet.assignToFolder(defaultFolder));
+    questionSetRepository.relocateAllByFolderIdToDefaultFolder(folderId, defaultFolder.getId());
   }
 
   @Override
@@ -248,18 +279,38 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<QuestionSet> findStalePending(LocalDateTime threshold) {
+    return questionSetRepository.findByStatusAndCreatedAtBefore(
+        QuestionSetStatus.PENDING, threshold);
+  }
+
+  @Override
+  @Transactional
+  public Optional<QuestionSet> claimOneForRetry(int maxRetryCount) {
+    return questionSetRepository
+        .findFirstFailedSetForRetryForUpdate(maxRetryCount)
+        .map(
+            questionSet -> {
+              questionSet.retry();
+              return questionSet;
+            });
+  }
+
+  @Override
   @Transactional
   public void delete(Long questionSetId, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findById(questionSetId)
+            .findByIdWithQuestions(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 
-    questionSetRepository.deleteById(questionSet.getId());
+    questionSet.softDelete();
+    questionSet.getQuestions().forEach(Question::softDelete);
   }
 
   @Override
@@ -269,8 +320,20 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  public long countCompletedQuestionsByMemberId(Long memberId) {
-    return questionSetRepository.countCompletedQuestionsByMemberId(memberId);
+  public long countCompletedQuestionsByMemberIdAndDateBetween(
+      Long memberId, LocalDateTime start, LocalDateTime end) {
+    return questionSetRepository.countCompletedQuestionsByMemberIdAndDateBetween(
+        memberId, start, end);
+  }
+
+  @Override
+  public List<LocalDateTime> findCompletedDatesByMemberId(Long memberId) {
+    return questionSetRepository.findCompletedDatesByMemberId(memberId);
+  }
+
+  @Override
+  public long countByQuestionSetOwnerId(Long ownerId) {
+    return questionRepository.countByQuestionSetOwnerId(ownerId);
   }
 
   private QuestionSet findQuestionSetByIdAndMemberIdOrThrow(Long questionSetId, Long memberId) {

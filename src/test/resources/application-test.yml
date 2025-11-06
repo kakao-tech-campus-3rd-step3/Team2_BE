@@ -1,6 +1,13 @@
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 테스트 실행 시 스키마를 생성하고, 끝나면 삭제
   sql:
     init:
       mode: never
   datasource:
     url: jdbc:h2:mem:test;MODE=MySQL;
+  data:
+    redis:
+      host: localhost
+      port: 6379

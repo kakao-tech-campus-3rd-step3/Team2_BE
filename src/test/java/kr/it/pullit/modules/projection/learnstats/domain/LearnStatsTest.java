@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
 import kr.it.pullit.support.annotation.SpringUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,6 +110,51 @@ class LearnStatsTest {
 
       // then
       assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
+    }
+  }
+
+  @Nested
+  @DisplayName("recalibrate 호출 시")
+  class Recalibrate {
+
+    @Test
+    @DisplayName("모든 학습 통계가 전달된 값으로 재보정된다")
+    void shouldRecalibrateAllLearnStats() {
+      // given
+      List<LocalDateTime> completedDates =
+          List.of(
+              today.minusDays(2).atStartOfDay(), // 2일 전
+              today.minusDays(1).atStartOfDay(), // 1일 전 (연속)
+              today.plusDays(1).atStartOfDay() // 다음 날 (1일 단절 후 다시 시작)
+              );
+
+      // when
+      projection.recalibrate(150L, 120L, 20, completedDates);
+
+      // then
+      assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(150L);
+      assertThat(projection.getTotalCorrectQuestionCount()).isEqualTo(120L);
+      assertThat(projection.getWeeklySolvedQuestionCount()).isEqualTo(20);
+      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
+      assertThat(projection.getLastLearningDate()).isEqualTo(today.plusDays(1));
+    }
+
+    @Test
+    @DisplayName("학습 기록이 없으면 연속 학습일과 마지막 학습일이 초기화된다")
+    void shouldResetConsecutiveStatsWhenHistoryIsEmpty() {
+      // given
+      projection.onQuestionSetSolved(10, today); // 기존 기록 생성
+
+      // when
+
+      projection.recalibrate(10L, 8L, 5, List.of());
+
+      // then
+      assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(10L);
+      assertThat(projection.getTotalCorrectQuestionCount()).isEqualTo(8L);
+      assertThat(projection.getWeeklySolvedQuestionCount()).isEqualTo(5);
+      assertThat(projection.getConsecutiveLearningDays()).isZero();
+      assertThat(projection.getLastLearningDate()).isNull();
     }
   }
 }

@@ -1,81 +1,71 @@
 package kr.it.pullit.modules.projection.learnstats.service;
 
+import static kr.it.pullit.support.fixture.MemberFixtures.basicUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.repository.MemberRepository;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
+import kr.it.pullit.modules.questionset.api.MarkingResultPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.support.annotation.SpringUnitTest;
+import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringUnitTest
-@ContextConfiguration(classes = {LearnStatsRecalibrationService.class})
-@DisplayName("LearnStatsRecalibrationService 단위 테스트")
+@IntegrationTest
+@DisplayName("LearnStatsRecalibrationService 통합 테스트")
 class LearnStatsRecalibrationServiceTest {
 
-  @Autowired private LearnStatsRecalibrationService sut;
+  @Autowired private LearnStatsRecalibrationService learnStatsRecalibrationService;
+  @Autowired private LearnStatsRepository learnStatsRepository;
+  @Autowired private MemberRepository memberRepository;
+  @Autowired private Clock clock;
 
-  @MockitoBean private MemberPublicApi memberPublicApi;
   @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
-  @MockitoBean private LearnStatsRepository learnStatsRepository;
+
+  @MockitoBean private MarkingResultPublicApi markingResultPublicApi;
 
   @Test
-  @DisplayName("모든 회원의 통계를 보정한다")
-  void shouldRecalibrateAllMembersStats() {
+  @DisplayName("모든 회원의 학습 통계를 성공적으로 재보정한다")
+  void shouldRecalibrateLearnStatsForAllMembers() {
     // given
-    Member member1 = mock(Member.class);
-    when(member1.getId()).thenReturn(1L);
+    Member member = memberRepository.save(basicUser());
+    LocalDateTime today = LocalDateTime.now(clock);
+    List<LocalDateTime> completedDates =
+        List.of(today.minusDays(1), today.minusDays(2), today.minusDays(4));
 
-    Member member2 = mock(Member.class);
-    when(member2.getId()).thenReturn(2L);
-
-    PageImpl<Member> memberPage = new PageImpl<>(List.of(member1, member2));
-
-    LearnStats stats1 = LearnStats.newOf(1L);
-
-    given(memberPublicApi.findAll(any(PageRequest.class))).willReturn(memberPage);
-    given(questionSetPublicApi.countCompletedQuestionsByMemberId(1L))
-        .willReturn(3L); // qs1(2) + qs2(1)
-    given(questionSetPublicApi.countCompletedQuestionsByMemberId(2L)).willReturn(1L); // qs2(1)
-    given(learnStatsRepository.findById(1L)).willReturn(Optional.of(stats1));
-    given(learnStatsRepository.findById(2L)).willReturn(Optional.empty());
+    given(markingResultPublicApi.countTotalCorrectQuestionsByMemberId(member.getId()))
+        .willReturn(120L);
+    given(markingResultPublicApi.countTotalAttemptedQuestionsByMemberId(member.getId()))
+        .willReturn(150L);
+    given(questionSetPublicApi.countByQuestionSetOwnerId(member.getId())).willReturn(200L);
+    given(
+            questionSetPublicApi.countCompletedQuestionsByMemberIdAndDateBetween(
+                eq(member.getId()), any(LocalDateTime.class), any(LocalDateTime.class)))
+        .willReturn(35L);
+    given(questionSetPublicApi.findCompletedDatesByMemberId(member.getId()))
+        .willReturn(completedDates);
 
     // when
-    sut.recalibrateAllMembers();
+    learnStatsRecalibrationService.recalibrateLearnStatsAllMembers();
 
     // then
-    ArgumentCaptor<LearnStats> captor = ArgumentCaptor.forClass(LearnStats.class);
-    verify(learnStatsRepository, times(2)).save(captor.capture());
+    LearnStats stats = learnStatsRepository.findById(member.getId()).get();
 
-    LearnStats savedStats1 =
-        captor.getAllValues().stream()
-            .filter(s -> s.getMemberId().equals(1L))
-            .findFirst()
-            .orElseThrow();
-    assertThat(savedStats1.getTotalSolvedQuestionCount()).isEqualTo(3); // qs1(2) + qs2(1)
-
-    LearnStats savedStats2 =
-        captor.getAllValues().stream()
-            .filter(s -> s.getMemberId().equals(2L))
-            .findFirst()
-            .orElseThrow();
-    assertThat(savedStats2.getTotalSolvedQuestionCount()).isEqualTo(1); // qs2(1)
+    assertThat(stats.getTotalQuestionCount()).isEqualTo(200L);
+    assertThat(stats.getTotalSolvedQuestionCount()).isEqualTo(150L);
+    assertThat(stats.getTotalCorrectQuestionCount()).isEqualTo(120L);
+    assertThat(stats.getWeeklySolvedQuestionCount()).isEqualTo(35);
+    assertThat(stats.getConsecutiveLearningDays()).isEqualTo(2);
+    assertThat(stats.getLastLearningDate()).isEqualTo(today.minusDays(1).toLocalDate());
   }
 }

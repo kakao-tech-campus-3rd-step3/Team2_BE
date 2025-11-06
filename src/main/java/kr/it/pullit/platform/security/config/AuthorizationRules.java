@@ -13,12 +13,16 @@ public final class AuthorizationRules {
     "/",
     "/api/health",
     "/api-docs.yaml",
+    "/login",
     "/login/oauth2/code/**",
-    "/oauth/authorize/**",
     "/oauth2/authorization/**",
     "/auth/refresh",
     "/auth/logout",
-    "/api/notifications/**"
+    "/api/notifications/**",
+    "/error",
+    "/favicon.ico",
+    "/swagger-ui/**",
+    "/v3/api-docs/**"
   };
 
   /** 기본 인증/인가 규칙을 적용 */

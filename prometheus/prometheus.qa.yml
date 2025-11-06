@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'springboot-app-qa'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['pullit-qa-blue:8080', 'pullit-qa-green:8080']
+        labels:
+          group: 'pullit-qa-app'
+
+  - job_name: 'springboot-worker-qa'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['pullit-qa-worker-blue:8080', 'pullit-qa-worker-green:8080']
+        labels:
+          group: 'pullit-qa-worker'
+
+  - job_name: 'prometheus-qa'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node_exporter-qa'
+    static_configs:
+      - targets: ['node-exporter:9100']

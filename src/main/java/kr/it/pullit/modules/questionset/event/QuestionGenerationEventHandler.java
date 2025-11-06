@@ -2,7 +2,7 @@ package kr.it.pullit.modules.questionset.event;
 
 import java.util.List;
 import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
@@ -16,8 +16,10 @@ import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreatio
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.platform.config.RabbitMqConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -28,23 +30,25 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class QuestionGenerationEventHandler {
 
+  private final RabbitTemplate rabbitTemplate;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final NotificationEventPublicApi notificationEventPublicApi;
   private final SourceValidator sourceValidator;
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
-  private final LearnStatsEventPublicApi learnStatsEventPublicApi;
+  private final LearnStatsRecalibrationPublicApi learnStatsRecalibrationPublicApi;
 
   @Async("applicationTaskExecutor")
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleQuestionSetCreatedEvent(QuestionSetCreatedEvent event) {
-    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}", event.questionSetId());
+    log.info("QuestionSet ID: {} 에 대한 AI 문제 생성 요청을 메시지 큐에 발행합니다.", event.questionSetId());
 
     try {
-      processQuestionGeneration(event);
-      handleSuccess(event);
+      rabbitTemplate.convertAndSend(
+          RabbitMqConfig.EXCHANGE_NAME, RabbitMqConfig.ROUTING_KEY, event);
     } catch (Exception e) {
-      handleFailure(event, e);
+      log.error("문제 생성 요청 메시지 발행에 실패했습니다. QuestionSet ID: {}", event.questionSetId(), e);
+      questionSetPublicApi.markAsFailed(event.questionSetId());
     }
   }
 
@@ -52,11 +56,10 @@ public class QuestionGenerationEventHandler {
     QuestionGenerationRequest request = createGenerationRequest(event);
     LlmGeneratedQuestionSetResponse response = questionPublicApi.generateQuestions(request);
 
-    questionSetPublicApi.update(
-        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
     saveQuestions(event.questionSetId(), event.ownerId(), response.questions());
 
-    questionSetPublicApi.markAsComplete(event.questionSetId());
+    questionSetPublicApi.updateAndMarkAsComplete(
+        event.questionSetId(), toQuestionSetUpdateRequestDto(response), event.ownerId());
   }
 
   private static QuestionSetUpdateRequestDto toQuestionSetUpdateRequestDto(
@@ -118,24 +121,17 @@ public class QuestionGenerationEventHandler {
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
     QuestionSetCreationCompleteResponse responseDto = createSuccessResponse(event);
-    publishSuccessNotification(event.ownerId(), responseDto);
-    logSuccess(event.questionSetId());
+    notificationEventPublicApi.publishQuestionSetCreationComplete(event.ownerId(), responseDto);
+    learnStatsRecalibrationPublicApi.recalibrateTotalQuestionCountForMember(event.ownerId());
+    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", event.questionSetId());
   }
 
   private QuestionSetCreationCompleteResponse createSuccessResponse(QuestionSetCreatedEvent event) {
     QuestionSetResponse questionSetResponse =
         questionSetPublicApi.getQuestionSetForSolving(
             event.questionSetId(), event.ownerId(), false);
-    return new QuestionSetCreationCompleteResponse(true, questionSetResponse.getId(), "문제집 생성 완료");
-  }
-
-  private void publishSuccessNotification(
-      Long ownerId, QuestionSetCreationCompleteResponse responseDto) {
-    notificationEventPublicApi.publishQuestionSetCreationComplete(ownerId, responseDto);
-  }
-
-  private void logSuccess(Long questionSetId) {
-    log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", questionSetId);
+    return new QuestionSetCreationCompleteResponse(
+        true, questionSetResponse.getId(), "문제집 생성 완료 (" + questionSetResponse.getTitle() + ")");
   }
 
   private void handleFailure(QuestionSetCreatedEvent event, Exception e) {

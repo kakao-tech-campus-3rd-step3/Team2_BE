@@ -5,4 +5,6 @@ public interface LearnStatsEventPublicApi {
   void publishWeeklyReset(Long memberId);
 
   void publishQuestionSetSolved(Long memberId, int solvedQuestionCount);
+
+  void publishCorrectAnswerCount(Long memberId, long correctCount);
 }

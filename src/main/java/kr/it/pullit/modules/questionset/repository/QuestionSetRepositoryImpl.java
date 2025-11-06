@@ -1,8 +1,10 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.repository.adapter.jpa.QuestionSetJpaRepository;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public Optional<QuestionSet> findById(Long id) {
     return questionSetJpaRepository.findById(id);
+  }
+
+  @Override
+  public Optional<QuestionSet> findByIdWithQuestions(Long id) {
+    return questionSetJpaRepository.findByIdWithQuestions(id);
   }
 
   @Override
@@ -90,6 +97,17 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public List<QuestionSet> findByStatusAndCreatedAtBefore(
+      QuestionSetStatus status, LocalDateTime threshold) {
+    return questionSetJpaRepository.findByStatusAndCreatedAtBefore(status, threshold);
+  }
+
+  @Override
+  public Optional<QuestionSet> findFirstFailedSetForRetryForUpdate(int maxRetry) {
+    return questionSetJpaRepository.findFirstFailedSetForRetryForUpdate(maxRetry);
+  }
+
+  @Override
   public long countByCommonFolderId(Long commonFolderId) {
     return questionSetJpaRepository.countByCommonFolderId(commonFolderId);
   }
@@ -100,12 +118,26 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public long countCompletedQuestionsByMemberId(Long memberId) {
-    return questionSetJpaRepository.countCompletedQuestionsByMemberId(memberId);
+  public long countByOwnerId(Long memberId) {
+    return questionSetJpaRepository.countByOwnerId(memberId);
   }
 
   @Override
-  public long countByOwnerId(Long memberId) {
-    return questionSetJpaRepository.countByOwnerId(memberId);
+  public long countCompletedQuestionsByMemberIdAndDateBetween(
+      Long memberId, LocalDateTime start, LocalDateTime end) {
+    Long result =
+        questionSetJpaRepository.countCompletedQuestionsByMemberIdAndDateBetween(
+            memberId, start, end);
+    return result != null ? result : 0;
+  }
+
+  @Override
+  public List<LocalDateTime> findCompletedDatesByMemberId(Long memberId) {
+    return questionSetJpaRepository.findCompletedDatesByMemberId(memberId);
+  }
+
+  @Override
+  public void relocateAllByFolderIdToDefaultFolder(Long folderId, Long defaultFolderId) {
+    questionSetJpaRepository.relocateAllByFolderIdToDefaultFolder(folderId, defaultFolderId);
   }
 }

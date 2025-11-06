@@ -30,13 +30,13 @@ public class MemberRepositoryImpl implements MemberRepository {
   }
 
   @Override
-  public Optional<Member> findByKakaoId(Long kakaoId) {
-    return memberJpaRepository.findByKakaoId(kakaoId);
+  public Member saveAndFlush(Member member) {
+    return memberJpaRepository.saveAndFlush(member);
   }
 
   @Override
-  public Optional<Member> findByRefreshToken(String refreshToken) {
-    return memberJpaRepository.findByRefreshToken(refreshToken);
+  public Optional<Member> findByKakaoId(Long kakaoId) {
+    return memberJpaRepository.findByKakaoId(kakaoId);
   }
 
   @Override

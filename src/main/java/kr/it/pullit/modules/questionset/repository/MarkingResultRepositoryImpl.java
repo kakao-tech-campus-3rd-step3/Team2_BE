@@ -15,4 +15,25 @@ public class MarkingResultRepositoryImpl implements MarkingResultRepository {
   public MarkingResult save(MarkingResult markingResult) {
     return jpaRepository.save(markingResult);
   }
+
+  @Override
+  public long countByQuestionSetIdAndMemberId(Long questionSetId, Long memberId) {
+    return jpaRepository.countByQuestion_QuestionSetIdAndMemberId(questionSetId, memberId);
+  }
+
+  @Override
+  public long countCorrectByQuestionSetIdAndMemberId(Long questionSetId, Long memberId) {
+    return jpaRepository.countByQuestion_QuestionSetIdAndMemberIdAndIsCorrectIsTrue(
+        questionSetId, memberId);
+  }
+
+  @Override
+  public long countDistinctQuestionByMemberId(Long memberId) {
+    return jpaRepository.countDistinctQuestionByMemberId(memberId);
+  }
+
+  @Override
+  public long countByMemberIdAndIsCorrectIsTrue(Long memberId) {
+    return jpaRepository.countByMemberIdAndIsCorrectIsTrue(memberId);
+  }
 }

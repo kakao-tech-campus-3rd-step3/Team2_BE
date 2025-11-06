@@ -1,25 +1,106 @@
 package kr.it.pullit.modules.questionset.repository;
 
+import static kr.it.pullit.support.fixture.MemberFixtures.basicUser;
+import static kr.it.pullit.support.fixture.QuestionSetFixtures.createCompletedQuestionSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
+import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
+import kr.it.pullit.modules.commonfolder.repository.CommonFolderRepository;
+import kr.it.pullit.modules.member.domain.entity.Member;
+import kr.it.pullit.modules.member.repository.MemberRepository;
+import kr.it.pullit.modules.member.repository.MemberRepositoryImpl;
+import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.wronganswer.domain.entity.WrongAnswer;
 import kr.it.pullit.support.annotation.JpaSliceTest;
 import kr.it.pullit.support.builder.TestQuestionSetBuilder;
+import kr.it.pullit.support.clock.MutableClock;
+import kr.it.pullit.support.config.MutableClockConfig;
 import kr.it.pullit.support.fixture.QuestionSetFixtures;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @JpaSliceTest
-@Import(QuestionSetRepositoryImpl.class)
+@Import({QuestionSetRepositoryImpl.class, MemberRepositoryImpl.class, MutableClockConfig.class})
 @DisplayName("QuestionSetRepository 슬라이스 테스트")
 class QuestionSetRepositoryTest {
 
   @Autowired private QuestionSetRepository repository;
+  @Autowired private MemberRepository memberRepository;
+  @Autowired private MutableClock mutableClock;
+  @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private EntityManager entityManager;
+  private Member member;
+
+  @Autowired private CommonFolderRepository commonFolderRepository;
+
+  @BeforeEach
+  void setUp() {
+    mutableClock.setInstant(
+        LocalDateTime.of(2025, 1, 1, 0, 0).atZone(ZoneId.of("UTC")).toInstant());
+    member = memberRepository.save(basicUser());
+  }
+
+  @Nested
+  @DisplayName("통계 쿼리")
+  class DescribeStatisticQueries {
+    private final LocalDateTime today = LocalDateTime.of(2025, 1, 1, 0, 0);
+
+    @Test
+    @DisplayName("특정 기간 동안 회원이 완료한 문제의 총 개수를 조회한다")
+    void shouldCountCompletedQuestionsBetweenDates() {
+      // given
+      mutableClock.setInstant(today.minusDays(1).atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 10)); // 어제
+
+      mutableClock.setInstant(today.atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 15)); // 오늘
+
+      mutableClock.setInstant(today.plusDays(1).atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 20)); // 내일
+
+      // when
+      long count =
+          repository.countCompletedQuestionsByMemberIdAndDateBetween(
+              member.getId(), today.withHour(0), today.withHour(23).withMinute(59));
+
+      // then
+      assertThat(count).isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("회원이 문제를 완료한 날짜 목록을 중복 없이 오름차순으로 조회한다")
+    void shouldFindCompletedDatesInAscOrder() {
+      // given
+      mutableClock.setInstant(today.plusDays(1).atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 10)); // 내일
+
+      mutableClock.setInstant(today.atZone(ZoneId.of("UTC")).toInstant());
+      repository.save(createCompletedQuestionSet(member, 15)); // 오늘
+
+      // when
+      List<LocalDateTime> completedDates = repository.findCompletedDatesByMemberId(member.getId());
+
+      // then
+      assertThat(completedDates).hasSize(2);
+      assertThat(completedDates).isSorted();
+      assertThat(completedDates.get(0).toLocalDate()).isEqualTo(today.toLocalDate());
+      assertThat(completedDates.get(1).toLocalDate()).isEqualTo(today.toLocalDate().plusDays(1));
+    }
+  }
 
   @Nested
   @DisplayName("단건 조회")
@@ -121,16 +202,26 @@ class QuestionSetRepositoryTest {
     }
 
     @Test
-    @DisplayName("문제집을 삭제하면 조회되지 않는다")
+    @DisplayName("문제집을 삭제하면 논리적으로 삭제되고 조회되지 않는다")
     void delete() {
+      // given
       Long ownerId = 41L;
       QuestionSet saved =
           repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("삭제 대상").build());
 
+      // when
       repository.deleteById(saved.getId());
+      entityManager.flush();
 
+      // then
+      // 1. @SQLRestriction에 의해 조회되지 않는지 확인
       Optional<QuestionSet> found = repository.findById(saved.getId());
       assertThat(found).isEmpty();
+
+      // 2. DB에는 deleted_at이 설정된 채로 남아있는지 직접 확인
+      Map<String, Object> dbRow =
+          jdbcTemplate.queryForMap("SELECT * FROM question_set WHERE id = ?", saved.getId());
+      assertThat(dbRow.get("deleted_at")).isNotNull();
     }
   }
 
@@ -179,5 +270,119 @@ class QuestionSetRepositoryTest {
       assertThat(projection).isPresent();
       assertThat(projection.get().getId()).isEqualTo(saved.getId());
     }
+  }
+
+  @Nested
+  @DisplayName("폴더 기반 조회/집계")
+  class DescribeFolderQueries {
+
+    @Test
+    @DisplayName("폴더 ID로 문제집을 모두 조회한다")
+    void findAllByCommonFolderId() {
+      Long ownerId = 80L;
+      CommonFolder folder = saveFolder(ownerId, "폴더");
+
+      QuestionSet inFolderA = createQuestionSetAssignedTo(folder, ownerId, "A");
+      QuestionSet inFolderB = createQuestionSetAssignedTo(folder, ownerId, "B");
+      QuestionSet otherFolder =
+          TestQuestionSetBuilder.builder().ownerId(ownerId).title("기타").build();
+
+      repository.save(inFolderA);
+      repository.save(inFolderB);
+      repository.save(otherFolder);
+
+      List<QuestionSet> results = repository.findAllByCommonFolderId(folder.getId());
+
+      assertThat(results).hasSize(2);
+      assertThat(results)
+          .allMatch(qs -> qs.getCommonFolder() != null)
+          .allMatch(qs -> qs.getCommonFolder().getId().equals(folder.getId()));
+    }
+
+    @Test
+    @DisplayName("폴더에 속한 문제집 수를 계산한다")
+    void countByCommonFolderId() {
+      Long ownerId = 81L;
+      CommonFolder folder = saveFolder(ownerId, "카운트");
+
+      repository.save(createQuestionSetAssignedTo(folder, ownerId, "1"));
+      repository.save(createQuestionSetAssignedTo(folder, ownerId, "2"));
+
+      long count = repository.countByCommonFolderId(folder.getId());
+
+      assertThat(count).isEqualTo(2L);
+    }
+  }
+
+  @Nested
+  @DisplayName("통계 계산")
+  class DescribeStatistics {
+
+    @Test
+    @DisplayName("사용자가 보유한 문제집 수를 계산한다")
+    void countByOwnerId() {
+      Long ownerId = 83L;
+
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("1").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(ownerId).title("2").build());
+      repository.save(TestQuestionSetBuilder.builder().ownerId(999L).title("다른 사용자").build());
+
+      long count = repository.countByOwnerId(ownerId);
+
+      assertThat(count).isEqualTo(2L);
+    }
+  }
+
+  @Nested
+  @DisplayName("복습 조회")
+  class DescribeReviewing {
+
+    @Test
+    @DisplayName("틀린 문제가 남아 있으면 복습용 문제집을 조회한다")
+    void findQuestionSetForReviewing() {
+      Long ownerId = 84L;
+      CommonFolder folder = saveFolder(ownerId, "복습");
+
+      QuestionSet questionSet = createQuestionSetAssignedTo(folder, ownerId, "복습 문제집");
+      MultipleChoiceQuestion question = addQuestion(questionSet, "틀린 문제");
+      questionSet.setQuestionLength(questionSet.getQuestions().size());
+      questionSet.completeProcessing();
+      QuestionSet saved = repository.save(questionSet);
+
+      WrongAnswer wrongAnswer = WrongAnswer.create(ownerId, question);
+      entityManager.persist(wrongAnswer);
+      entityManager.flush();
+
+      Optional<QuestionSet> found = repository.findQuestionSetForReviewing(saved.getId(), ownerId);
+
+      assertThat(found).isPresent();
+      assertThat(found.get().getQuestions()).hasSize(1);
+    }
+  }
+
+  private CommonFolder saveFolder(Long ownerId, String name) {
+    CommonFolder folder =
+        CommonFolder.create(name, CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 0, ownerId);
+    return commonFolderRepository.save(folder);
+  }
+
+  private QuestionSet createQuestionSetAssignedTo(CommonFolder folder, Long ownerId, String title) {
+    QuestionSet questionSet =
+        TestQuestionSetBuilder.builder().ownerId(ownerId).title(title).build();
+    questionSet.assignToFolder(folder);
+    return questionSet;
+  }
+
+  private MultipleChoiceQuestion addQuestion(QuestionSet questionSet, String text) {
+    MultipleChoiceQuestion question =
+        MultipleChoiceQuestion.builder()
+            .questionSet(questionSet)
+            .questionText(text)
+            .options(List.of("1", "2", "3", "4"))
+            .answer("1")
+            .explanation("해설")
+            .build();
+    questionSet.addQuestion(question);
+    return question;
   }
 }

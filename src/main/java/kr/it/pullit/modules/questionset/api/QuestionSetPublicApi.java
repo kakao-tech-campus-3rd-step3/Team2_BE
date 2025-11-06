@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.api;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
@@ -21,6 +22,9 @@ public interface QuestionSetPublicApi {
 
   void update(Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId);
 
+  void updateAndMarkAsComplete(
+      Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId);
+
   void delete(Long questionSetId, Long memberId);
 
   void deleteAllByFolderId(Long folderId);
@@ -29,9 +33,18 @@ public interface QuestionSetPublicApi {
 
   List<QuestionSet> findAllByFolderId(Long folderId);
 
+  List<QuestionSet> findStalePending(LocalDateTime threshold);
+
+  Optional<QuestionSet> claimOneForRetry(int maxRetryCount);
+
   Optional<QuestionSet> findEntityByIdAndMemberId(Long id, Long memberId);
 
-  long countCompletedQuestionsByMemberId(Long memberId);
+  List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
+
+  long countByQuestionSetOwnerId(Long ownerId);
+
+  long countCompletedQuestionsByMemberIdAndDateBetween(
+      Long memberId, LocalDateTime start, LocalDateTime end);
 
   CursorPageResponse<MyQuestionSetsResponse> getMemberQuestionSets(
       Long memberId, Long cursor, int size);

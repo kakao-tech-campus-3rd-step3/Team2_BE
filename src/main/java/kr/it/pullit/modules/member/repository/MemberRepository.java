@@ -13,9 +13,9 @@ public interface MemberRepository {
 
   Member save(Member member);
 
-  Optional<Member> findByKakaoId(Long kakaoId);
+  Member saveAndFlush(Member member);
 
-  Optional<Member> findByRefreshToken(String refreshToken);
+  Optional<Member> findByKakaoId(Long kakaoId);
 
   Page<Member> findAll(Pageable pageable);
 }

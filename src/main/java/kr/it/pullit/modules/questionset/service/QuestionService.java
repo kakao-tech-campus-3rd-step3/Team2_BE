@@ -1,7 +1,9 @@
 package kr.it.pullit.modules.questionset.service;
 
 import jakarta.transaction.Transactional;
-import java.io.InputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -40,17 +42,21 @@ public class QuestionService implements QuestionPublicApi {
   private final QuestionSetRepository questionSetRepository;
   private final SourcePublicApi sourcePublicApi;
   private final LlmClient llmClient;
+  private final QuestionSetFileTempManager questionSetFileTempManager;
 
   @Override
   public LlmGeneratedQuestionSetResponse generateQuestions(QuestionGenerationRequest request) {
     validateQuestionSetExists(request.questionSetId(), request.ownerId());
 
     LlmPrompt llmPrompt = createLlmPrompt(request.specification());
-    List<InputStream> sourceFileDataStreams =
-        getSourceFileStreams(request.sourceIds(), request.ownerId());
-
-    return callLlmClient(
-        request.questionSetId(), llmPrompt, sourceFileDataStreams, request.specification());
+    List<Path> sourceFilePaths = new ArrayList<>();
+    try {
+      sourceFilePaths = getSourceFilePaths(request.sourceIds(), request.ownerId());
+      return callLlmClient(
+          request.questionSetId(), llmPrompt, sourceFilePaths, request.specification());
+    } finally {
+      questionSetFileTempManager.cleanUp(sourceFilePaths);
+    }
   }
 
   @Override
@@ -113,34 +119,40 @@ public class QuestionService implements QuestionPublicApi {
     return LlmPrompt.compose(spec.difficultyType(), spec.questionType());
   }
 
-  private List<InputStream> getSourceFileStreams(List<Long> sourceIds, Long ownerId) {
-    return sourceIds.stream()
-        .map(sourceId -> sourcePublicApi.getContentStream(sourceId, ownerId))
-        .toList();
+  private List<Path> getSourceFilePaths(List<Long> sourceIds, Long ownerId) {
+    List<Path> downloadedPaths = new ArrayList<>();
+    try {
+      for (Long sourceId : sourceIds) {
+        downloadedPaths.add(sourcePublicApi.downloadFileToTemp(sourceId, ownerId));
+      }
+      return downloadedPaths;
+    } catch (IOException e) {
+      questionSetFileTempManager.cleanUp(downloadedPaths);
+      throw new RuntimeException("소스파일 다운로드 중 오류가 발생했습니다.", e);
+    }
   }
 
   private LlmGeneratedQuestionSetResponse callLlmClient(
       Long questionSetId,
       LlmPrompt llmPrompt,
-      List<InputStream> sourceFileDataStreams,
+      List<Path> sourceFilePaths,
       QuestionGenerationSpecification spec) {
-    logLlmCall(questionSetId, DEFAULT_MODEL_NAME);
-    LlmGeneratedQuestionRequest request =
-        createLlmRequest(llmPrompt, sourceFileDataStreams, spec, DEFAULT_MODEL_NAME);
+    logLlmCall(questionSetId);
+    LlmGeneratedQuestionRequest request = createLlmRequest(llmPrompt, sourceFilePaths, spec);
     return llmClient.getLlmGeneratedQuestionContent(request);
   }
 
-  private void logLlmCall(Long questionSetId, String modelName) {
-    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}", questionSetId, modelName);
+  private void logLlmCall(Long questionSetId) {
+    log.info(
+        "AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}",
+        questionSetId,
+        QuestionService.DEFAULT_MODEL_NAME);
   }
 
   private LlmGeneratedQuestionRequest createLlmRequest(
-      LlmPrompt llmPrompt,
-      List<InputStream> sourceFileDataStreams,
-      QuestionGenerationSpecification spec,
-      String modelName) {
+      LlmPrompt llmPrompt, List<Path> sourceFilePaths, QuestionGenerationSpecification spec) {
     return new LlmGeneratedQuestionRequest(
-        llmPrompt.value(), sourceFileDataStreams, modelName, spec);
+        llmPrompt.value(), sourceFilePaths, QuestionService.DEFAULT_MODEL_NAME, spec);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId) {
@@ -206,11 +218,5 @@ public class QuestionService implements QuestionPublicApi {
             requestDto.options(),
             requestDto.answer());
     question.update(param);
-  }
-
-  private void validateQuestionExists(Long questionId) {
-    if (questionRepository.findById(questionId).isEmpty()) {
-      throw QuestionNotFoundException.byId(questionId);
-    }
   }
 }

@@ -4,7 +4,8 @@ import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.Part;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -40,17 +41,17 @@ public record GeminiRequest(String model, Content content, GenerateContentConfig
   }
 
   private static Content buildContent(LlmGeneratedQuestionRequest request) {
-    List<Part> parts = convertInputStreamsToParts(request.fileDataList());
+    List<Part> parts = convertPathsToParts(request.fileDataList());
     parts.add(Part.fromText(request.prompt()));
     return Content.fromParts(parts.toArray(new Part[0]));
   }
 
-  private static List<Part> convertInputStreamsToParts(List<InputStream> fileDataList) {
+  private static List<Part> convertPathsToParts(List<Path> fileDataList) {
     List<Part> parts = new ArrayList<>();
     // TODO: 여러 파일 및 다양한 MIME 타입 지원
-    for (InputStream fileData : fileDataList) {
+    for (Path fileData : fileDataList) {
       try {
-        parts.add(Part.fromBytes(fileData.readAllBytes(), "application/pdf"));
+        parts.add(Part.fromBytes(Files.readAllBytes(fileData), "application/pdf"));
       } catch (IOException e) {
         throw LlmException.withCause(e);
       }

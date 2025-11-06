@@ -14,6 +14,7 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
 import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
+import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 
@@ -114,7 +115,7 @@ public class ProblemDetailTestUtils {
     }
 
     private void assertBody(MvcResult result, String expectedJson) throws Exception {
-      content().json(expectedJson, true).match(result);
+      content().json(expectedJson, JsonCompareMode.STRICT).match(result);
     }
 
     private Optional<ExampleObject> findExampleObjectByName(String exampleName) {

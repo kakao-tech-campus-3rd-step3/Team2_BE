@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -9,12 +10,15 @@ import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
+import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithStatsResponse;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @MockitoUnitTest
 @DisplayName("QuestionSetWithStatsFacadeImpl 단위 테스트")
@@ -82,5 +86,50 @@ class QuestionSetWithStatsFacadeImplTest {
 
     // then
     verify(questionSetPublicApi).getMemberQuestionSets(memberId, cursor, size, folderId);
+  }
+
+  @Test
+  @DisplayName("학습 통계를 올바르게 반환한다")
+  void shouldReturnCorrectLearnStats() {
+    // given
+    Long memberId = 1L;
+    LearnStats learnStats = LearnStats.newOf(memberId);
+    ReflectionTestUtils.setField(learnStats, "totalSolvedQuestionSetCount", 10);
+    ReflectionTestUtils.setField(learnStats, "totalQuestionCount", 100L);
+    ReflectionTestUtils.setField(learnStats, "totalCorrectQuestionCount", 50L);
+
+    given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.of(learnStats));
+    given(questionSetPublicApi.countByMemberId(memberId)).willReturn(20L);
+
+    // when
+    MyQuestionSetsWithStatsResponse response =
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(memberId, null, 10, null);
+
+    // then
+    assertThat(response.learnStats().getTotalQuestionSetCount()).isEqualTo(20);
+    assertThat(response.learnStats().getTotalSolvedQuestionSetCount()).isEqualTo(10);
+    assertThat(response.learnStats().getTotalQuestionCount()).isEqualTo(100L);
+    assertThat(response.learnStats().getTotalCorrectQuestionCount()).isEqualTo(50L);
+  }
+
+  @Test
+  @DisplayName("학습 통계가 없을 경우, 기본 통계 정보를 반환한다")
+  void shouldReturnDefaultLearnStatsWhenStatsIsEmpty() {
+    // given
+    Long memberId = 1L;
+    given(learnStatsPublicApi.getLearnStats(memberId)).willReturn(Optional.empty());
+    given(questionSetPublicApi.countByMemberId(memberId)).willReturn(0L);
+
+    // when
+    MyQuestionSetsWithStatsResponse response =
+        questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(memberId, null, 10, null);
+
+    // then
+    assertThat(response.learnStats().getTotalQuestionSetCount()).isZero();
+    assertThat(response.learnStats().getTotalSolvedQuestionSetCount()).isZero();
+    assertThat(response.learnStats().getTotalQuestionCount()).isZero();
+    assertThat(response.learnStats().getTotalCorrectQuestionCount()).isZero();
+    assertThat(response.learnStats().getConsecutiveLearningDays()).isZero();
+    assertThat(response.learnStats().getLastLearningDate()).isNull();
   }
 }

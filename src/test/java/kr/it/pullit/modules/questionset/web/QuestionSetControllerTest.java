@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.endsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -25,7 +26,7 @@ import kr.it.pullit.modules.questionset.enums.QuestionType;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
-import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithProgressResponse;
+import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithStatsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
@@ -103,9 +104,9 @@ class QuestionSetControllerTest extends ControllerTest {
 
       verify(questionSetPublicApi)
           .getQuestionSetForSolving(idCap.capture(), memberIdCap.capture(), reviewingCap.capture());
-      assert idCap.getValue() == 12L;
-      assert memberIdCap.getValue() == 11L;
-      assert reviewingCap.getValue() == Boolean.FALSE;
+      assertThat(idCap.getValue()).isEqualTo(12L);
+      assertThat(memberIdCap.getValue()).isEqualTo(11L);
+      assertThat(reviewingCap.getValue()).isFalse();
     }
 
     @Test
@@ -122,7 +123,7 @@ class QuestionSetControllerTest extends ControllerTest {
       ArgumentCaptor<Boolean> reviewingCap = ArgumentCaptor.forClass(Boolean.class);
       verify(questionSetPublicApi)
           .getQuestionSetForSolving(anyLong(), anyLong(), reviewingCap.capture());
-      assert reviewingCap.getValue() == Boolean.TRUE;
+      assertThat(reviewingCap.getValue()).isTrue();
     }
   }
 
@@ -139,7 +140,7 @@ class QuestionSetControllerTest extends ControllerTest {
       given(
               questionSetWithStatsFacade.getMemberQuestionSetsWithProgress(
                   anyLong(), any(), anyInt(), any()))
-          .willReturn(new MyQuestionSetsWithProgressResponse(page, 0));
+          .willReturn(new MyQuestionSetsWithStatsResponse(page, null));
 
       mockMvc
           .perform(get("/api/question-set").param("cursor", "11").param("size", "2"))

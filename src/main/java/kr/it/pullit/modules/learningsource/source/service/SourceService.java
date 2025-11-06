@@ -1,12 +1,15 @@
 package kr.it.pullit.modules.learningsource.source.service;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
+import kr.it.pullit.modules.learningsource.source.exception.SourceFileSizeExceededException;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
@@ -30,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SourceService implements SourcePublicApi {
 
+  private static final long MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MiB
+
   private final S3PublicApi s3PublicApi;
   private final SourceRepository sourceRepository;
   private final MemberPublicApi memberPublicApi;
@@ -39,11 +44,19 @@ public class SourceService implements SourcePublicApi {
   @Override
   public SourceUploadResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId) {
+    validateFileSize(fileSize);
+
     PresignedUrlResponse response =
         s3PublicApi.generateUploadUrl(fileName, contentType, fileSize, memberId);
 
     return new SourceUploadResponse(
         response.uploadUrl(), response.filePath(), fileName, fileSize, contentType);
+  }
+
+  private void validateFileSize(Long fileSize) {
+    if (fileSize > MAX_FILE_SIZE_BYTES) {
+      throw new SourceFileSizeExceededException(fileSize, MAX_FILE_SIZE_BYTES);
+    }
   }
 
   /** 이 서비스를 이용하기 전에 클라이언트는 S3 서비스에 파일을 업로드한 상태여야 한다. */
@@ -107,6 +120,16 @@ public class SourceService implements SourcePublicApi {
   }
 
   @Override
+  public Path downloadFileToTemp(long sourceId, long memberId) throws IOException {
+    Source source =
+        sourceRepository
+            .findByIdAndMemberId(sourceId, memberId)
+            .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
+
+    return s3PublicApi.downloadFileToTemp(source.getFilePath());
+  }
+
+  @Override
   public Optional<Source> findById(Long id) {
     return sourceRepository.findById(id);
   }
@@ -125,6 +148,7 @@ public class SourceService implements SourcePublicApi {
   public void deleteSource(Long sourceId, Long memberId) {
     Source source = getOrElseThrow(sourceId, memberId);
     String filePath = source.getFilePath();
+
     sourceRepository.delete(source);
     deleteInS3(filePath);
   }

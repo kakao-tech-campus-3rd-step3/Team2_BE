@@ -1,7 +1,11 @@
 package kr.it.pullit.platform.storage.s3.service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.core.FilePathPolicy;
 import kr.it.pullit.platform.storage.core.FileValidation;
@@ -23,13 +27,11 @@ public class S3PresignedUrlService implements S3PublicApi {
   @Override
   public PresignedUrlResponse generateUploadUrl(
       String fileName, String contentType, Long fileSize, Long memberId) {
-    // 파일 검증
+
     fileValidation.validatePdfFile(contentType, fileSize);
 
-    // 파일 경로 생성
     String filePath = filePathPolicy.generateFilePath(fileName, memberId);
 
-    // Presigned URL 생성
     URL presignedUrl =
         fileStorageClient.generatePresignedUploadUrl(
             filePath, contentType, s3StorageProps.getPresignedUrlExpiration());
@@ -40,6 +42,23 @@ public class S3PresignedUrlService implements S3PublicApi {
   @Override
   public InputStream downloadFileAsStream(String filePath) {
     return fileStorageClient.downloadFileAsStream(filePath);
+  }
+
+  /**
+   * S3의 파일을 디스크의 임시 파일로 다운로드합니다. 디스크 공간 고갈을 방지하기 위해, 이 메서드를 호출한 측에서는 반환된 임시 파일을 반드시 사용 후 삭제해야 합니다.
+   * Files.delete(path) 또는 Files.deleteIfExists(path)를 사용하세요.
+   *
+   * @param filePath 다운로드할 S3 파일 경로
+   * @return 다운로드된 콘텐츠를 포함하는 임시 파일의 Path
+   * @throws IOException 다운로드 또는 파일 생성 실패 시 발생
+   */
+  @Override
+  public Path downloadFileToTemp(String filePath) throws IOException {
+    Path tempFile = Files.createTempFile("question-generation-", ".pdf");
+    try (InputStream inputStream = fileStorageClient.downloadFileAsStream(filePath)) {
+      Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+    return tempFile;
   }
 
   @Override

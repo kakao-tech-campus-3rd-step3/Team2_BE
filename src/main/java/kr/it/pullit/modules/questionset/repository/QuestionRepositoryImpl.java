@@ -36,4 +36,9 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             .orElseThrow(() -> new RuntimeException("문제를 찾을 수 없습니다: " + id));
     questionJpaRepository.delete(question);
   }
+
+  @Override
+  public long countByQuestionSetOwnerId(Long ownerId) {
+    return questionJpaRepository.countByQuestionSet_OwnerId(ownerId);
+  }
 }

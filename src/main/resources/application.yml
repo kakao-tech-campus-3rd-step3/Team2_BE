@@ -14,11 +14,16 @@ spring:
     username: myuser
     password: secret
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+
   jpa:
     defer-datasource-initialization: true
-    generate-ddl: true # Explicitly enable DDL generation by Hibernate
+    generate-ddl: false # schema.sql을 사용하므로 Hibernate의 DDL 생성 비활성화
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none # schema.sql로 스키마를 관리하므로 ddl-auto 비활성화
     properties:
       hibernate:
         format_sql: true
@@ -30,6 +35,10 @@ spring:
 
   flyway:
     enabled: false
+
+  threads:
+    virtual:
+      enabled: true
 
   security:
     oauth2:
@@ -98,6 +107,7 @@ jwt:
 
 
 server:
+  forward-headers-strategy: framework
   error:
     whitelabel:
       enabled: false
@@ -143,12 +153,15 @@ management:
     web:
       exposure:
         include: "*"
-
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 
 cors:
   allowed-origins:
-    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:https://localhost:5173, https://local.pull.it.kr:5173, https://pull.it.kr, https://www.pull.it.kr}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGINS:https://localhost:5173, https://pull.it.kr, https://www.pull.it.kr}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 
@@ -165,6 +178,8 @@ app:
       base-path: learning-sources
   notification:
     sse-cache-size: 10000
+  oauth2:
+    authorized-redirect-uri: ${PULLIT_OAUTH2_REDIRECT_URI:https://localhost:5173/login-success}
 
 # OpenAPI/Swagger 설정
 springdoc:
