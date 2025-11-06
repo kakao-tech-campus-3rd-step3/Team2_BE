@@ -7,6 +7,7 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -15,8 +16,18 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
   List<QuestionSet> findByStatusAndCreatedAtBefore(
       QuestionSetStatus status, LocalDateTime threshold);
 
-  Optional<QuestionSet> findFirstByStatusAndRetryCountLessThanOrderByCreatedAtAsc(
-      QuestionSetStatus status, int maxRetryCount);
+  @Query(
+      value =
+          """
+        SELECT * FROM question_set
+        WHERE status = 'FAILED'
+          AND retry_count < :maxRetry
+        ORDER BY id
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED
+      """,
+      nativeQuery = true)
+  Optional<QuestionSet> findFirstFailedSetForRetryForUpdate(@Param("maxRetry") int maxRetry);
 
   @Query(
       """
@@ -137,4 +148,16 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
           ORDER BY q.createdAt ASC
       """)
   List<LocalDateTime> findCompletedDatesByMemberId(@Param("memberId") Long memberId);
+
+  @Modifying(clearAutomatically = true)
+  @Query(
+      value =
+          """
+            UPDATE question_set
+            SET common_folder_id = :defaultFolderId
+            WHERE common_folder_id = :folderId
+          """,
+      nativeQuery = true)
+  void relocateAllByFolderIdToDefaultFolder(
+      @Param("folderId") Long folderId, @Param("defaultFolderId") Long defaultFolderId);
 }

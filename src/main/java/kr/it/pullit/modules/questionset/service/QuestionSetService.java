@@ -257,10 +257,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional
   public void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId) {
+    commonFolderPublicApi
+        .findFolderEntityById(memberId, folderId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없거나 권한이 없습니다."));
+
     CommonFolder defaultFolder =
         commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);
-    List<QuestionSet> questionSets = questionSetRepository.findAllByCommonFolderId(folderId);
-    questionSets.forEach(questionSet -> questionSet.assignToFolder(defaultFolder));
+    questionSetRepository.relocateAllByFolderIdToDefaultFolder(folderId, defaultFolder.getId());
   }
 
   @Override
@@ -276,9 +279,15 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
-    return questionSetRepository.findFirstFailedSetForRetry(maxRetryCount);
+  @Transactional
+  public Optional<QuestionSet> claimOneForRetry(int maxRetryCount) {
+    return questionSetRepository
+        .findFirstFailedSetForRetryForUpdate(maxRetryCount)
+        .map(
+            questionSet -> {
+              questionSet.retry();
+              return questionSet;
+            });
   }
 
   @Override

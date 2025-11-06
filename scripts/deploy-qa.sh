@@ -96,3 +96,7 @@ docker compose -f docker-compose.qa.yml stop "pullit-qa-$PREVIOUS_ACTIVE_COLOR"
 # 6. 이전 버전 워커 서버 컨테이너 종료
 echo "이전 버전 워커 서버($PREVIOUS_ACTIVE_COLOR)를 종료합니다."
 docker compose -f docker-compose.qa.yml stop "pullit-qa-worker-$PREVIOUS_ACTIVE_COLOR"
+
+# 7. 프로메테우스 설정 리로드
+echo "프로메테우스가 새 설정을 읽도록 재시작합니다."
+docker compose -f docker-compose.qa.yml restart prometheus

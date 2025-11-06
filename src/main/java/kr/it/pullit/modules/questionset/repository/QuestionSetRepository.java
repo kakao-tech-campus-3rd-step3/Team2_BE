@@ -31,7 +31,7 @@ public interface QuestionSetRepository {
   List<QuestionSet> findByStatusAndCreatedAtBefore(
       QuestionSetStatus status, LocalDateTime threshold);
 
-  Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount);
+  Optional<QuestionSet> findFirstFailedSetForRetryForUpdate(int maxRetry);
 
   QuestionSet save(QuestionSet questionSet);
 
@@ -49,4 +49,6 @@ public interface QuestionSetRepository {
       Long memberId, LocalDateTime start, LocalDateTime end);
 
   List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
+
+  void relocateAllByFolderIdToDefaultFolder(Long folderId, Long defaultFolderId);
 }
