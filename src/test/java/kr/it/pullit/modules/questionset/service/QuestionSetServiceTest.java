@@ -454,6 +454,10 @@ class QuestionSetServiceTest {
     @DisplayName("문제집을 기본 폴더로 이동시킨다")
     void relocateQuestionSetsToDefaultFolder() {
       Long memberId = 1L;
+      Long folderId = 77L;
+      CommonFolder sourceFolder =
+          CommonFolder.create(
+              "소스 폴더", CommonFolderType.QUESTION_SET, FolderScope.CUSTOM, 1, memberId);
       CommonFolder defaultFolder =
           CommonFolder.create(
               CommonFolder.DEFAULT_NAME,
@@ -464,13 +468,15 @@ class QuestionSetServiceTest {
       QuestionSet q1 = createQuestionSetWithId(1101L);
       QuestionSet q2 = createQuestionSetWithId(1102L);
 
+      when(commonFolderPublicApi.findFolderEntityById(memberId, folderId))
+          .thenReturn(Optional.of(sourceFolder));
       when(commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId))
           .thenReturn(defaultFolder);
 
-      questionSetService.relocateQuestionSetsToDefaultFolder(memberId, 77L);
+      questionSetService.relocateQuestionSetsToDefaultFolder(memberId, folderId);
 
       verify(questionSetRepository)
-          .relocateAllByFolderIdToDefaultFolder(77L, defaultFolder.getId());
+          .relocateAllByFolderIdToDefaultFolder(folderId, defaultFolder.getId());
     }
 
     @Test
