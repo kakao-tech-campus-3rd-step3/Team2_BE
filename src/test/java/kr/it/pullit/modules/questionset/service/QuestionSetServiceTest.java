@@ -466,12 +466,11 @@ class QuestionSetServiceTest {
 
       when(commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId))
           .thenReturn(defaultFolder);
-      when(questionSetRepository.findAllByCommonFolderId(77L)).thenReturn(List.of(q1, q2));
 
       questionSetService.relocateQuestionSetsToDefaultFolder(memberId, 77L);
 
-      assertThat(q1.getCommonFolder()).isEqualTo(defaultFolder);
-      assertThat(q2.getCommonFolder()).isEqualTo(defaultFolder);
+      verify(questionSetRepository)
+          .relocateAllByFolderIdToDefaultFolder(77L, defaultFolder.getId());
     }
 
     @Test
