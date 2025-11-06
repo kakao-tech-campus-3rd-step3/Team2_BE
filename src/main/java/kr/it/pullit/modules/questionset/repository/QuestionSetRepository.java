@@ -49,4 +49,6 @@ public interface QuestionSetRepository {
       Long memberId, LocalDateTime start, LocalDateTime end);
 
   List<LocalDateTime> findCompletedDatesByMemberId(Long memberId);
+
+  void relocateAllByFolderIdToDefaultFolder(Long folderId, Long defaultFolderId);
 }
