@@ -41,18 +41,8 @@ public class SourceValidator {
 
   private void handleNotReadySources(List<Source> notReadySources, Long questionSetId) {
     if (!notReadySources.isEmpty()) {
-      logErrorsForNotReadySources(notReadySources);
       throw createException(notReadySources);
     }
-  }
-
-  private void logErrorsForNotReadySources(List<Source> notReadySources) {
-    notReadySources.forEach(
-        source ->
-            log.error(
-                "소스 파일이 준비되지 않았습니다. Source ID: {}, Status: {}",
-                source.getId(),
-                source.getStatus()));
   }
 
   private SourceNotReadyException createException(List<Source> notReadySources) {

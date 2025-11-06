@@ -86,6 +86,15 @@ public class GeminiClient implements LlmClient {
 
   private LlmGeneratedQuestionSetResponse parseResponse(GenerateContentResponse response)
       throws IOException {
-    return mapper.readValue(response.text(), LlmGeneratedQuestionSetResponse.class);
+    String rawResponse = response.text();
+    try {
+      return mapper.readValue(rawResponse, LlmGeneratedQuestionSetResponse.class);
+    } catch (IOException e) {
+      log.error(
+          "Gemini API 응답 파싱에 실패했습니다. 원본 응답을 에러 로그에 첨부합니다.\n--- 원본 응답 ---\n{}\n--- 원본 응답 끝 ---",
+          rawResponse,
+          e);
+      throw e;
+    }
   }
 }

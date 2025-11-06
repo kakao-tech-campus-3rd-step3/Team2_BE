@@ -8,6 +8,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,7 +36,8 @@ public class RabbitMqConfig {
   }
 
   @Bean
-  public Binding binding(Queue queue, TopicExchange exchange) {
+  public Binding binding(
+      @Qualifier("queue") Queue queue, @Qualifier("exchange") TopicExchange exchange) {
     return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
   }
 
@@ -50,10 +52,10 @@ public class RabbitMqConfig {
   }
 
   @Bean
-  public Binding completionBinding() {
-    return BindingBuilder.bind(completionQueue())
-        .to(completionExchange())
-        .with(COMPLETION_ROUTING_KEY);
+  public Binding completionBinding(
+      @Qualifier("completionQueue") Queue completionQueue,
+      @Qualifier("completionExchange") TopicExchange completionExchange) {
+    return BindingBuilder.bind(completionQueue).to(completionExchange).with(COMPLETION_ROUTING_KEY);
   }
 
   @Bean
