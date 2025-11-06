@@ -1,6 +1,9 @@
 package kr.it.pullit.modules.projection.outbox.relay;
 
 import java.util.List;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 import kr.it.pullit.modules.projection.learnstats.event.handler.LearnStatsEventDispatcher;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import kr.it.pullit.modules.projection.outbox.domain.ProcessedEvent;
@@ -8,9 +11,7 @@ import kr.it.pullit.modules.projection.outbox.repository.OutboxEventJpaRepositor
 import kr.it.pullit.modules.projection.outbox.repository.ProcessedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Slf4j
 @Component
@@ -23,6 +24,7 @@ public class OutboxEventRelay {
   private final TransactionTemplate transactionTemplate;
 
   @Scheduled(fixedDelay = 1000)
+  @SchedulerLock(name = "relayOutboxEvents", lockAtMostFor = "900ms", lockAtLeastFor = "100ms")
   public void relayOutboxEvents() {
     List<OutboxEvent> events = outboxEventRepository.findTop100ByOrderByCreatedAtAsc();
 

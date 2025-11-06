@@ -16,7 +16,7 @@ services:
       - SPRING_RABBITMQ_PASSWORD=guest
     depends_on:
       mariadb:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
@@ -40,7 +40,7 @@ services:
       - SPRING_RABBITMQ_PASSWORD=guest
     depends_on:
       mariadb:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
