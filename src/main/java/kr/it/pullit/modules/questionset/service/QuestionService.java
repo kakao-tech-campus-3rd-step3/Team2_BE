@@ -137,22 +137,22 @@ public class QuestionService implements QuestionPublicApi {
       LlmPrompt llmPrompt,
       List<Path> sourceFilePaths,
       QuestionGenerationSpecification spec) {
-    logLlmCall(questionSetId, DEFAULT_MODEL_NAME);
-    LlmGeneratedQuestionRequest request =
-        createLlmRequest(llmPrompt, sourceFilePaths, spec, DEFAULT_MODEL_NAME);
+    logLlmCall(questionSetId);
+    LlmGeneratedQuestionRequest request = createLlmRequest(llmPrompt, sourceFilePaths, spec);
     return llmClient.getLlmGeneratedQuestionContent(request);
   }
 
-  private void logLlmCall(Long questionSetId, String modelName) {
-    log.info("AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}", questionSetId, modelName);
+  private void logLlmCall(Long questionSetId) {
+    log.info(
+        "AI 문제 생성을 시작합니다. QuestionSet ID: {}, Model: {}",
+        questionSetId,
+        QuestionService.DEFAULT_MODEL_NAME);
   }
 
   private LlmGeneratedQuestionRequest createLlmRequest(
-      LlmPrompt llmPrompt,
-      List<Path> sourceFilePaths,
-      QuestionGenerationSpecification spec,
-      String modelName) {
-    return new LlmGeneratedQuestionRequest(llmPrompt.value(), sourceFilePaths, modelName, spec);
+      LlmPrompt llmPrompt, List<Path> sourceFilePaths, QuestionGenerationSpecification spec) {
+    return new LlmGeneratedQuestionRequest(
+        llmPrompt.value(), sourceFilePaths, QuestionService.DEFAULT_MODEL_NAME, spec);
   }
 
   private QuestionSet findQuestionSetById(Long questionSetId) {
@@ -218,11 +218,5 @@ public class QuestionService implements QuestionPublicApi {
             requestDto.options(),
             requestDto.answer());
     question.update(param);
-  }
-
-  private void validateQuestionExists(Long questionId) {
-    if (questionRepository.findById(questionId).isEmpty()) {
-      throw QuestionNotFoundException.byId(questionId);
-    }
   }
 }
