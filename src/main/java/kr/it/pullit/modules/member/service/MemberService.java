@@ -90,7 +90,7 @@ public class MemberService implements MemberPublicApi {
 
   private Optional<Member> createNewMember(SocialLoginCommand command) {
     Member newMember = Member.createMember(command.kakaoId(), command.email(), command.name());
-    Member savedMember = memberRepository.save(newMember);
+    Member savedMember = memberRepository.saveAndFlush(newMember);
     commonFolderPublicApi.createInitialFolders(savedMember.getId());
     return Optional.of(savedMember);
   }

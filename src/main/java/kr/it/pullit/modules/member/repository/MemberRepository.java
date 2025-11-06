@@ -13,6 +13,8 @@ public interface MemberRepository {
 
   Member save(Member member);
 
+  Member saveAndFlush(Member member);
+
   Optional<Member> findByKakaoId(Long kakaoId);
 
   Page<Member> findAll(Pageable pageable);
