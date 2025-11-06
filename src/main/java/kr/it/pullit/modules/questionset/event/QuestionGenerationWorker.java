@@ -1,8 +1,6 @@
 package kr.it.pullit.modules.questionset.event;
 
 import java.util.List;
-import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
-import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.client.dto.response.LlmGeneratedQuestionResponse;
@@ -14,12 +12,12 @@ import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.service.SourceValidator;
 import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
-import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.platform.config.RabbitMqConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +27,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class QuestionGenerationWorker {
 
+  private final RabbitTemplate rabbitTemplate;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
-  private final NotificationEventPublicApi notificationEventPublicApi;
   private final SourceValidator sourceValidator;
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
-  private final LearnStatsRecalibrationPublicApi learnStatsRecalibrationPublicApi;
 
   @RabbitListener(queues = RabbitMqConfig.QUEUE_NAME)
   public void handleQuestionGenerationRequest(QuestionSetCreatedEvent event) {
@@ -117,18 +114,13 @@ public class QuestionGenerationWorker {
   }
 
   private void handleSuccess(QuestionSetCreatedEvent event) {
-    QuestionSetCreationCompleteResponse responseDto = createSuccessResponse(event);
-    notificationEventPublicApi.publishQuestionSetCreationComplete(event.ownerId(), responseDto);
-    learnStatsRecalibrationPublicApi.recalibrateTotalQuestionCountForMember(event.ownerId());
     log.info("AI 문제 생성이 완료되었습니다. QuestionSet ID: {}", event.questionSetId());
-  }
-
-  private QuestionSetCreationCompleteResponse createSuccessResponse(QuestionSetCreatedEvent event) {
-    QuestionSetResponse questionSetResponse =
-        questionSetPublicApi.getQuestionSetForSolving(
-            event.questionSetId(), event.ownerId(), false);
-    return new QuestionSetCreationCompleteResponse(
-        true, questionSetResponse.getId(), "문제집 생성 완료 (" + questionSetResponse.getTitle() + ")");
+    QuestionSetCompletionEvent completionEvent =
+        new QuestionSetCompletionEvent(event.questionSetId(), event.ownerId());
+    rabbitTemplate.convertAndSend(
+        RabbitMqConfig.COMPLETION_EXCHANGE_NAME,
+        RabbitMqConfig.COMPLETION_ROUTING_KEY,
+        completionEvent);
   }
 
   private void handleFailure(QuestionSetCreatedEvent event, Exception e) {
