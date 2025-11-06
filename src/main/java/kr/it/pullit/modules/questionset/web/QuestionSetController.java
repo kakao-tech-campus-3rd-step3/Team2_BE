@@ -11,6 +11,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequest
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithStatsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
+import kr.it.pullit.shared.idempotency.Idempotent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -83,6 +84,7 @@ public class QuestionSetController {
    * @return 문제집 생성 응답
    */
   @PostMapping
+  @Idempotent
   public ResponseEntity<Void> createQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @Valid @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
