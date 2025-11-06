@@ -32,6 +32,9 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -216,6 +219,10 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  @Retryable(
+      value = {ObjectOptimisticLockingFailureException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 200))
   public void update(Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId) {
     QuestionSet questionSet = findQuestionSetByIdAndMemberIdOrThrow(questionSetId, memberId);
 
@@ -295,7 +302,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   public void delete(Long questionSetId, Long memberId) {
     QuestionSet questionSet =
         questionSetRepository
-            .findById(questionSetId)
+            .findByIdWithQuestions(questionSetId)
             .orElseThrow(() -> QuestionSetNotFoundException.byId(questionSetId));
 
     if (!questionSet.getOwnerId().equals(memberId)) {

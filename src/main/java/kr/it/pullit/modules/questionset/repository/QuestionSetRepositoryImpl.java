@@ -23,6 +23,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
+  public Optional<QuestionSet> findByIdWithQuestions(Long id) {
+    return questionSetJpaRepository.findByIdWithQuestions(id);
+  }
+
+  @Override
   public Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId) {
     return questionSetJpaRepository.findByIdAndMemberId(id, memberId);
   }

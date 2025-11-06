@@ -49,6 +49,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -56,13 +57,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 @DisplayName("QuestionSetService 단위 테스트")
 class QuestionSetServiceTest {
 
+  @InjectMocks private QuestionSetService questionSetService;
+
   @Mock private QuestionSetRepository questionSetRepository;
   @Mock private CommonFolderPublicApi commonFolderPublicApi;
   @Mock private SourcePublicApi sourcePublicApi;
   @Mock private MemberPublicApi memberPublicApi;
   @Mock private EventPublisher eventPublisher;
   @Mock private QuestionRepository questionRepository;
-  @Mock private QuestionSetService questionSetService;
 
   @BeforeEach
   void setUp() {
@@ -484,7 +486,7 @@ class QuestionSetServiceTest {
     void deleteQuestionSet() {
       QuestionSet questionSet = createQuestionSetWithId(1201L);
 
-      when(questionSetRepository.findById(1201L)).thenReturn(Optional.of(questionSet));
+      when(questionSetRepository.findByIdWithQuestions(1201L)).thenReturn(Optional.of(questionSet));
 
       questionSetService.delete(1201L, questionSet.getOwnerId());
 
@@ -496,7 +498,7 @@ class QuestionSetServiceTest {
     void deleteFailsWhenUnauthorized() {
       QuestionSet questionSet = createQuestionSetWithId(1202L);
 
-      when(questionSetRepository.findById(1202L)).thenReturn(Optional.of(questionSet));
+      when(questionSetRepository.findByIdWithQuestions(1202L)).thenReturn(Optional.of(questionSet));
 
       assertThatThrownBy(() -> questionSetService.delete(1202L, 999L))
           .isInstanceOf(QuestionSetUnauthorizedException.class);
