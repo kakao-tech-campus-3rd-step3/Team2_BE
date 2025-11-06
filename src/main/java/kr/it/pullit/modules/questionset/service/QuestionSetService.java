@@ -276,9 +276,15 @@ public class QuestionSetService implements QuestionSetPublicApi {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
-    return questionSetRepository.findFirstFailedSetForRetry(maxRetryCount);
+  @Transactional
+  public Optional<QuestionSet> claimOneForRetry(int maxRetryCount) {
+    return questionSetRepository
+        .findFirstFailedSetForRetryForUpdate(maxRetryCount)
+        .map(
+            questionSet -> {
+              questionSet.retry();
+              return questionSet;
+            });
   }
 
   @Override

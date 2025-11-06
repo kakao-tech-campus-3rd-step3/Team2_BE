@@ -98,9 +98,11 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
-    return questionSetJpaRepository.findFirstByStatusAndRetryCountLessThanOrderByCreatedAtAsc(
-        QuestionSetStatus.FAILED, maxRetryCount);
+  public Optional<QuestionSet> findFirstFailedSetForRetryForUpdate(int maxRetry) {
+    return questionSetJpaRepository
+        .findFirstFailedSetForRetryForUpdate(maxRetry, PageRequest.of(0, 1))
+        .stream()
+        .findFirst();
   }
 
   @Override
