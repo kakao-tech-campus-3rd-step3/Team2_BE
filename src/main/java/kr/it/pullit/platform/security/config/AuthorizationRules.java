@@ -18,7 +18,6 @@ public final class AuthorizationRules {
     "/oauth2/authorization/**",
     "/auth/refresh",
     "/auth/logout",
-    "/api/notifications/**",
     "/error",
     "/favicon.ico",
     "/swagger-ui/**",

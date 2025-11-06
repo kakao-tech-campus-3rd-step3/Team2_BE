@@ -15,12 +15,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+  private static final String SSE_SUBSCRIBE_URI = "/api/notifications/subscribe";
 
   private final JwtTokenProvider jwtTokenProvider;
   private final JwtAuthenticator jwtAuthenticator;
@@ -34,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     try {
-      String token = jwtTokenProvider.resolveToken(request);
+      String token = determineToken(request);
       Authentication authentication = jwtAuthenticator.authenticate(token);
 
       if (authentication != null) {
@@ -47,5 +50,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  private String determineToken(HttpServletRequest request) {
+    String bearerToken = jwtTokenProvider.resolveToken(request);
+
+    if (StringUtils.hasText(bearerToken)) {
+      return bearerToken;
+    }
+
+    if (isSseSubscriptionRequest(request)) {
+      return resolveTokenFromQueryParameter(request);
+    }
+    return null;
+  }
+
+  private boolean isSseSubscriptionRequest(HttpServletRequest request) {
+    return SSE_SUBSCRIBE_URI.equals(request.getRequestURI());
+  }
+
+  private String resolveTokenFromQueryParameter(HttpServletRequest request) {
+    return request.getParameter("token");
   }
 }

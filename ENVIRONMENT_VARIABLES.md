@@ -85,3 +85,37 @@ docker-compose up --build
 
 또한, API 문서는 **[https://localhost/swagger-ui/index.html](https://localhost/swagger-ui/index.html)** 에서 확인 가능합니다.
 
+---
+
+## API 사용 가이드
+
+### 실시간 알림 (SSE) 연결 방법
+
+실시간 알림을 받기 위한 SSE(Server-Sent Events) 연결은 인증이 필요합니다. 웹 표준 `EventSource` API는 커스텀 HTTP 헤더(예: `Authorization`)를 설정하기 어렵기 때문에, 아래와 같이 URL **쿼리 파라미터**를 통해 Access Token을 전달해야 합니다.
+
+-   **엔드포인트**: `GET /api/notifications/subscribe`
+-   **쿼리 파라미터**: `token`
+
+#### JavaScript 예시 코드
+
+```javascript
+// 1. 사용자의 Access Token을 가져옵니다.
+const accessToken = "여기에_사용자의_JWT_Access_Token을_넣으세요";
+
+// 2. EventSource 객체를 생성할 때 'token' 쿼리 파라미터를 URL에 추가합니다.
+const eventSource = new EventSource(`/api/notifications/subscribe?token=${accessToken}`);
+
+// 3. 이벤트 리스너를 등록합니다.
+eventSource.addEventListener('notification', (event) => {
+    const notificationData = JSON.parse(event.data);
+    console.log('새 알림 도착:', notificationData);
+    // TODO: 알림을 UI에 표시하는 로직 구현
+});
+
+eventSource.onerror = (error) => {
+    console.error('SSE 연결 오류:', error);
+    // 연결이 끊겼을 때 재연결 로직 등을 구현할 수 있습니다.
+    eventSource.close();
+};
+```
+
