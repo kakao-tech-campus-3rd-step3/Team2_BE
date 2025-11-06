@@ -1,4 +1,53 @@
 services:
+  pullit-local-api:
+    build: .
+    container_name: pullit-local-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - DB_URL=jdbc:mariadb://mariadb:3306/mydatabase?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      - DB_USERNAME=myuser
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+    depends_on:
+      mariadb:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - pullit-local-network
+
+  pullit-local-worker:
+    build: .
+    container_name: pullit-local-worker
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=local,worker
+      - SPRING_MAIN_WEB_APPLICATION_TYPE=NONE
+      - DB_URL=jdbc:mariadb://mariadb:3306/mydatabase?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      - DB_USERNAME=myuser
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+    depends_on:
+      mariadb:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - pullit-local-network
+
   mariadb:
     image: 'mariadb:12.0.2'
     environment:
@@ -9,7 +58,7 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     networks:
-      - pullit-qa-network
+      - pullit-local-network
 
   prometheus:
     container_name: prometheus
@@ -20,7 +69,7 @@ services:
     ports:
       - 9486:9090
     networks:
-      - pullit-qa-network
+      - pullit-local-network
 
   grafana:
     container_name: grafana
@@ -33,21 +82,21 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     networks:
-      - pullit-qa-network
+      - pullit-local-network
 
   node-exporter:
     image: prom/node-exporter
     ports:
       - "9487:9100"
     networks:
-      - pullit-qa-network
+      - pullit-local-network
 
   redis:
     image: 'redis:8.0.4-alpine'
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      - pullit-qa-network
+      - pullit-local-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -62,7 +111,7 @@ services:
       - "127.0.0.1:5672:5672"  # AMQP port
       - "127.0.0.1:15672:15672" # Management UI port
     networks:
-      - pullit-qa-network
+      - pullit-local-network
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -70,7 +119,7 @@ services:
       retries: 5
 
 networks:
-  pullit-qa-network:
+  pullit-local-network:
 
 volumes:
   grafana-storage:
