@@ -152,7 +152,11 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
   @Modifying
   @Query(
       value =
-          "UPDATE question_set SET common_folder_id = :defaultFolderId WHERE common_folder_id = :folderId",
+          """
+            UPDATE question_set
+            SET common_folder_id = :defaultFolderId
+            WHERE common_folder_id = :folderId
+          """,
       nativeQuery = true)
   void relocateAllByFolderIdToDefaultFolder(
       @Param("folderId") Long folderId, @Param("defaultFolderId") Long defaultFolderId);
