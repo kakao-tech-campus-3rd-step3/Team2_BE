@@ -3,6 +3,8 @@ package kr.it.pullit.modules.questionset.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -32,8 +34,6 @@ import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -257,6 +257,10 @@ public class QuestionSetService implements QuestionSetPublicApi {
   @Override
   @Transactional
   public void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId) {
+    commonFolderPublicApi
+        .findFolderEntityById(memberId, folderId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없거나 권한이 없습니다."));
+
     CommonFolder defaultFolder =
         commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);
     questionSetRepository.relocateAllByFolderIdToDefaultFolder(folderId, defaultFolder.getId());
