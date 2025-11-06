@@ -46,3 +46,6 @@ src/main/resources/keystore.p12
 src/test/resources/application-s3-secrets.properties
 spy.log
 htmlReport
+
+# 로컬 개발용 SSL 인증서 개인 키 제외
+nginx/certs/*.key

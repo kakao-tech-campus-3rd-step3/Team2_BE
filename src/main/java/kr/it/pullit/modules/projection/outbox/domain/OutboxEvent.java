@@ -49,7 +49,7 @@ public class OutboxEvent extends BaseEntity {
   private String eventType; // WEEKLY_RESET, QUESTION_SOLVED, ...
 
   @Lob
-  @Column(columnDefinition = "json", nullable = false)
+  @Column(columnDefinition = "longtext", nullable = false)
   private String payload; // JSON 문자열
 
   @Enumerated(EnumType.STRING)

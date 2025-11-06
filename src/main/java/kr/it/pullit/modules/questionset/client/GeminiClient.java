@@ -2,11 +2,14 @@ package kr.it.pullit.modules.questionset.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
-import com.google.genai.types.FinishReason;
+import com.google.genai.ResponseStream;
+import com.google.genai.types.FinishReason.Known;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.HttpOptions;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import kr.it.pullit.modules.questionset.api.LlmClient;
 import kr.it.pullit.modules.questionset.client.dto.request.GeminiRequest;
 import kr.it.pullit.modules.questionset.client.dto.request.LlmGeneratedQuestionRequest;
@@ -42,10 +45,10 @@ public class GeminiClient implements LlmClient {
       GeminiRequest geminiRequest = GeminiRequest.from(request, configBuilder);
       logRequestDetails(geminiRequest, request);
 
-      GenerateContentResponse response = callGeminiApi(geminiRequest);
-      validateResponse(response);
+      ResponseStream<GenerateContentResponse> responseStream = callGeminiApiStream(geminiRequest);
+      String aggregatedResponse = aggregateStreamResponse(responseStream);
 
-      return parseResponse(response);
+      return parseResponse(aggregatedResponse);
     } catch (IOException e) {
       throw LlmResponseParseException.create(e);
     } catch (Exception e) {
@@ -53,16 +56,24 @@ public class GeminiClient implements LlmClient {
     }
   }
 
-  private GenerateContentResponse callGeminiApi(GeminiRequest geminiRequest) {
-    return client.models.generateContent(
+  private ResponseStream<GenerateContentResponse> callGeminiApiStream(GeminiRequest geminiRequest) {
+    return client.models.generateContentStream(
         geminiRequest.model(), geminiRequest.content(), geminiRequest.config());
   }
 
-  private void validateResponse(GenerateContentResponse response) {
-    if (response.finishReason().knownEnum() != FinishReason.Known.STOP) {
-      throw LlmException.generationFailed(
-          "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
-    }
+  private String aggregateStreamResponse(ResponseStream<GenerateContentResponse> responseStream) {
+    return StreamSupport.stream(responseStream.spliterator(), false)
+        .peek(
+            response -> {
+              if (response.finishReason().knownEnum() != Known.STOP
+                  && response.finishReason().knownEnum() != Known.FINISH_REASON_UNSPECIFIED) {
+                throw LlmException.generationFailed(
+                    "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
+              }
+            })
+        .map(GenerateContentResponse::text)
+        .filter(text -> text != null && !text.isEmpty())
+        .collect(Collectors.joining());
   }
 
   private void logRequestDetails(GeminiRequest geminiRequest, LlmGeneratedQuestionRequest request) {
@@ -84,9 +95,7 @@ public class GeminiClient implements LlmClient {
             : "");
   }
 
-  private LlmGeneratedQuestionSetResponse parseResponse(GenerateContentResponse response)
-      throws IOException {
-    String rawResponse = response.text();
+  private LlmGeneratedQuestionSetResponse parseResponse(String rawResponse) throws IOException {
     try {
       return mapper.readValue(rawResponse, LlmGeneratedQuestionSetResponse.class);
     } catch (IOException e) {

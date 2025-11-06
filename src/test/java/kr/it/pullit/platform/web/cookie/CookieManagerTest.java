@@ -116,6 +116,25 @@ class CookieManagerTest {
     }
 
     @Test
+    @DisplayName("리프레시 토큰 쿠키를 만료시킬 때 올바른 경로를 사용한다")
+    void expiresRefreshTokenCookieWithCorrectPath() {
+      // given
+      String cookieName = "refresh_token";
+      request.setServerName("frontend.pull.it.kr");
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
+
+      // when
+      cookieManager.expireCookie(request, response, cookieName);
+
+      // then
+      String setCookieHeader = response.getHeader("Set-Cookie");
+      assertThat(setCookieHeader).contains("refresh_token=");
+      assertThat(setCookieHeader).contains("Max-Age=0");
+      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
+      assertThat(setCookieHeader).contains("Path=" + CookieManager.REFRESH_TOKEN_COOKIE_PATH);
+    }
+
+    @Test
     @DisplayName("호스트가 null이면 기본 도메인을 사용한다")
     void usesDefaultDomainWhenHostIsNull() {
       // given

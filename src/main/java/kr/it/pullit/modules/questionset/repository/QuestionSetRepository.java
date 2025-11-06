@@ -11,6 +11,8 @@ public interface QuestionSetRepository {
 
   Optional<QuestionSet> findById(Long id);
 
+  Optional<QuestionSet> findByIdWithQuestions(Long id);
+
   Optional<QuestionSet> findByIdAndMemberId(Long id, Long memberId);
 
   Optional<QuestionSet> findWithQuestionsForFirstSolving(Long id, Long memberId);
