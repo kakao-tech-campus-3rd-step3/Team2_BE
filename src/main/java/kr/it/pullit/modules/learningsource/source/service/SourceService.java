@@ -149,8 +149,6 @@ public class SourceService implements SourcePublicApi {
     Source source = getOrElseThrow(sourceId, memberId);
     String filePath = source.getFilePath();
 
-    source.getQuestionSets().forEach(questionSet -> questionSet.getSources().remove(source));
-
     sourceRepository.delete(source);
     deleteInS3(filePath);
   }

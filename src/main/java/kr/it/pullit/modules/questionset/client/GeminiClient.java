@@ -65,8 +65,12 @@ public class GeminiClient implements LlmClient {
     return StreamSupport.stream(responseStream.spliterator(), false)
         .peek(
             response -> {
-              if (response.finishReason().knownEnum() != Known.STOP
-                  && response.finishReason().knownEnum() != Known.FINISH_REASON_UNSPECIFIED) {
+              var finishReason = response.finishReason();
+              if (finishReason == null) {
+                return;
+              }
+              var knownReason = finishReason.knownEnum();
+              if (knownReason != Known.STOP && knownReason != Known.FINISH_REASON_UNSPECIFIED) {
                 throw LlmException.generationFailed(
                     "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
               }
