@@ -1,10 +1,10 @@
 package kr.it.pullit.modules.projection.learnstats.scheduler;
 
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import kr.it.pullit.modules.projection.learnstats.service.LearnStatsValidationService;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

@@ -1,9 +1,6 @@
 package kr.it.pullit.modules.projection.outbox.relay;
 
 import java.util.List;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 import kr.it.pullit.modules.projection.learnstats.event.handler.LearnStatsEventDispatcher;
 import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import kr.it.pullit.modules.projection.outbox.domain.ProcessedEvent;
@@ -12,6 +9,9 @@ import kr.it.pullit.modules.projection.outbox.repository.ProcessedEventRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Component
