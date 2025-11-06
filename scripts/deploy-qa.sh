@@ -52,7 +52,7 @@ done
 echo "워커 서버($INACTIVE_COLOR)가 정상 상태가 되기를 기다리는 중..."
 WORKER_HEALTH_STATUS="unhealthy"
 for i in {1..30}; do
-    if docker inspect --format="{{.State.Health.Status}}" "pullit-qa-worker-$INACTIVE_COLOR" 2>/dev/null | grep -q "healthy"; then
+    if docker inspect --format="{{.State.Status}}" "pullit-qa-worker-$INACTIVE_COLOR" 2>/dev/null | grep -q "running"; then
         echo "워커 서버($INACTIVE_COLOR)가 성공적으로 시작되었습니다!"
         WORKER_HEALTH_STATUS="healthy"
         break

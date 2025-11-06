@@ -65,7 +65,16 @@ services:
       SPRING_PROFILES_ACTIVE: qa
 
   pullit-qa-worker-blue:
-    <<: *pullit-common-service
+    restart: unless-stopped
+    depends_on:
+      pullit-qa-db:
+        condition: service_healthy
+      pullit-qa-redis:
+        condition: service_healthy
+      pullit-qa-rabbitmq:
+        condition: service_healthy
+    networks:
+      - pullit-qa-network
     image: ${DOCKER_IMAGE_BLUE}
     container_name: pullit-qa-worker-blue
     environment:
@@ -73,7 +82,16 @@ services:
       SPRING_PROFILES_ACTIVE: qa,worker
 
   pullit-qa-worker-green:
-    <<: *pullit-common-service
+    restart: unless-stopped
+    depends_on:
+      pullit-qa-db:
+        condition: service_healthy
+      pullit-qa-redis:
+        condition: service_healthy
+      pullit-qa-rabbitmq:
+        condition: service_healthy
+    networks:
+      - pullit-qa-network
     image: ${DOCKER_IMAGE_GREEN}
     container_name: pullit-qa-worker-green
     environment:

@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SourceService implements SourcePublicApi {
 
-  private static final long MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
+  private static final long MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MiB
 
   private final S3PublicApi s3PublicApi;
   private final SourceRepository sourceRepository;
