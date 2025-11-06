@@ -22,7 +22,7 @@ else
   INACTIVE_COLOR="blue"
 fi
 
-echo "Current Active Port is $(echo $ACTIVE_LINE | grep -o '[0-9]\+'). Deploying to Port $INACTIVE_PORT ($INACTIVE_COLOR)..."
+echo "현재 활성 포트는 $(echo $ACTIVE_LINE | grep -o '[0-9]\+') 입니다. 비활성 포트 $INACTIVE_PORT ($INACTIVE_COLOR)에 배포를 시작합니다..."
 
 # 2. 비활성 그룹에 새 버전의 애플리케이션 배포
 if [ "$INACTIVE_COLOR" = "blue" ]; then
@@ -33,30 +33,49 @@ else
   export DOCKER_IMAGE_BLUE=$(docker inspect --format='{{.Config.Image}}' pullit-qa-blue 2>/dev/null || echo "$DOCKER_IMAGE_NAME:latest")
 fi
 
-docker compose -f docker-compose.qa.yml pull "pullit-qa-$INACTIVE_COLOR"
-docker compose -f docker-compose.qa.yml up -d --no-deps "pullit-qa-$INACTIVE_COLOR"
+docker compose -f docker-compose.qa.yml pull "pullit-qa-$INACTIVE_COLOR" "pullit-qa-worker-$INACTIVE_COLOR"
+docker compose -f docker-compose.qa.yml up -d --no-deps "pullit-qa-$INACTIVE_COLOR" "pullit-qa-worker-$INACTIVE_COLOR"
 
 # 3. 새 버전 헬스 체크
-echo "Waiting for pullit-qa-$INACTIVE_COLOR to be healthy..."
+echo "API 서버($INACTIVE_COLOR)가 정상 상태가 되기를 기다리는 중..."
 HEALTH_STATUS="unhealthy"
 for i in {1..30}; do
     if docker inspect --format="{{.State.Health.Status}}" "pullit-qa-$INACTIVE_COLOR" 2>/dev/null | grep -q "healthy"; then
-        echo "Service is healthy!"
+        echo "API 서버($INACTIVE_COLOR)가 성공적으로 시작되었습니다!"
         HEALTH_STATUS="healthy"
         break
     fi
-    echo "Health check attempt $i failed. Retrying in 10 seconds..."
+    echo "API 서버 헬스 체크 실패 (시도: $i). 10초 후 재시도합니다..."
     sleep 10
 done
 
-if [ "$HEALTH_STATUS" != "healthy" ]; then
-  echo "Deployment failed: pullit-qa-$INACTIVE_COLOR did not become healthy."
-  docker compose -f docker-compose.qa.yml logs "pullit-qa-$INACTIVE_COLOR"
+echo "워커 서버($INACTIVE_COLOR)가 정상 상태가 되기를 기다리는 중..."
+WORKER_HEALTH_STATUS="unhealthy"
+for i in {1..30}; do
+    if docker inspect --format="{{.State.Status}}" "pullit-qa-worker-$INACTIVE_COLOR" 2>/dev/null | grep -q "running"; then
+        echo "워커 서버($INACTIVE_COLOR)가 성공적으로 시작되었습니다!"
+        WORKER_HEALTH_STATUS="healthy"
+        break
+    fi
+    echo "워커 서버($INACTIVE_COLOR) 헬스 체크 실패 (시도: $i). 10초 후 재시도합니다..."
+    sleep 10
+done
+
+if [ "$HEALTH_STATUS" != "healthy" ] || [ "$WORKER_HEALTH_STATUS" != "healthy" ]; then
+  echo "배포에 실패했습니다."
+  if [ "$HEALTH_STATUS" != "healthy" ]; then
+      echo "API 서버($INACTIVE_COLOR)가 정상적으로 시작되지 않았습니다."
+      docker compose -f docker-compose.qa.yml logs "pullit-qa-$INACTIVE_COLOR"
+  fi
+  if [ "$WORKER_HEALTH_STATUS" != "healthy" ]; then
+      echo "워커 서버($INACTIVE_COLOR)가 정상적으로 시작되지 않았습니다."
+      docker compose -f docker-compose.qa.yml logs "pullit-qa-worker-$INACTIVE_COLOR"
+  fi
   exit 1
 fi
 
 # 4. Nginx Upstream 설정 변경
-echo "Switching Nginx upstream to port $INACTIVE_PORT..."
+echo "Nginx Upstream 설정을 $INACTIVE_PORT 포트로 변경합니다..."
 
 # upstream api_backend { ... } 블록 안에서만 18080/18081을 교체
 sudo sed -i \
@@ -67,4 +86,15 @@ sudo sed -i \
 sudo nginx -t
 sudo nginx -s reload
 
-echo "Deployment successful. Switched to $INACTIVE_COLOR on port $INACTIVE_PORT."
+echo "배포 성공. Nginx가 $INACTIVE_COLOR($INACTIVE_PORT 포트)를 바라보도록 설정되었고, 워커 서버도 업데이트되었습니다."
+
+# 5. 이전 버전 API 서버 컨테이너 종료
+# Nginx 트래픽 전환 후 구버전으로의 연결이 모두 해제될 시간을 잠시 대기 (Graceful shutdown)
+sleep 15
+PREVIOUS_ACTIVE_COLOR=$([ "$INACTIVE_COLOR" = "blue" ] && echo "green" || echo "blue")
+echo "배포가 완료되었으므로 이전 버전 API 서버($PREVIOUS_ACTIVE_COLOR)를 종료합니다."
+docker compose -f docker-compose.qa.yml stop "pullit-qa-$PREVIOUS_ACTIVE_COLOR"
+
+# 6. 이전 버전 워커 서버 컨테이너 종료
+echo "이전 버전 워커 서버($PREVIOUS_ACTIVE_COLOR)를 종료합니다."
+docker compose -f docker-compose.qa.yml stop "pullit-qa-worker-$PREVIOUS_ACTIVE_COLOR"

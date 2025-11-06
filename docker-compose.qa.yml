@@ -1,88 +1,71 @@
+x-pullit-common-environment: &pullit-common-env
+  # 데이터베이스 연결 설정
+  DB_URL: jdbc:mariadb://pullit-qa-db:3306/pullit_qa?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+  DB_USERNAME: ${DB_USERNAME}
+  DB_PASSWORD: ${DB_PASSWORD}
+  # 외부 서비스 API 키 (CD 파이프라인에서 주입)
+  KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
+  KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+  GEMINI_API_KEY: ${GEMINI_API_KEY}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  AWS_REGION: ${AWS_REGION}
+  JWT_REDIRECT_URL: ${JWT_REDIRECT_URL}
+  JWT_COOKIE_DOMAIN: ${JWT_COOKIE_DOMAIN}
+  SENTRY_DSN: ${SENTRY_DSN}
+  SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
+  # JVM 옵션 (메모리 최적화)
+  JAVA_OPTS: -Xmx512m -Xms256m
+  # Redis 연결 설정
+  REDIS_HOST: pullit-qa-redis
+  REDIS_PORT: 6379
+  # RabbitMQ 연결 설정
+  RABBITMQ_HOST: pullit-qa-rabbitmq
+  SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+  SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
+  SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY: 2
+
+x-pullit-common-service-settings: &pullit-common-service
+  restart: unless-stopped
+  depends_on:
+    pullit-qa-db:
+      condition: service_healthy
+    pullit-qa-redis:
+      condition: service_healthy
+    pullit-qa-rabbitmq:
+      condition: service_healthy
+  networks:
+    - pullit-qa-network
+  healthcheck:
+    test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+    start_period: 40s
+
 services:
   pullit-qa-blue:
+    <<: *pullit-common-service
     image: ${DOCKER_IMAGE_BLUE}
     container_name: pullit-qa-blue
-    restart: unless-stopped
     ports:
       - "127.0.0.1:18080:8080"
     environment:
-      # 데이터베이스 연결 설정
-      - DB_URL=jdbc:mariadb://pullit-qa-db:3306/pullit_qa?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      # Spring 프로필
-      - SPRING_PROFILES_ACTIVE=qa
-      # 외부 서비스 API 키 (CD 파이프라인에서 주입)
-      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
-      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - JWT_REDIRECT_URL=${JWT_REDIRECT_URL}
-      - JWT_COOKIE_DOMAIN=${JWT_COOKIE_DOMAIN}
-      - SENTRY_DSN=${SENTRY_DSN}
-      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-      # JVM 옵션 (메모리 최적화)
-      - JAVA_OPTS=-Xmx512m -Xms256m
-      # Redis 연결 설정
-      - REDIS_HOST=pullit-qa-redis
-      - REDIS_PORT=6379
-      # RabbitMQ 연결 설정
-      - RABBITMQ_HOST=pullit-qa-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
-      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
-      - SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=2 # 워커 수를 2로 고정하여 순차 처리
-    depends_on:
-      pullit-qa-db:
-        condition: service_healthy
-      pullit-qa-redis:
-        condition: service_healthy
-      pullit-qa-rabbitmq:
-        condition: service_healthy
-    networks:
-      - pullit-qa-network
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+      <<: *pullit-common-env
+      SPRING_PROFILES_ACTIVE: qa
 
   pullit-qa-green:
+    <<: *pullit-common-service
     image: ${DOCKER_IMAGE_GREEN}
     container_name: pullit-qa-green
-    restart: unless-stopped
     ports:
       - "127.0.0.1:18081:8080"
     environment:
-      # 데이터베이스 연결 설정
-      - DB_URL=jdbc:mariadb://pullit-qa-db:3306/pullit_qa?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      # Spring 프로필
-      - SPRING_PROFILES_ACTIVE=qa
-      # 외부 서비스 API 키 (CD 파이프라인에서 주입)
-      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
-      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - JWT_REDIRECT_URL=${JWT_REDIRECT_URL}
-      - JWT_COOKIE_DOMAIN=${JWT_COOKIE_DOMAIN}
-      - SENTRY_DSN=${SENTRY_DSN}
-      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-      # JVM 옵션 (메모리 최적화)
-      - JAVA_OPTS=-Xmx512m -Xms256m
-      # Redis 연결 설정
-      - REDIS_HOST=pullit-qa-redis
-      - REDIS_PORT=6379
-      # RabbitMQ 연결 설정
-      - RABBITMQ_HOST=pullit-qa-rabbitmq
-      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_DEFAULT_USER}
-      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_DEFAULT_PASS}
-      - SPRING_RABBITMQ_LISTENER_SIMPLE_CONCURRENCY=2 # 워커 수를 2로 고정하여 순차 처리
+      <<: *pullit-common-env
+      SPRING_PROFILES_ACTIVE: qa
+
+  pullit-qa-worker-blue:
+    restart: unless-stopped
     depends_on:
       pullit-qa-db:
         condition: service_healthy
@@ -92,12 +75,28 @@ services:
         condition: service_healthy
     networks:
       - pullit-qa-network
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+    image: ${DOCKER_IMAGE_BLUE}
+    container_name: pullit-qa-worker-blue
+    environment:
+      <<: *pullit-common-env
+      SPRING_PROFILES_ACTIVE: qa,worker
+
+  pullit-qa-worker-green:
+    restart: unless-stopped
+    depends_on:
+      pullit-qa-db:
+        condition: service_healthy
+      pullit-qa-redis:
+        condition: service_healthy
+      pullit-qa-rabbitmq:
+        condition: service_healthy
+    networks:
+      - pullit-qa-network
+    image: ${DOCKER_IMAGE_GREEN}
+    container_name: pullit-qa-worker-green
+    environment:
+      <<: *pullit-common-env
+      SPRING_PROFILES_ACTIVE: qa,worker
 
   pullit-qa-db:
     image: mariadb:10.11
