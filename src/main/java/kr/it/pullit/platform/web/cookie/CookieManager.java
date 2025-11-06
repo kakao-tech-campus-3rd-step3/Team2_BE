@@ -46,16 +46,25 @@ public class CookieManager {
   public void expireCookie(
       HttpServletRequest request, HttpServletResponse response, String cookieName) {
     String domain = determineDomainFromRequest(request);
+    String path = determinePathForCookie(cookieName);
+
     ResponseCookie cookie =
         ResponseCookie.from(cookieName, "")
             .httpOnly(true)
             .secure(true)
-            .path("/")
+            .path(path)
             .maxAge(0)
             .sameSite("None")
             .domain(domain)
             .build();
     response.addHeader("Set-Cookie", cookie.toString());
+  }
+
+  private String determinePathForCookie(String cookieName) {
+    if (REFRESH_TOKEN_COOKIE_NAME.equals(cookieName)) {
+      return REFRESH_TOKEN_COOKIE_PATH;
+    }
+    return "/";
   }
 
   private String determineDomainFromRequest(HttpServletRequest request) {

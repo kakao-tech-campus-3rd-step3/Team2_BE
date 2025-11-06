@@ -13,6 +13,16 @@ import org.springframework.data.repository.query.Param;
 
 public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Long> {
 
+  @Query(
+      """
+       SELECT qs
+       FROM QuestionSet qs
+       LEFT JOIN FETCH qs.questions
+       WHERE qs.id = :id
+       AND qs.deletedAt IS NULL
+      """)
+  Optional<QuestionSet> findByIdWithQuestions(@Param("id") Long id);
+
   List<QuestionSet> findByStatusAndCreatedAtBefore(
       QuestionSetStatus status, LocalDateTime threshold);
 

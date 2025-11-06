@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.genai.Client;
 import com.google.genai.Models;
+import com.google.genai.ResponseStream;
 import com.google.genai.types.Candidate;
 import com.google.genai.types.Content;
 import com.google.genai.types.FinishReason;
@@ -53,11 +54,19 @@ class GeminiClientTest {
   @Test
   @DisplayName("Gemini API 응답을 파싱하여 DTO로 반환한다")
   void returnsParsedResponse() {
-    String responseJson = "{\"title\":\"AI Quiz\",\"questions\":[]}";
-    GenerateContentResponse response = successResponse(responseJson);
+    String responseJsonChunk1 = "{\"title\":\"AI Quiz\",";
+    String responseJsonChunk2 = "\"questions\":[]}";
 
-    when(models.generateContent(anyString(), any(Content.class), any(GenerateContentConfig.class)))
-        .thenReturn(response);
+    List<GenerateContentResponse> responses =
+        List.of(successResponse(responseJsonChunk1), successResponse(responseJsonChunk2));
+
+    ResponseStream<GenerateContentResponse> mockResponseStream = Mockito.mock(ResponseStream.class);
+    when(mockResponseStream.iterator()).thenReturn(responses.iterator());
+    when(mockResponseStream.spliterator()).thenReturn(responses.spliterator());
+
+    when(models.generateContentStream(
+            anyString(), any(Content.class), any(GenerateContentConfig.class)))
+        .thenReturn(mockResponseStream);
 
     LlmGeneratedQuestionRequest request =
         new LlmGeneratedQuestionRequest("prompt", List.of(), null, specification);
@@ -74,8 +83,14 @@ class GeminiClientTest {
     GenerateContentResponse response =
         responseWithFinishReason(new FinishReason(FinishReason.Known.MAX_TOKENS), "{}");
 
-    when(models.generateContent(anyString(), any(Content.class), any(GenerateContentConfig.class)))
-        .thenReturn(response);
+    List<GenerateContentResponse> responses = List.of(response);
+    ResponseStream<GenerateContentResponse> mockResponseStream = Mockito.mock(ResponseStream.class);
+    when(mockResponseStream.iterator()).thenReturn(responses.iterator());
+    when(mockResponseStream.spliterator()).thenReturn(responses.spliterator());
+
+    when(models.generateContentStream(
+            anyString(), any(Content.class), any(GenerateContentConfig.class)))
+        .thenReturn(mockResponseStream);
 
     LlmGeneratedQuestionRequest request =
         new LlmGeneratedQuestionRequest("prompt", List.of(), null, specification);
@@ -90,8 +105,14 @@ class GeminiClientTest {
   void throwsWhenResponseBodyInvalid() {
     GenerateContentResponse response = successResponse("not-json");
 
-    when(models.generateContent(anyString(), any(Content.class), any(GenerateContentConfig.class)))
-        .thenReturn(response);
+    List<GenerateContentResponse> responses = List.of(response);
+    ResponseStream<GenerateContentResponse> mockResponseStream = Mockito.mock(ResponseStream.class);
+    when(mockResponseStream.iterator()).thenReturn(responses.iterator());
+    when(mockResponseStream.spliterator()).thenReturn(responses.spliterator());
+
+    when(models.generateContentStream(
+            anyString(), any(Content.class), any(GenerateContentConfig.class)))
+        .thenReturn(mockResponseStream);
 
     LlmGeneratedQuestionRequest request =
         new LlmGeneratedQuestionRequest("prompt", List.of(), null, specification);
@@ -103,7 +124,8 @@ class GeminiClientTest {
   @Test
   @DisplayName("Gemini API 호출 중 예외가 발생하면 LlmException으로 감싼다")
   void wrapsUnexpectedExceptions() {
-    when(models.generateContent(anyString(), any(Content.class), any(GenerateContentConfig.class)))
+    when(models.generateContentStream(
+            anyString(), any(Content.class), any(GenerateContentConfig.class)))
         .thenThrow(new IllegalStateException("API unavailable"));
 
     LlmGeneratedQuestionRequest request =

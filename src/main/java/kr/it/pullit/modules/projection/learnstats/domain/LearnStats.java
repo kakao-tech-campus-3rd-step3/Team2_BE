@@ -64,7 +64,7 @@ public class LearnStats extends BaseEntity {
     if (this.totalQuestionCount == 0) {
       return 0;
     }
-    return (int) (((double) this.totalSolvedQuestionCount / this.totalQuestionCount) * 100);
+    return (int) (((double) this.totalCorrectQuestionCount / this.totalQuestionCount) * 100);
   }
 
   public void onWeeklyReset() {

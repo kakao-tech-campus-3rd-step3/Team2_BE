@@ -27,6 +27,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /** 활성화된 Spring 프로필에 따라 다른 보안 필터 체인(SecurityFilterChain)을 구성하여 인증/인가 정책을 환경별로 다르게 적용. */
+@Profile("!worker")
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

@@ -8,8 +8,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
+import org.springframework.test.context.TestPropertySource;
 
 @DataRedisTest
+@TestPropertySource(properties = {"spring.data.redis.host=localhost"})
 @DisplayName("RefreshTokenRepository 슬라이스 테스트")
 class RefreshTokenRepositoryTest {
 
