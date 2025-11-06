@@ -1,17 +1,17 @@
 package kr.it.pullit.modules.questionset.repository.adapter.jpa;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import jakarta.persistence.LockModeType;
-import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 
 public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Long> {
 
@@ -151,7 +151,8 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Modifying
   @Query(
-      value = "UPDATE question_set SET common_folder_id = :defaultFolderId WHERE common_folder_id = :folderId",
+      value =
+          "UPDATE question_set SET common_folder_id = :defaultFolderId WHERE common_folder_id = :folderId",
       nativeQuery = true)
   void relocateAllByFolderIdToDefaultFolder(
       @Param("folderId") Long folderId, @Param("defaultFolderId") Long defaultFolderId);
