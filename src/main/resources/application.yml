@@ -36,6 +36,10 @@ spring:
   flyway:
     enabled: false
 
+  threads:
+    virtual:
+      enabled: true
+
   security:
     oauth2:
       client:

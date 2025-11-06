@@ -98,9 +98,8 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   }
 
   @Override
-  public Optional<QuestionSet> findFirstFailedSetForRetry(int maxRetryCount) {
-    return questionSetJpaRepository.findFirstByStatusAndRetryCountLessThanOrderByCreatedAtAsc(
-        QuestionSetStatus.FAILED, maxRetryCount);
+  public Optional<QuestionSet> findFirstFailedSetForRetryForUpdate(int maxRetry) {
+    return questionSetJpaRepository.findFirstFailedSetForRetryForUpdate(maxRetry);
   }
 
   @Override
@@ -130,5 +129,10 @@ public class QuestionSetRepositoryImpl implements QuestionSetRepository {
   @Override
   public List<LocalDateTime> findCompletedDatesByMemberId(Long memberId) {
     return questionSetJpaRepository.findCompletedDatesByMemberId(memberId);
+  }
+
+  @Override
+  public void relocateAllByFolderIdToDefaultFolder(Long folderId, Long defaultFolderId) {
+    questionSetJpaRepository.relocateAllByFolderIdToDefaultFolder(folderId, defaultFolderId);
   }
 }

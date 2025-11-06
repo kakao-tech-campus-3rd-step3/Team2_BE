@@ -5,16 +5,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.questionset.repository.QuestionSetRepositoryImpl;
 import kr.it.pullit.platform.migration.repository.MigrationHistoryRepository;
 import kr.it.pullit.platform.migration.repository.adapter.jpa.MigrationHistoryJpaRepository;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @IntegrationTest
 @DisplayName("MigrationService 통합 테스트")
+@Import(QuestionSetRepositoryImpl.class)
 class MigrationServiceIntegrationTest {
 
   private static final String MIGRATION_NAME = "SOURCE_STATUS_MIGRATION_V1";

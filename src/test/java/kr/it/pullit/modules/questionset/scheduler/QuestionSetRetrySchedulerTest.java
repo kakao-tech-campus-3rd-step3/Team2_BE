@@ -36,13 +36,12 @@ class QuestionSetRetrySchedulerTest {
     // given
     QuestionSet retryableSet = mock(QuestionSet.class);
 
-    when(questionSetPublicApi.findFirstFailedSetForRetry(3)).thenReturn(Optional.of(retryableSet));
+    when(questionSetPublicApi.claimOneForRetry(3)).thenReturn(Optional.of(retryableSet));
 
     // when
     questionSetRetryScheduler.retryFailedQuestionSetGeneration();
 
     // then
-    verify(retryableSet, times(1)).retry();
     verify(eventPublisher, times(1)).publish(any(QuestionSetCreatedEvent.class));
   }
 
@@ -50,7 +49,7 @@ class QuestionSetRetrySchedulerTest {
   @DisplayName("재시도할 문제집이 없으면 아무 작업도 하지 않는다")
   void retryFailedQuestionSetGeneration_whenNoRetryableSets_doesNothing() {
     // given
-    when(questionSetPublicApi.findFirstFailedSetForRetry(3)).thenReturn(Optional.empty());
+    when(questionSetPublicApi.claimOneForRetry(3)).thenReturn(Optional.empty());
 
     // when
     questionSetRetryScheduler.retryFailedQuestionSetGeneration();
