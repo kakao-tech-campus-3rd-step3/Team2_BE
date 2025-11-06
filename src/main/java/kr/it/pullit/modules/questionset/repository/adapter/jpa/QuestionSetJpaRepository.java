@@ -20,14 +20,17 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
-      """
-        select q from QuestionSet q
-        where q.status = kr.it.pullit.modules.questionset.enums.QuestionSetStatus.FAILED
-          and q.retryCount < :maxRetry
-        order by q.id asc
-      """)
-  List<QuestionSet> findFirstFailedSetForRetryForUpdate(
-      @Param("maxRetry") int maxRetry, Pageable pageable);
+      value =
+          """
+        SELECT * FROM question_set
+        WHERE status = 'FAILED'
+          AND retry_count < :maxRetry
+        ORDER BY id
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED
+      """,
+      nativeQuery = true)
+  Optional<QuestionSet> findFirstFailedSetForRetryForUpdate(@Param("maxRetry") int maxRetry);
 
   @Query(
       """
@@ -149,7 +152,7 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
       """)
   List<LocalDateTime> findCompletedDatesByMemberId(@Param("memberId") Long memberId);
 
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Query(
       value =
           """
