@@ -23,6 +23,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
@@ -30,7 +31,6 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequest
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
-import kr.it.pullit.modules.wronganswer.repository.WrongAnswerRepository;
 import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
@@ -47,7 +47,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
   private final QuestionRepository questionRepository;
-  private final WrongAnswerRepository wrongAnswerRepository;
+  private final MarkingResultRepository markingResultRepository;
   private final LearnStatsPublicApi learnStatsPublicApi;
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
@@ -318,21 +318,14 @@ public class QuestionSetService implements QuestionSetPublicApi {
     new HashSet<>(questionSet.getSources()).forEach(questionSet::removeSource);
 
     // LearnStats 업데이트
-    long correctCount = calculateCorrectAnswerCount(questionSet.getQuestions(), memberId);
-    learnStatsPublicApi.applyQuestionSetDeleted(memberId, correctCount);
+    long correctCount =
+        markingResultRepository.countCorrectByQuestionSetIdAndMemberId(questionSetId, memberId);
+    if (correctCount > 0) {
+      learnStatsPublicApi.applyQuestionSetDeleted(memberId, correctCount);
+    }
 
     questionSet.softDelete();
     questionSet.getQuestions().forEach(Question::softDelete);
-  }
-
-  private long calculateCorrectAnswerCount(List<Question> questions, Long memberId) {
-    if (questions == null || questions.isEmpty()) {
-      return 0;
-    }
-    List<Long> questionIds = questions.stream().map(Question::getId).toList();
-    long wrongAnswerCount =
-        wrongAnswerRepository.countByMemberIdAndQuestionIdIn(memberId, questionIds);
-    return questions.size() - wrongAnswerCount;
   }
 
   @Override
