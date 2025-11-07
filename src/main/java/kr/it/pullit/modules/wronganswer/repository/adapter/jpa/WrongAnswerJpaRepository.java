@@ -14,6 +14,8 @@ public interface WrongAnswerJpaRepository extends JpaRepository<WrongAnswer, Lon
 
   List<WrongAnswer> findByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds);
 
+  long countByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds);
+
   @Query(
       """
             SELECT new kr.it.pullit.modules.wronganswer.service.dto.WrongAnswerSetDto(

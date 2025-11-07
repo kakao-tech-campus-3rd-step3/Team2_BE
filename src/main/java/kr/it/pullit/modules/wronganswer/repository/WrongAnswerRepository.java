@@ -14,6 +14,8 @@ public interface WrongAnswerRepository {
 
   List<WrongAnswer> findByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds);
 
+  long countByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds);
+
   List<WrongAnswerSetDto> findAllWrongAnswerSetAndCountByMemberId(Long memberId);
 
   List<WrongAnswerSetDto> findWrongAnswerSetWithCursor(Long memberId, Long cursor, int size);

@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
@@ -10,6 +11,7 @@ import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
@@ -28,6 +30,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequest
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
+import kr.it.pullit.modules.wronganswer.repository.WrongAnswerRepository;
 import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
@@ -44,6 +47,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
   private final QuestionRepository questionRepository;
+  private final WrongAnswerRepository wrongAnswerRepository;
+  private final LearnStatsPublicApi learnStatsPublicApi;
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
@@ -309,8 +314,25 @@ public class QuestionSetService implements QuestionSetPublicApi {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
     }
 
+    // Source와의 양방향 관계를 먼저 끊어줍니다.
+    new HashSet<>(questionSet.getSources()).forEach(questionSet::removeSource);
+
+    // LearnStats 업데이트
+    long correctCount = calculateCorrectAnswerCount(questionSet.getQuestions(), memberId);
+    learnStatsPublicApi.applyQuestionSetDeleted(memberId, correctCount);
+
     questionSet.softDelete();
     questionSet.getQuestions().forEach(Question::softDelete);
+  }
+
+  private long calculateCorrectAnswerCount(List<Question> questions, Long memberId) {
+    if (questions == null || questions.isEmpty()) {
+      return 0;
+    }
+    List<Long> questionIds = questions.stream().map(Question::getId).toList();
+    long wrongAnswerCount =
+        wrongAnswerRepository.countByMemberIdAndQuestionIdIn(memberId, questionIds);
+    return questions.size() - wrongAnswerCount;
   }
 
   @Override

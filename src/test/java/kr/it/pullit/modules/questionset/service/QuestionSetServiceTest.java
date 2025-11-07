@@ -21,6 +21,7 @@ import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFold
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
@@ -39,6 +40,7 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequest
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
 import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
+import kr.it.pullit.modules.wronganswer.repository.WrongAnswerRepository;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
@@ -65,6 +67,8 @@ class QuestionSetServiceTest {
   @Mock private MemberPublicApi memberPublicApi;
   @Mock private EventPublisher eventPublisher;
   @Mock private QuestionRepository questionRepository;
+  @Mock private WrongAnswerRepository wrongAnswerRepository;
+  @Mock private LearnStatsPublicApi learnStatsPublicApi;
 
   @BeforeEach
   void setUp() {
@@ -72,6 +76,8 @@ class QuestionSetServiceTest {
         new QuestionSetService(
             questionSetRepository,
             questionRepository,
+            wrongAnswerRepository,
+            learnStatsPublicApi,
             commonFolderPublicApi,
             sourcePublicApi,
             memberPublicApi,

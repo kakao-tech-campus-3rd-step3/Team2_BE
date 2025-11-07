@@ -147,9 +147,13 @@ public class SourceService implements SourcePublicApi {
   @Override
   public void deleteSource(Long sourceId, Long memberId) {
     Source source = getOrElseThrow(sourceId, memberId);
-    String filePath = source.getFilePath();
+
+    source.getQuestionSets().forEach(questionSet -> questionSet.removeSource(source));
+    source.getQuestionSets().clear();
 
     sourceRepository.delete(source);
+
+    String filePath = source.getFilePath();
     deleteInS3(filePath);
   }
 

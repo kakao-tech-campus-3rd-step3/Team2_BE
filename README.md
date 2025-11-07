@@ -1,143 +1,278 @@
-# TEAM2_BE
+<div align="center">
+  <h1 align="center">Pullit</h1>
+  <h3> AI 기반 자동 문제 생성 및 학습 플랫폼 </h3>
+  <p>
+    <strong>학습 자료를 업로드하면 AI가 똑똑하게 문제를 만들어 드립니다.</strong>
+    <br />
+    <em>지루한 학습 준비 과정을 끝내고, 진짜 '공부'에 집중하세요.</em>
+  </p>
+</div>
 
-## Maintainers
+<br>
 
-[![Static Badge](https://img.shields.io/badge/Github-xqqldir-yellow)](https://github.com/xqqldir)
-[![Static Badge](https://img.shields.io/badge/Github-Hyeonjun0527-green)](https://github.com/Hyeonjun0527)
-[![Static Badge](https://img.shields.io/badge/Github-flareseek-orange)](https://github.com/flareseek)
+---
 
-## Table of Contents
+## 🔗 바로가기 (Links)
 
-[Git Convention](#git-convention)<br/>
-[Code Convention](#code-convention)<br/>
-[Project Structure](#project-structure)<br/>
-[Environment setup](#environment-setup)<br/>
+- **배포 URL**: [https://pull.it.kr](https://pull.it.kr)
+- **프로젝트 문서 및 API 명세**: [https://pullit-docs-server.vercel.app](https://pullit-docs-server.vercel.app)
+- **팀 노션 페이지**: [https://www.notion.so/2-245c61d733498000a869fc6fb977d52e](https://www.notion.so/2-245c61d733498000a869fc6fb977d52e)
 
-## Git Convention
 
-### Branch
+- (*현재 도메인은 QA지만 운영 역할을 하고 있습니다.*)
+- **운영 API 서버**: [https://qa.api.pull.it.kr](https://qa.api.pull.it.kr)
+  - **Swagger API**: [https://qa.api.pull.it.kr/swagger-ui/index.html](https://qa.api.pull.it.kr/swagger-ui/index.html)
+- **모니터링 & 인프라**
+  - **Prometheus**: [https://prometheus.qa.api.pull.it.kr](https://prometheus.qa.api.pull.it.kr)
+  - **Grafana**: [https://grafana.qa.api.pull.it.kr](https://grafana.qa.api.pull.it.kr)
+  - **RabbitMQ**: [https://rabbitmq.qa.api.pull.it.kr](https://rabbitmq.qa.api.pull.it.kr)
 
-#### Flow
+---
 
-```mermaid
-  gitGraph
-  commit id: "init"
-  branch develop
-  checkout develop
-  commit id: "dev init"
-  branch issue-number/author/feature
-  commit id: "feature"
-  checkout develop
-  merge issue-number/author/feature id: "feature merge"
-  branch release/yyyy-mm-dd
-  commit id: "snapshot"
-  checkout develop
-  commit id: "dev"
-  branch refactor
-  commit id: "refactor"
-  checkout develop
-  merge refactor id:"refactor merge"
-  checkout main
-  merge release/yyyy-mm-dd id:"release merge"
-  checkout develop
-```
+## 📖 목차
 
-#### Branch list
+- [**소개 (Why Pullit?)**](#-why-pullit--왜-pullit을-만들었나요)
+- [**주요 기능 (Key Features)**](#-key-features--pullit의-핵심-기능)
+- [**기술 스택 (Tech Stack)**](#️-tech-stack--pullit을-움직이는-기술들)
+- [**시스템 아키텍처 (Architecture)**](#-architecture--시스템-아키텍처)
+- [**시스템 모니터링 (Monitoring)**](#-monitoring--시스템-모니터링)
+- [**데이터베이스 ERD (Database ERD)**](#-database-erd--데이터-구조)
+- [**팀원 소개 (Team)**](#-team--pullit을-만든-사람들)
 
-- `main`
-    - snapshot branch에서 merge
-- `develop`
-    - 주차별 업데이트 코드
-- `release/yyy-mm-dd`
-    - release snapshot
-- `refactor/*`
-    - 코드 리팩토링 브랜치
-- `author/issue-number/type-subject`
-    - 기능 개발 브랜치
-    - 예시
-        - `flareseek/BTSK-1/feat-social-login`
+---
 
-#### Branch Rules
+## 🧐 Why Pullit? | 왜 Pullit을 만들었나요?
 
-##### develop, main
+> "공부를 위해 요약, 정리, 문제 제작에 시간을 쏟고 계신가요?"
 
-- creations, updates, deletions 제한
-- PR로만 merge 가능
-- 1명 이상의 리뷰어 승인 필요
-- PR 승인 후 커밋이 발생하면 다시 승인 필요
-- status check 통과 필요
+**Pullit**은 학습 자료(PDF, 텍스트 등)를 AI 문제집으로 자동 변환하는 학습 플랫폼입니다.
+문제 풀이와 오답 노트로 스마트하게 학습하세요.
 
-#### Commit meesage
+---
 
-- `type: subject`
-- 50자 이내로 subject 작성
+## ✨ Key Features | Pullit의 핵심 기능
 
-- 예시
-    - `feat: 카카오 로그인 구현` (Good)
-    - ~~`fix: bug fix`~~(Bad)
-    - ~~`api 추가`~~ (Bad)
+### 1. 문제 생성
+> 학습 자료(PDF 등)를 올리면 Gemini AI가 다양한 유형의 문제를 자동으로 생성합니다.
 
-#### Type Convention
+| 기능 미리보기 1 | 기능 미리보기 2 |
+| :---: | :---: |
+| &nbsp; | &nbsp; |
 
-| Type         | Description                        |
-|--------------|------------------------------------|
-| **feat**     | 새로운 기능 추가                          |
-| **fix**      | 버그 수정                              |
-| **docs**     | 문서 수정                              |
-| **style**    | 코드 스타일 변경 (들여쓰기, 세미콜론 등; 기능 변경 없음) |
-| **refactor** | 기능 변경 없는 코드 리팩토링                   |
-| **test**     | 테스트 코드 추가 또는 수정                    |
-| **chore**    | 빌드, 패키지 매니저 설정 등 (기타 잡일)           |
-| **hotfix**   | 급하게 배포해야 하는 치명적인 버그 수정             |
+---
 
-#### PR
+### 2. 문제 풀이
+> 생성된 문제를 풀고 즉시 채점하며 상세한 해설을 확인할 수 있습니다.
 
-- 제목: `이슈번호: 작업내용(명확히)`
-- 본문: template에 맞게 작성
-- merge시 squash 사용 (제목이 commit message가 됨)
+| 기능 미리보기 1 | 기능 미리보기 2 |
+| :---: | :---: |
+| &nbsp; | &nbsp; |
 
-예시
+---
 
-- `btsk-1: 소셜 로그인 및 소셜 회원가입` (Good)
-- ~~`BTSK-1: 기능 추가`~~ (Bad)
+### 3. 문제 관리
+> 생성된 문제집과 학습 자료를 폴더별로 효율적으로 관리할 수 있습니다.
 
-## Code Convention
+| 기능 미리보기 1 | 기능 미리보기 2 |
+| :---: | :---: |
+| &nbsp; | &nbsp; |
 
-- [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)
+---
 
-## Project Structure
+### 4. 오답 노트
+> 틀린 문제는 자동으로 오답 노트에 기록되어 취약점을 집중적으로 학습할 수 있습니다.
 
-TBD
+| 기능 미리보기 1 | 기능 미리보기 2 |
+| :---: | :---: |
+| &nbsp; | &nbsp; |
 
-## Environment setup
+---
 
-### Checkstyle
+### 5. 대시보드
+> 학습 현황과 성과를 통계로 시각화하여 학습 동기를 부여합니다.
 
-(intellij 기준)
+| 기능 미리보기 1 | 기능 미리보기 2 |
+| :---: | :---: |
+| &nbsp; | &nbsp; |
 
-1. Marketplace에서 Checkstyle-IDEA 설치
-2. Settings > Tools > Checkstyle 이동
-3. Configuration File > + 클릭
-4. Use a local check configuration 선택 > config/checkstyle/google_checks.xml 선택
-5. Description에 'Google Style - custom' 입력 후 Next
+---
 
-### Google Java Format
+### 6. 알림
+> 문제집 생성이 완료되거나 중요한 학습 활동이 있을 때 실시간 알림을 받습니다.
 
-(intellij 기준)
+| 기능 미리보기 1 | 기능 미리보기 2 |
+| :---: | :---: |
+| &nbsp; | &nbsp; |
 
-1. Marketplace에서 google-java-format 설치
-2. Help > Edit Custom VM Options 선택
-3. 기존 내용 + 아래 내용 추가
+---
 
-```
---add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
---add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
-```
+## 🛠️ Tech Stack | Pullit을 움직이는 기술들
 
-4. 재시작
+| 구분 | 기술 스택 |
+| :--- | :--- |
+| **Core Backend** | ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white) ![Spring Security](https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white) |
+| **Data Layer** | ![JPA](https://img.shields.io/badge/JPA-a47e62?style=for-the-badge) ![QueryDSL](https://img.shields.io/badge/QueryDSL-3f3f3f?style=for-the-badge) ![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white) ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white) ![Flyway](https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logo=flyway&logoColor=white) |
+| **Infra & DevOps** | ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Amazon EC2](https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white) ![AWS S3](https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white) |
+| **Async & Monitoring** | ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white) ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white) ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white) |
+| **AI & External** | ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8e75b7?style=for-the-badge&logo=google&logoColor=white) |
 
-참조: [https://github.com/google/google-java-format/blob/master/README.md#intellij-jre-config](https://github.com/google/google-java-format/blob/master/README.md#intellij-jre-config)
+---
+
+## 🏗️ Architecture | 시스템 아키텍처
+
+<details>
+<summary>아키텍처 다이어그램 및 설명 보기</summary>
+
+<div align="center">
+    <img src="docs/architecture.png" width="800" alt="System Architecture Diagram">
+</div>
+
+| 구성 요소 | 설명 |
+|:---|:---|
+| **리버스 프록시** | **Nginx**를 통해 SSL 종료, 로드 밸런싱, 요청 라우팅을 담당합니다. |
+| **애플리케이션 서버** | **Spring Boot** 기반의 API 서버와 Worker 서버를 분리 운영합니다. 무거운 작업을 Worker에게 위임하여 API 서버의 안정성을 확보했으며, 핵심 설계 원칙은 하단에 별도로 기술했습니다. |
+| **데이터 & 캐시** | 영구 데이터는 **MariaDB**에 저장하며, **Redis**는 **리프레시 토큰 관리** 및 캐시 데이터 저장에 사용하여 성능을 최적화합니다. |
+| **비동기 처리** | **RabbitMQ**를 도입하여 대용량 파일 업로드 시 발생하던 메모리 부족 문제를 해결했습니다. 요청을 즉시 처리하는 대신 큐에 등록하고 Worker가 순차 처리하여 시스템 안정성을 확보했습니다. 특히 **학습 성과 대시보드**의 경우, **트랜잭션 아웃박스 패턴**을 통해 데이터 정합성을 보장함과 동시에 통계 집계 시 발생할 수 있는 **예상 성능 저하를 선제적으로 해결**했습니다. 다만, 메세지 큐가 도입되기 전 일부 로직에서 여전히 내장 `ApplicationEventPublisher`를 사용하고 있기도 합니다. |
+| **CI/CD** | **GitHub Actions**를 통해 **블루/그린 무중단 배포** 파이프라인을 구축했습니다. Nginx를 통해 트래픽을 전환하여, 사용자는 서비스 중단 없이 새로운 기능을 안정적으로 제공받을 수 있습니다. |
+| **외부 서비스** | Google Gemini(AI)와 통신 시, 명확한 JSON 응답 스키마를 정의하고 검증하여 비정형적인 응답에 안정적으로 문제를 생성하도록 구현했습니다. 그 외 **Kakao(OAuth)**, **AWS S3(파일 스토리지)** 와 통신합니다. |
+
+</details>
+
+---
+
+## 📊 Monitoring | 시스템 모니터링
+
+<details>
+<summary>모니터링 시스템 구성 보기</summary>
+
+<div align="center">
+    <img src="docs/grafana.png" width="800" alt="Grafana Dashboard">
+    <p><em>Grafana 대시보드를 통한 실시간 서버 지표 모니터링</em></p>
+    <img src="docs/sentry.png" width="800" alt="Sentry Error Tracking">
+    <p><em>Sentry를 이용한 실시간 에러 트래킹 및 분석</em></p>
+</div>
+
+| 구성 요소 | 설명 |
+|:---|:---|
+| **Prometheus** | Spring Actuator와 Micrometer를 통해 애플리케이션의 JVM, CPU, API 응답 시간 등 다양한 지표를 수집합니다. |
+| **Grafana** | Prometheus가 수집한 데이터를 시각화하여 시스템 상태를 한눈에 파악할 수 있는 대시보드를 제공합니다. |
+| **Sentry** | 실시간으로 발생하는 애플리케이션 에러를 수집하고 분석하여 개발자에게 알림을 보내는 에러 트래킹 시스템입니다. |
+
+</details>
+
+---
+
+## 🗺️ Database ERD | 데이터 구조
+
+<details>
+<summary>ERD 다이어그램 및 설명 보기</summary>
+
+<div align="center">
+    <img src="docs/erd.png" width="800" alt="ERD Diagram">
+</div>
+
+| 테이블 | 설명 |
+|:---|:---|
+| **Member** | 카카오 소셜 로그인을 통해 가입한 사용자 정보를 저장합니다. |
+| **Source / SourceFolder** | 사용자가 업로드한 학습 자료(Source)와 이를 관리하는 폴더 정보를 저장합니다. |
+| **QuestionSet / Question**| AI가 생성한 문제집(QuestionSet)과 개별 문제(Question) 정보를 관리합니다. |
+| **MarkingResult** | 사용자의 문제 풀이 결과 및 정답 여부를 기록합니다. |
+| **WrongAnswer** | 틀린 문제를 저장하여 오답 노트로 활용할 수 있도록 합니다. |
+| **LearnStats** | 사용자의 학습 활동을 집계하여 통계 데이터를 제공합니다. |
+| **CommonFolder** | 문제집 등 다양한 콘텐츠를 관리하는 공용 폴더 구조입니다. |
+
+</details>
+
+---
+
+## ✅ Test Coverage | 테스트 커버리지
+
+<details>
+<summary>테스트 커버리지 리포트 보기</summary>
+
+<div align="center">
+    <img src="docs/test-coverage.png" alt="Test Coverage Report">
+    <p><em>Jacoco를 이용한 테스트 커버리지 측정 결과</em></p>
+</div>
+
+</details>
+
+---
+
+## 📐 Software Design | 주요 설계 원칙
+
+<details>
+<summary>주요 설계 원칙 및 적용 사례 보기</summary>
+
+- **도메인 주도 설계(DDD)**: DDD를 적용하여 **풍부한 도메인 모델**을 구축했습니다. 각 도메인 객체가 자신의 비즈니스 로직을 스스로 책임지게 함으로써, 서비스 계층의 복잡도를 낮추고 응집도 높은 코드를 유지했습니다.
+- **이벤트 기반 아키텍처**: 도메인 간의 직접적인 의존성을 제거하고 **이벤트**를 통해 상호작용하도록 설계했습니다. 이를 통해 도메인 간 **느슨한 결합**을 유지하여 코드의 확장성과 유지보수성을 크게 향상시켰습니다.
+- **단일 책임 원칙(SRP)**: 클래스와 메서드가 하나의 책임만 갖도록 코드를 분리했습니다. 예를 들어, 복잡했던 `QuestionSetService`의 책임 중 문제 생성 요청, 상태 관리, 재시도 로직 등을 명확히 분리하여, 특정 기능 수정이 다른 부분에 미치는 영향을 최소화하고 코드 변경의 안정성을 높였습니다.
+- **도메인 경계 보호**: 각 도메인이 다른 도메인의 데이터 저장소(Repository)에 직접 접근하여 경계를 침범하는 것을 엄격히 방지했습니다. 도메인 간 협력이 필요할 때는 **퍼사드(Facade) 패턴**을 통해 필요한 기능만 제한적으로 노출하거나 **이벤트**를 발행하여 간접적으로 통신하는 방식을 적극적으로 활용함으로써 도메인의 독립성을 보장했습니다.
+
+</details>
+
+---
+
+## 🚀 Onboarding | 온보딩 문서
+
+새로운 팀원이 프로젝트에 빠르게 적응하고 기여할 수 있도록 체계적인 온보딩 문서를 마련했습니다. 프로젝트의 아키텍처, 개발 컨벤션, 배포 프로세스 등을 상세히 기술한 **[가이드 문서 및 API 명세서](https://pullit-docs-server.vercel.app)**를 제공하여 학습 비용을 줄이고 원활한 협업을 지원합니다.
+
+---
+
+## 👥 Team | Pullit을 만든 사람들
+
+### Backend
+<table width="600px">
+    <thead>
+    </thead>
+    <tr>
+        <th>Role</th>
+        <td align="center">Team Member</td>
+        <td align="center">Team Leader</td>
+        <td align="center">Backend Leader</td>
+    </tr>
+    <tr>
+        <th>Picture</th>
+        <td align="center"><a href="https://github.com/xqqldir"><img src="https://github.com/xqqldir.png" width="60" height="60" alt="xqqldir"></a></td>
+        <td align="center"><a href="https://github.com/Hyeonjun0527"><img src="https://github.com/Hyeonjun0527.png" width="60" height="60" alt="Hyeonjun0527"></a></td>
+        <td align="center"><a href="https://github.com/flareseek"><img src="https://github.com/flareseek.png" width="60" height="60" alt="flareseek"></a></td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td align="center">xqqldir</td>
+        <td align="center">Hyeonjun0527</td>
+        <td align="center">flareseek</td>
+    </tr>
+    <tr>
+        <th>GitHub</th>
+        <td align="center"><a href="https://github.com/xqqldir"><img src="http://img.shields.io/badge/xqqldir-blue?style=social&logo=github"/></a></td>
+        <td align="center"><a href="https://github.com/Hyeonjun0527"><img src="http://img.shields.io/badge/Hyeonjun0527-blue?style=social&logo=github"/></a></td>
+        <td align="center"><a href="https://github.com/flareseek"><img src="http://img.shields.io/badge/flareseek-blue?style=social&logo=github"/></a></td>
+    </tr>
+</table>
+
+### Frontend
+<table width="600px">
+    <thead>
+    </thead>
+    <tr>
+        <th>Role</th>
+        <td align="center">Team Member</td>
+        <td align="center"><strong>Frontend Leader</strong></td>
+    </tr>
+    <tr>
+        <th>Picture</th>
+        <td align="center"><a href="https://github.com/anseonghyeon"><img src="https://github.com/anseonghyeon.png" width="60" height="60" alt="anseonghyeon"></a></td>
+        <td align="center"><a href="https://github.com/Changhee-Cho"><img src="https://github.com/Changhee-Cho.png" width="60" height="60" alt="Changhee-Cho"></a></td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td align="center">안성현</td>
+        <td align="center">조창희</td>
+    </tr>
+    <tr>
+        <th>GitHub</th>
+        <td align="center"><a href="https://github.com/anseonghyeon"><img src="http://img.shields.io/badge/anseonghyeon-blue?style=social&logo=github"/></a></td>
+        <td align="center"><a href="https://github.com/Changhee-Cho"><img src="http://img.shields.io/badge/Changhee--Cho-blue?style=social&logo=github"/></a></td>
+    </tr>
+</table>
