@@ -168,6 +168,10 @@ cors:
 app:
   gemini:
     api-key: ${GEMINI_API_KEY:test}
+  scheduling:
+    source-cleanup:
+      enabled: true
+      cron: 0 0 4 * * ?
   storage:
     s3:
       bucket-name: "pullit-uploaded-files"

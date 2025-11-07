@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -27,6 +26,7 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
+import kr.it.pullit.platform.storage.s3.dto.S3FileMetadata;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @MockitoUnitTest
 @DisplayName("SourceService - 학습 소스 서비스 테스트")
@@ -137,7 +138,8 @@ class SourceServiceTest {
         new SourceUploadCompleteRequest(
             "upload-1", "learning-sources/new.pdf", "new.pdf", "application/pdf", 4096L);
 
-    given(s3PublicApi.fileExists(request.getFilePath())).willReturn(true);
+    given(s3PublicApi.getFileMetadata(request.getFilePath()))
+        .willReturn(new S3FileMetadata(4096L, null));
     given(sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath()))
         .willReturn(Optional.empty());
     given(memberPublicApi.findById(memberId))
@@ -170,7 +172,8 @@ class SourceServiceTest {
         new SourceUploadCompleteRequest(
             "upload-2", "learning-sources/exist.pdf", "updated.pdf", "application/pdf", 8192L);
 
-    given(s3PublicApi.fileExists(request.getFilePath())).willReturn(true);
+    given(s3PublicApi.getFileMetadata(request.getFilePath()))
+        .willReturn(new S3FileMetadata(8192L, null));
     given(sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath()))
         .willReturn(Optional.of(existing));
     given(sourceRepository.save(existing)).willReturn(existing);
@@ -191,12 +194,11 @@ class SourceServiceTest {
     SourceUploadCompleteRequest request =
         new SourceUploadCompleteRequest(
             "upload-3", "learning-sources/missing.pdf", "missing.pdf", "application/pdf", 1024L);
-
-    given(s3PublicApi.fileExists(request.getFilePath())).willReturn(false);
+    var exception = NoSuchKeyException.builder().build();
+    given(s3PublicApi.getFileMetadata(request.getFilePath())).willThrow(exception);
 
     assertThatThrownBy(() -> sourceService.processUploadComplete(request, memberId))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("S3에 해당 파일이 존재하지 않습니다.");
+        .isInstanceOf(NoSuchKeyException.class);
 
     verifyNoInteractions(memberPublicApi, sourceFolderPublicApi);
   }
@@ -213,7 +215,8 @@ class SourceServiceTest {
             "application/pdf",
             512L);
 
-    given(s3PublicApi.fileExists(request.getFilePath())).willReturn(true);
+    given(s3PublicApi.getFileMetadata(request.getFilePath()))
+        .willReturn(new S3FileMetadata(512L, null));
     given(sourceRepository.findByMemberIdAndFilePath(memberId, request.getFilePath()))
         .willReturn(Optional.empty());
     given(memberPublicApi.findById(memberId)).willReturn(Optional.empty());
@@ -273,7 +276,7 @@ class SourceServiceTest {
   }
 
   @Test
-  @DisplayName("성공 - 소스를 삭제하면 저장소와 S3에서 함께 제거된다")
+  @DisplayName("성공 - 소스를 삭제하면 soft delete 되어 상태가 변경된다")
   void deleteSource() {
     Long memberId = 23L;
     Source source = createSource(memberId, "learning-sources/delete.pdf", SourceStatus.READY);
@@ -282,21 +285,7 @@ class SourceServiceTest {
     sourceService.deleteSource(7L, memberId);
 
     verify(sourceRepository).delete(source);
-    verify(s3PublicApi).deleteFile("learning-sources/delete.pdf");
-  }
-
-  @Test
-  @DisplayName("성공 - S3 삭제가 실패해도 예외를 전파하지 않는다")
-  void deleteSourceWhenS3Fails() {
-    Long memberId = 25L;
-    Source source = createSource(memberId, "learning-sources/fail.pdf", SourceStatus.READY);
-    given(sourceRepository.findByIdAndMemberId(8L, memberId)).willReturn(Optional.of(source));
-    doThrow(new RuntimeException("boom")).when(s3PublicApi).deleteFile("learning-sources/fail.pdf");
-
-    sourceService.deleteSource(8L, memberId);
-
-    verify(sourceRepository).delete(source);
-    verify(s3PublicApi).deleteFile("learning-sources/fail.pdf");
+    verify(s3PublicApi, never()).deleteFile(any());
   }
 
   @Test

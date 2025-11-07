@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import kr.it.pullit.platform.storage.core.S3StorageProps;
+import kr.it.pullit.platform.storage.s3.dto.S3FileMetadata;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -101,6 +103,14 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
         }
       }
     }
+  }
+
+  @Override
+  public S3FileMetadata getFileMetadata(String filePath) {
+    HeadObjectRequest headRequest =
+        HeadObjectRequest.builder().bucket(s3StorageProps.getBucketName()).key(filePath).build();
+    HeadObjectResponse response = s3Client.headObject(headRequest);
+    return new S3FileMetadata(response.contentLength(), response.lastModified());
   }
 
   private S3Client createS3Client() {

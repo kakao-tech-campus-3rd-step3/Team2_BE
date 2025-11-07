@@ -12,6 +12,7 @@ import kr.it.pullit.platform.storage.core.FileValidation;
 import kr.it.pullit.platform.storage.core.S3StorageProps;
 import kr.it.pullit.platform.storage.s3.client.FileStorageClient;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
+import kr.it.pullit.platform.storage.s3.dto.S3FileMetadata;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +43,11 @@ public class S3PresignedUrlService implements S3PublicApi {
   @Override
   public InputStream downloadFileAsStream(String filePath) {
     return fileStorageClient.downloadFileAsStream(filePath);
+  }
+
+  @Override
+  public S3FileMetadata getFileMetadata(String filePath) {
+    return fileStorageClient.getFileMetadata(filePath);
   }
 
   /**

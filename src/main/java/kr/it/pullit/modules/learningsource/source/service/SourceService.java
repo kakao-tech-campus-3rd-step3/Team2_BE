@@ -3,13 +3,13 @@ package kr.it.pullit.modules.learningsource.source.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.learningsource.source.domain.entity.SourceCreationParam;
+import kr.it.pullit.modules.learningsource.source.exception.S3FileNotFoundForSourceException;
 import kr.it.pullit.modules.learningsource.source.exception.SourceFileSizeExceededException;
 import kr.it.pullit.modules.learningsource.source.exception.SourceNotFoundException;
 import kr.it.pullit.modules.learningsource.source.repository.SourceRepository;
@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Service
 @RequiredArgsConstructor
@@ -64,9 +65,7 @@ public class SourceService implements SourcePublicApi {
   // TODO: 리팩토링 대상.
   @Override
   public void processUploadComplete(SourceUploadCompleteRequest request, Long memberId) {
-    if (!s3PublicApi.fileExists(request.getFilePath())) {
-      throw new IllegalArgumentException("S3에 해당 파일이 존재하지 않습니다.");
-    }
+    s3PublicApi.getFileMetadata(request.getFilePath());
     createOrUpdate(request, memberId);
   }
 
@@ -117,7 +116,12 @@ public class SourceService implements SourcePublicApi {
             .findByIdAndMemberId(sourceId, memberId)
             .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
 
-    return s3PublicApi.downloadFileAsStream(source.getFilePath());
+    try {
+      return s3PublicApi.downloadFileAsStream(source.getFilePath());
+    } catch (NoSuchKeyException e) {
+      source.markAsError();
+      throw S3FileNotFoundForSourceException.bySourceIdAndFilePath(sourceId, source.getFilePath());
+    }
   }
 
   @Override
@@ -127,7 +131,12 @@ public class SourceService implements SourcePublicApi {
             .findByIdAndMemberId(sourceId, memberId)
             .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
 
-    return s3PublicApi.downloadFileToTemp(source.getFilePath());
+    try {
+      return s3PublicApi.downloadFileToTemp(source.getFilePath());
+    } catch (NoSuchKeyException e) {
+      source.markAsError();
+      throw S3FileNotFoundForSourceException.bySourceIdAndFilePath(sourceId, source.getFilePath());
+    }
   }
 
   @Override
@@ -149,14 +158,9 @@ public class SourceService implements SourcePublicApi {
   public void deleteSource(Long sourceId, Long memberId) {
     Source source = getOrElseThrow(sourceId, memberId);
 
-    new HashSet<>(source.getQuestionSets())
-        .forEach(questionSet -> questionSet.removeSource(source));
-    source.getQuestionSets().clear();
-
+    // @SQLDelete 어노테이션에 의해 soft delete 처리된다.
+    // S3 파일 삭제는 별도의 배치 작업으로 처리한다.
     sourceRepository.delete(source);
-
-    String filePath = source.getFilePath();
-    deleteInS3(filePath);
   }
 
   @Transactional
@@ -231,13 +235,5 @@ public class SourceService implements SourcePublicApi {
     return sourceRepository
         .findByIdAndMemberId(sourceId, memberId)
         .orElseThrow(() -> SourceNotFoundException.byId(sourceId));
-  }
-
-  private void deleteInS3(String filePath) {
-    try {
-      s3PublicApi.deleteFile(filePath);
-    } catch (Exception e) {
-      log.warn("데이터베이스 삭제 후 S3 파일 삭제 실패: {}", filePath, e);
-    }
   }
 }
