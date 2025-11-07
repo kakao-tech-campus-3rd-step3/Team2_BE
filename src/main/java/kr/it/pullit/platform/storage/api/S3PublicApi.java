@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
+import kr.it.pullit.platform.storage.s3.dto.S3FileMetadata;
 
 public interface S3PublicApi {
 
   PresignedUrlResponse generateUploadUrl(
-      String fileName, String contentType, Long fileSize, Long ownerId);
+      String fileName, String contentType, Long fileSize, Long memberId);
 
   InputStream downloadFileAsStream(String filePath);
 
@@ -17,4 +18,6 @@ public interface S3PublicApi {
   boolean fileExists(String filePath);
 
   void deleteFile(String filePath);
+
+  S3FileMetadata getFileMetadata(String filePath);
 }

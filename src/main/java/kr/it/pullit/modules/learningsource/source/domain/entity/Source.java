@@ -23,10 +23,15 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(
+    sql = "UPDATE source SET status = 'DELETED', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+@SQLRestriction("status <> 'DELETED'")
 public class Source extends BaseEntity {
 
   @ManyToMany(mappedBy = "sources")
@@ -116,6 +121,10 @@ public class Source extends BaseEntity {
 
   public void markAsFailed() {
     this.status = SourceStatus.FAILED;
+  }
+
+  public void markAsError() {
+    this.status = SourceStatus.NOT_EXIST;
   }
 
   @PreRemove

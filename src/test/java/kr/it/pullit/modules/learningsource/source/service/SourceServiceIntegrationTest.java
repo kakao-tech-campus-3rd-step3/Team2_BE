@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willDoNothing;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -144,33 +143,36 @@ class SourceServiceIntegrationTest {
       SourceUploadCompleteRequest request =
           new SourceUploadCompleteRequest(
               "upload-3", "learning-sources/missing.pdf", "missing.pdf", "application/pdf", 1024L);
+      Member member = MemberFixtures.basicUser();
 
-      given(s3PublicApi.fileExists(request.getFilePath())).willReturn(false);
+      var exception = software.amazon.awssdk.services.s3.model.NoSuchKeyException.builder().build();
+      given(s3PublicApi.getFileMetadata(request.getFilePath())).willThrow(exception);
+      given(memberPublicApi.findById(memberId)).willReturn(Optional.of(member));
 
       assertThatThrownBy(() -> sourceService.processUploadComplete(request, memberId))
-          .isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("S3에 해당 파일이 존재하지 않습니다.");
+          .isInstanceOf(software.amazon.awssdk.services.s3.model.NoSuchKeyException.class);
     }
   }
 
   @Test
-  @DisplayName("소스를 삭제하면 데이터와 S3 파일이 함께 정리된다")
-  void deleteSourceAlsoDeletesFileInS3() {
+  @DisplayName("소스를 삭제하면 soft delete 되어 상태만 변경된다")
+  void softDeleteSource() {
     Long memberId = 104L;
     SourceFolder folder = persistDefaultFolder(memberId);
     Source source =
         persistSource(memberId, "learning-sources/delete.pdf", folder, SourceStatus.READY);
     flushAndClear();
 
-    willDoNothing().given(s3PublicApi).deleteFile(source.getFilePath());
-
     sourceService.deleteSource(source.getId(), memberId);
     flushAndClear();
 
     Optional<Source> found = sourceRepository.findById(source.getId());
+    List<Source> deleted = sourceRepository.findAllWithDeleted();
 
     assertThat(found).isEmpty();
-    then(s3PublicApi).should().deleteFile(source.getFilePath());
+    assertThat(deleted).hasSize(1);
+    assertThat(deleted.getFirst().getStatus()).isEqualTo(SourceStatus.DELETED);
+    then(s3PublicApi).shouldHaveNoInteractions();
   }
 
   @Test

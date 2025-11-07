@@ -3,6 +3,7 @@ package kr.it.pullit.platform.storage.s3.client;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
+import kr.it.pullit.platform.storage.s3.dto.S3FileMetadata;
 
 public interface FileStorageClient {
 
@@ -15,4 +16,6 @@ public interface FileStorageClient {
   String getFileUrl(String filePath);
 
   InputStream downloadFileAsStream(String filePath);
+
+  S3FileMetadata getFileMetadata(String filePath);
 }

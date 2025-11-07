@@ -58,4 +58,9 @@ public class SourceRepositoryImpl implements SourceRepository {
   public List<Source> findByStatus(SourceStatus status) {
     return sourceJpaRepository.findByStatus(status);
   }
+
+  @Override
+  public List<Source> findAllWithDeleted() {
+    return sourceJpaRepository.findAllWithDeleted();
+  }
 }

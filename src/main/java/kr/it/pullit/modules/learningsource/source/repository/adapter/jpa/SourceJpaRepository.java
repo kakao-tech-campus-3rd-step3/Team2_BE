@@ -13,11 +13,12 @@ public interface SourceJpaRepository extends JpaRepository<Source, Long> {
   List<Source> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 
   @Query(
-      "SELECT s "
-          + "FROM Source s "
-          + "JOIN FETCH s.sourceFolder sf "
-          + "WHERE s.memberId = :memberId "
-          + "ORDER BY s.createdAt DESC")
+      """
+      SELECT s FROM Source s
+      JOIN FETCH s.sourceFolder
+      WHERE s.memberId = :memberId AND s.status <> 'DELETED'
+      ORDER BY s.createdAt DESC
+      """)
   List<Source> findSourcesByMemberIdWithDetails(@Param("memberId") Long memberId);
 
   Optional<Source> findByIdAndMemberId(Long id, Long memberId);
@@ -27,4 +28,14 @@ public interface SourceJpaRepository extends JpaRepository<Source, Long> {
   List<Source> findByStatus(SourceStatus status);
 
   Optional<Source> findByMemberIdAndFilePath(Long memberId, String filePath);
+
+  @Query(
+      value =
+          """
+                    SELECT *
+                    FROM source s
+                    WHERE s.status = 'DELETED'
+                 """,
+      nativeQuery = true)
+  List<Source> findAllWithDeleted();
 }
