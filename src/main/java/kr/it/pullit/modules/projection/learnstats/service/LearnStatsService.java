@@ -32,6 +32,16 @@ public class LearnStatsService implements LearnStatsPublicApi {
     repo.save(p);
   }
 
+  @Override
+  public void applyQuestionSetDeleted(Long memberId, long correctQuestionCount) {
+    repo.findById(memberId)
+        .ifPresent(
+            learnStats -> {
+              learnStats.onQuestionSetDeleted(correctQuestionCount);
+              repo.save(learnStats);
+            });
+  }
+
   public void increaseCorrectQuestionCount(Long memberId, long correctCount) {
     LearnStats p = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
     p.increaseCorrectQuestionCount(correctCount);

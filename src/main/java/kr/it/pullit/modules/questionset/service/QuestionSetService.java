@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
@@ -10,6 +11,7 @@ import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.dto.QuestionSetCreateParam;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
@@ -21,6 +23,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
@@ -44,6 +47,8 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   private final QuestionSetRepository questionSetRepository;
   private final QuestionRepository questionRepository;
+  private final MarkingResultRepository markingResultRepository;
+  private final LearnStatsPublicApi learnStatsPublicApi;
   private final CommonFolderPublicApi commonFolderPublicApi;
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
@@ -307,6 +312,16 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
     if (!questionSet.getOwnerId().equals(memberId)) {
       throw QuestionSetUnauthorizedException.byId(questionSetId);
+    }
+
+    // Source와의 양방향 관계를 먼저 끊어줍니다.
+    new HashSet<>(questionSet.getSources()).forEach(questionSet::removeSource);
+
+    // LearnStats 업데이트
+    long correctCount =
+        markingResultRepository.countCorrectByQuestionSetIdAndMemberId(questionSetId, memberId);
+    if (correctCount > 0) {
+      learnStatsPublicApi.applyQuestionSetDeleted(memberId, correctCount);
     }
 
     questionSet.softDelete();

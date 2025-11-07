@@ -21,6 +21,7 @@ import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFold
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
+import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.DifficultyType;
@@ -32,6 +33,7 @@ import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionRepository;
 import kr.it.pullit.modules.questionset.repository.QuestionSetRepository;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
@@ -65,6 +67,8 @@ class QuestionSetServiceTest {
   @Mock private MemberPublicApi memberPublicApi;
   @Mock private EventPublisher eventPublisher;
   @Mock private QuestionRepository questionRepository;
+  @Mock private MarkingResultRepository markingResultRepository;
+  @Mock private LearnStatsPublicApi learnStatsPublicApi;
 
   @BeforeEach
   void setUp() {
@@ -72,6 +76,8 @@ class QuestionSetServiceTest {
         new QuestionSetService(
             questionSetRepository,
             questionRepository,
+            markingResultRepository,
+            learnStatsPublicApi,
             commonFolderPublicApi,
             sourcePublicApi,
             memberPublicApi,
@@ -482,15 +488,45 @@ class QuestionSetServiceTest {
     }
 
     @Test
-    @DisplayName("문제집을 삭제한다")
-    void deleteQuestionSet() {
-      QuestionSet questionSet = createQuestionSetWithId(1201L);
+    @DisplayName("문제집을 삭제하면 학습 통계가 차감된다")
+    void deleteQuestionSetAndApplyLearnStats() {
+      // given
+      Long questionSetId = 1201L;
+      Long memberId = 1L;
+      QuestionSet questionSet = createQuestionSetWithId(questionSetId, memberId);
 
-      when(questionSetRepository.findByIdWithQuestions(1201L)).thenReturn(Optional.of(questionSet));
+      when(questionSetRepository.findByIdWithQuestions(questionSetId))
+          .thenReturn(Optional.of(questionSet));
+      when(markingResultRepository.countCorrectByQuestionSetIdAndMemberId(questionSetId, memberId))
+          .thenReturn(3L);
 
-      questionSetService.delete(1201L, questionSet.getOwnerId());
+      // when
+      questionSetService.delete(questionSetId, memberId);
 
+      // then
       assertThat(questionSet.getDeletedAt()).isNotNull();
+      verify(learnStatsPublicApi).applyQuestionSetDeleted(memberId, 3L);
+    }
+
+    @Test
+    @DisplayName("풀이 기록 없는 문제집을 삭제해도 학습 통계는 변하지 않는다")
+    void deleteQuestionSetWithoutLearnStats() {
+      // given
+      Long questionSetId = 1201L;
+      Long memberId = 1L;
+      QuestionSet questionSet = createQuestionSetWithId(questionSetId, memberId);
+
+      when(questionSetRepository.findByIdWithQuestions(questionSetId))
+          .thenReturn(Optional.of(questionSet));
+      when(markingResultRepository.countCorrectByQuestionSetIdAndMemberId(questionSetId, memberId))
+          .thenReturn(0L);
+
+      // when
+      questionSetService.delete(questionSetId, memberId);
+
+      // then
+      assertThat(questionSet.getDeletedAt()).isNotNull();
+      verify(learnStatsPublicApi, never()).applyQuestionSetDeleted(anyLong(), anyLong());
     }
 
     @Test
@@ -582,10 +618,14 @@ class QuestionSetServiceTest {
     }
   }
 
-  private QuestionSet createQuestionSetWithId(Long id) {
-    QuestionSet questionSet = TestQuestionSetBuilder.builder().ownerId(1L).build();
+  private QuestionSet createQuestionSetWithId(Long id, Long ownerId) {
+    QuestionSet questionSet = TestQuestionSetBuilder.builder().ownerId(ownerId).build();
     ReflectionTestUtils.setField(questionSet, "id", id);
     return questionSet;
+  }
+
+  private QuestionSet createQuestionSetWithId(Long id) {
+    return createQuestionSetWithId(id, 1L);
   }
 
   private void addQuestion(QuestionSet questionSet) {

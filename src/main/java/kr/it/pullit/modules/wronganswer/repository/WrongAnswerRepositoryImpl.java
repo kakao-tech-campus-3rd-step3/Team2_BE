@@ -30,6 +30,11 @@ public class WrongAnswerRepositoryImpl implements WrongAnswerRepository {
   }
 
   @Override
+  public long countByMemberIdAndQuestionIdIn(Long memberId, List<Long> questionIds) {
+    return wrongAnswerJpaRepository.countByMemberIdAndQuestionIdIn(memberId, questionIds);
+  }
+
+  @Override
   public List<WrongAnswer> saveAll(Iterable<WrongAnswer> entities) {
     return wrongAnswerJpaRepository.saveAll(entities);
   }

@@ -81,6 +81,11 @@ public class LearnStats extends BaseEntity {
     updateConsecutiveStreak(today);
   }
 
+  public void onQuestionSetDeleted(long correctQuestionsInSet) {
+    this.totalCorrectQuestionCount =
+        Math.max(0, this.totalCorrectQuestionCount - correctQuestionsInSet);
+  }
+
   public void updateTotalQuestionCount(long totalQuestionCount) {
     this.totalQuestionCount = totalQuestionCount;
   }

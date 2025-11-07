@@ -9,5 +9,7 @@ public interface LearnStatsPublicApi {
 
   void applyQuestionSetSolved(Long memberId, int questionCount);
 
+  void applyQuestionSetDeleted(Long memberId, long correctQuestionCount);
+
   Optional<LearnStats> getLearnStats(Long memberId);
 }

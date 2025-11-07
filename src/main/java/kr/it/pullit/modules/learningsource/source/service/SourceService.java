@@ -3,6 +3,7 @@ package kr.it.pullit.modules.learningsource.source.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
@@ -147,9 +148,14 @@ public class SourceService implements SourcePublicApi {
   @Override
   public void deleteSource(Long sourceId, Long memberId) {
     Source source = getOrElseThrow(sourceId, memberId);
-    String filePath = source.getFilePath();
+
+    new HashSet<>(source.getQuestionSets())
+        .forEach(questionSet -> questionSet.removeSource(source));
+    source.getQuestionSets().clear();
 
     sourceRepository.delete(source);
+
+    String filePath = source.getFilePath();
     deleteInS3(filePath);
   }
 
