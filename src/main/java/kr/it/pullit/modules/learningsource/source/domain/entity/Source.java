@@ -124,6 +124,10 @@ public class Source extends BaseEntity {
   }
 
   public void markAsError() {
+    this.status = SourceStatus.FAILED;
+  }
+
+  public void markAsNotExist() {
     this.status = SourceStatus.NOT_EXIST;
   }
 

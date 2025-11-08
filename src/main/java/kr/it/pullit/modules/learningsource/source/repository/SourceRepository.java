@@ -23,6 +23,8 @@ public interface SourceRepository {
 
   void delete(Source source);
 
+  void hardDelete(Source source);
+
   List<Source> findByStatus(SourceStatus status);
 
   List<Source> findAllWithDeleted();

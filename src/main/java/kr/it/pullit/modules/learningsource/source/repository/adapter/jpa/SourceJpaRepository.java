@@ -5,6 +5,7 @@ import java.util.Optional;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -38,4 +39,14 @@ public interface SourceJpaRepository extends JpaRepository<Source, Long> {
                  """,
       nativeQuery = true)
   List<Source> findAllWithDeleted();
+
+  @Modifying
+  @Query(
+      value =
+          """
+                DELETE FROM source
+                WHERE id = :id
+             """,
+      nativeQuery = true)
+  void hardDelete(@Param("id") Long id);
 }

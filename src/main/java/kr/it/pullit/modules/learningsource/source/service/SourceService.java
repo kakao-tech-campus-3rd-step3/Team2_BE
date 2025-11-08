@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Service
@@ -42,6 +43,7 @@ public class SourceService implements SourcePublicApi {
   private final MemberPublicApi memberPublicApi;
   private final SourceFolderPublicApi sourceFolderPublicApi;
   private final ApplicationEventPublisher eventPublisher;
+  private final SourceService self;
 
   @Override
   public SourceUploadResponse generateUploadUrl(
@@ -119,7 +121,7 @@ public class SourceService implements SourcePublicApi {
     try {
       return s3PublicApi.downloadFileAsStream(source.getFilePath());
     } catch (NoSuchKeyException e) {
-      source.markAsError();
+      self.markSourceAsError(source.getId());
       throw S3FileNotFoundForSourceException.bySourceIdAndFilePath(sourceId, source.getFilePath());
     }
   }
@@ -134,7 +136,7 @@ public class SourceService implements SourcePublicApi {
     try {
       return s3PublicApi.downloadFileToTemp(source.getFilePath());
     } catch (NoSuchKeyException e) {
-      source.markAsError();
+      self.markSourceAsError(source.getId());
       throw S3FileNotFoundForSourceException.bySourceIdAndFilePath(sourceId, source.getFilePath());
     }
   }
@@ -163,6 +165,43 @@ public class SourceService implements SourcePublicApi {
     Source source = getOrElseThrow(sourceId, memberId);
 
     sourceRepository.delete(source);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void markSourceAsError(Long sourceId) {
+    sourceRepository
+        .findById(sourceId)
+        .ifPresent(
+            source -> {
+              source.markAsError();
+              log.warn("Source ID {}의 상태를 ERROR로 변경했습니다.", sourceId);
+            });
+  }
+
+  @Transactional
+  public void synchronizeS3Files() {
+    log.info("DB에 READY 상태이지만 S3에 존재하지 않는 Source 데이터 정리를 시작합니다.");
+    List<Source> readySources = sourceRepository.findByStatus(SourceStatus.READY);
+
+    int processedCount = 0;
+    int inconsistentCount = 0;
+
+    for (Source source : readySources) {
+      processedCount++;
+      if (!s3PublicApi.fileExists(source.getFilePath())) {
+        inconsistentCount++;
+        log.warn(
+            "S3에 파일이 존재하지 않아 Source의 상태를 NOT_EXIST로 변경합니다. Source ID: {}, FilePath: {}",
+            source.getId(),
+            source.getFilePath());
+        source.markAsNotExist();
+      }
+    }
+
+    log.info(
+        "Source 데이터 정리 완료. 총 {}개의 READY 상태 소스 중 {}개의 불일치 데이터를 처리했습니다.",
+        processedCount,
+        inconsistentCount);
   }
 
   @Transactional

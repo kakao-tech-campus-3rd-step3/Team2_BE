@@ -55,6 +55,11 @@ public class SourceRepositoryImpl implements SourceRepository {
   }
 
   @Override
+  public void hardDelete(Source source) {
+    sourceJpaRepository.hardDelete(source.getId());
+  }
+
+  @Override
   public List<Source> findByStatus(SourceStatus status) {
     return sourceJpaRepository.findByStatus(status);
   }

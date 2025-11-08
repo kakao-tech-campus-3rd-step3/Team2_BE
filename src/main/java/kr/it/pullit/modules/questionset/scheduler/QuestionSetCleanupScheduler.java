@@ -24,7 +24,7 @@ public class QuestionSetCleanupScheduler {
   private final QuestionSetPublicApi questionSetPublicApi;
   private final Clock clock;
 
-  @Scheduled(cron = "0 */10 * * * *") // 매 10분마다 실행
+  @Scheduled(cron = "0 */10 * * * *", zone = "Asia/Seoul") // 매 10분마다 실행
   @SchedulerLock(
       name = "cleanupStalePendingQuestionSets",
       lockAtMostFor = "9m",

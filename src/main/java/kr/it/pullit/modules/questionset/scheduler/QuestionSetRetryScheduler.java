@@ -20,7 +20,7 @@ public class QuestionSetRetryScheduler {
   private final QuestionSetPublicApi questionSetPublicApi;
   private final EventPublisher eventPublisher;
 
-  @Scheduled(cron = "0 */5 * * * *") // 매 5분마다 실행
+  @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Seoul") // 매 5분마다 실행
   @SchedulerLock(
       name = "retryFailedQuestionSetGeneration",
       lockAtMostFor = "4m",
