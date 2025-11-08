@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
@@ -119,7 +120,7 @@ public class SourceService implements SourcePublicApi {
     try {
       return s3PublicApi.downloadFileAsStream(source.getFilePath());
     } catch (NoSuchKeyException e) {
-      source.markAsError();
+      markSourceAsNotExist(source.getId());
       throw S3FileNotFoundForSourceException.bySourceIdAndFilePath(sourceId, source.getFilePath());
     }
   }
@@ -134,7 +135,7 @@ public class SourceService implements SourcePublicApi {
     try {
       return s3PublicApi.downloadFileToTemp(source.getFilePath());
     } catch (NoSuchKeyException e) {
-      source.markAsError();
+      markSourceAsNotExist(source.getId());
       throw S3FileNotFoundForSourceException.bySourceIdAndFilePath(sourceId, source.getFilePath());
     }
   }
@@ -165,18 +166,65 @@ public class SourceService implements SourcePublicApi {
     sourceRepository.delete(source);
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void markSourceAsError(Long sourceId) {
+    sourceRepository
+        .findById(sourceId)
+        .ifPresent(
+            source -> {
+              source.markAsError();
+              log.warn("Source ID {}의 상태를 ERROR로 변경했습니다.", sourceId);
+            });
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void markSourceAsNotExist(Long sourceId) {
+    sourceRepository
+        .findById(sourceId)
+        .ifPresent(
+            source -> {
+              source.markAsNotExist();
+              log.warn("Source ID {}의 상태를 NOT_EXIST로 변경했습니다.", sourceId);
+            });
+  }
+
+  @Transactional
+  public void synchronizeS3Files() {
+    log.info("DB에 READY 상태이지만 S3에 존재하지 않는 Source 데이터 정리를 시작합니다.");
+    List<Source> readySources = sourceRepository.findByStatus(SourceStatus.READY);
+
+    int processedCount = 0;
+    int inconsistentCount = 0;
+
+    for (Source source : readySources) {
+      processedCount++;
+      if (!s3PublicApi.fileExists(source.getFilePath())) {
+        inconsistentCount++;
+        log.warn(
+            "S3에 파일이 존재하지 않아 Source의 상태를 NOT_EXIST로 변경합니다. Source ID: {}, FilePath: {}",
+            source.getId(),
+            source.getFilePath());
+        source.markAsNotExist();
+      }
+    }
+
+    log.info(
+        "Source 데이터 정리 완료. 총 {}개의 READY 상태 소스 중 {}개의 불일치 데이터를 처리했습니다.",
+        processedCount,
+        inconsistentCount);
+  }
+
   @Transactional
   public void migrateUploadedSourcesToReady() {
     log.info("기존 UPLOADED 상태의 소스 데이터 마이그레이션을 시작합니다.");
-    List<Source> uploadedSources = findUploadedSources();
+    List<Source> uploadedSources = sourceRepository.findByStatus(SourceStatus.UPLOADED);
 
     int successCount = processMigrationForSources(uploadedSources);
 
-    logMigrationSummary(uploadedSources.size(), successCount);
-  }
-
-  private List<Source> findUploadedSources() {
-    return sourceRepository.findByStatus(SourceStatus.UPLOADED);
+    log.info(
+        "소스 데이터 마이그레이션을 완료했습니다. 총 {}개의 소스 중 {}개의 상태를 READY로 변경했습니다.",
+        uploadedSources.size(),
+        successCount);
   }
 
   private int processMigrationForSources(List<Source> sources) {
@@ -193,44 +241,25 @@ public class SourceService implements SourcePublicApi {
     try {
       return migrateSourceIfFileExists(source);
     } catch (Exception e) {
-      logMigrationError(source, e);
+      log.error(
+          "마이그레이션 중 Source ID {} 처리 오류 발생. 파일 경로: {}", source.getId(), source.getFilePath(), e);
       return false;
     }
   }
 
   private boolean migrateSourceIfFileExists(Source source) {
     if (s3PublicApi.fileExists(source.getFilePath())) {
-      updateSourceStatusToReady(source);
-      logMigrationSuccess(source);
+      source.markAsReady();
+      sourceRepository.save(source);
+      log.info("Source ID {}의 상태를 READY로 변경했습니다. 파일 경로: {}", source.getId(), source.getFilePath());
       return true;
     }
 
-    logS3FileNotFound(source);
-    return false;
-  }
-
-  private void updateSourceStatusToReady(Source source) {
-    source.markAsReady();
-    sourceRepository.save(source);
-  }
-
-  private void logMigrationSuccess(Source source) {
-    log.info("Source ID {}의 상태를 READY로 변경했습니다. 파일 경로: {}", source.getId(), source.getFilePath());
-  }
-
-  private void logS3FileNotFound(Source source) {
     log.warn(
         "S3에 파일이 존재하지 않아 Source ID {}의 상태를 변경하지 않았습니다. 파일 경로: {}",
         source.getId(),
         source.getFilePath());
-  }
-
-  private void logMigrationError(Source source, Exception e) {
-    log.error("마이그레이션 중 Source ID {} 처리 오류 발생. 파일 경로: {}", source.getId(), source.getFilePath(), e);
-  }
-
-  private void logMigrationSummary(int total, int success) {
-    log.info("소스 데이터 마이그레이션을 완료했습니다. 총 {}개의 소스 중 {}개의 상태를 READY로 변경했습니다.", total, success);
+    return false;
   }
 
   private Source getOrElseThrow(Long sourceId, Long memberId) {

@@ -31,7 +31,7 @@ public class SourceCleanupService {
     for (Source source : deletedSources) {
       try {
         s3PublicApi.deleteFile(source.getFilePath());
-        sourceRepository.delete(source);
+        sourceRepository.hardDelete(source);
         successCount++;
         log.info(
             "Source(id:{}, path:{})가 S3와 DB에서 완전히 삭제되었습니다.", source.getId(), source.getFilePath());

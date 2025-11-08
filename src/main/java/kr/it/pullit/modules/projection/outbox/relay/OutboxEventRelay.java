@@ -25,7 +25,7 @@ public class OutboxEventRelay {
   private final LearnStatsEventDispatcher dispatcher;
   private final TransactionTemplate transactionTemplate;
 
-  @Scheduled(fixedDelay = 1000)
+  @Scheduled(fixedDelay = 1000, zone = "Asia/Seoul")
   @SchedulerLock(name = "relayOutboxEvents", lockAtMostFor = "5s", lockAtLeastFor = "100ms")
   @RetryOnOptimisticLock(backoff = @Backoff(delay = 500))
   public void relayOutboxEvents() {
