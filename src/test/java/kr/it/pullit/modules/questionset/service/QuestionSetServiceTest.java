@@ -53,13 +53,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @MockitoUnitTest
 @DisplayName("QuestionSetService 단위 테스트")
 class QuestionSetServiceTest {
 
-  @InjectMocks private QuestionSetService questionSetService;
+  private QuestionSetService questionSetService;
 
   @Mock private QuestionSetRepository questionSetRepository;
   @Mock private CommonFolderPublicApi commonFolderPublicApi;
@@ -72,6 +73,8 @@ class QuestionSetServiceTest {
 
   @BeforeEach
   void setUp() {
+    QuestionSetExceptionHandler questionSetExceptionHandler = new QuestionSetExceptionHandler(
+        questionSetRepository);
     questionSetService =
         new QuestionSetService(
             questionSetRepository,
@@ -81,7 +84,8 @@ class QuestionSetServiceTest {
             commonFolderPublicApi,
             sourcePublicApi,
             memberPublicApi,
-            eventPublisher);
+            eventPublisher,
+            questionSetExceptionHandler);
   }
 
   @Nested
