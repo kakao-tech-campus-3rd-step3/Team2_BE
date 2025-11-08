@@ -51,9 +51,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @MockitoUnitTest
@@ -73,8 +71,8 @@ class QuestionSetServiceTest {
 
   @BeforeEach
   void setUp() {
-    QuestionSetExceptionHandler questionSetExceptionHandler = new QuestionSetExceptionHandler(
-        questionSetRepository);
+    QuestionSetExceptionHandler questionSetExceptionHandler =
+        new QuestionSetExceptionHandler(questionSetRepository);
     questionSetService =
         new QuestionSetService(
             questionSetRepository,
