@@ -9,6 +9,7 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.modules.questionset.client.exception.LlmException;
 import kr.it.pullit.modules.questionset.service.SourceValidator;
 import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
@@ -21,17 +22,22 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Slf4j
 @Component
 @Profile("worker")
 @RequiredArgsConstructor
 public class QuestionGenerationWorker {
 
+  private static final int MAX_RETRY_COUNT = 3;
+
   private final RabbitTemplate rabbitTemplate;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;
   private final SourceValidator sourceValidator;
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
+  private final QuestionGenerationFailureHandler failureHandler;
 
   @RabbitListener(queues = RabbitMqConfig.QUEUE_NAME)
   public void handleQuestionGenerationRequest(QuestionSetCreatedEvent event) {
@@ -41,7 +47,7 @@ public class QuestionGenerationWorker {
       processQuestionGeneration(event);
       handleSuccess(event);
     } catch (Exception e) {
-      handleFailure(event, e);
+      failureHandler.handle(event, e);
     }
   }
 
@@ -121,10 +127,5 @@ public class QuestionGenerationWorker {
         RabbitMqConfig.COMPLETION_EXCHANGE_NAME,
         RabbitMqConfig.COMPLETION_ROUTING_KEY,
         completionEvent);
-  }
-
-  private void handleFailure(QuestionSetCreatedEvent event, Exception e) {
-    log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
-    questionSetPublicApi.markAsFailed(event.questionSetId());
   }
 }

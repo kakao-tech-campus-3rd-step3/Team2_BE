@@ -224,6 +224,13 @@ public class QuestionSetService implements QuestionSetPublicApi {
 
   @Override
   @Transactional
+  public void markAsUnprocessable(Long questionSetId) {
+    QuestionSet questionSet = findQuestionSetOrThrow(questionSetId);
+    questionSet.markAsUnprocessable();
+  }
+
+  @Override
+  @Transactional
   @Retryable(
       value = {ObjectOptimisticLockingFailureException.class},
       maxAttempts = 3,
@@ -276,11 +283,6 @@ public class QuestionSetService implements QuestionSetPublicApi {
     CommonFolder defaultFolder =
         commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);
     questionSetRepository.relocateAllByFolderIdToDefaultFolder(folderId, defaultFolder.getId());
-  }
-
-  @Override
-  public List<QuestionSet> findAllByFolderId(Long folderId) {
-    return questionSetRepository.findAllByCommonFolderId(folderId);
   }
 
   @Override

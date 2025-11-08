@@ -4,5 +4,6 @@ package kr.it.pullit.modules.questionset.enums;
 public enum QuestionSetStatus {
   PENDING,
   COMPLETE,
-  FAILED
+  FAILED,
+  UNPROCESSABLE
 }

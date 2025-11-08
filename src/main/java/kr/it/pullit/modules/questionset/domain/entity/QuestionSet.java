@@ -46,6 +46,8 @@ import org.hibernate.annotations.SQLRestriction;
 @SQLRestriction("deleted_at IS NULL")
 public class QuestionSet extends BaseEntity {
 
+  public static final int MAX_RETRY_COUNT = 3;
+
   @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Question> questions = new ArrayList<>();
 
@@ -188,6 +190,10 @@ public class QuestionSet extends BaseEntity {
     this.status = QuestionSetStatus.FAILED;
   }
 
+  public void markAsUnprocessable() {
+    this.status = QuestionSetStatus.UNPROCESSABLE;
+  }
+
   public void updateTitle(String title) {
     this.title = title;
   }
@@ -199,5 +205,9 @@ public class QuestionSet extends BaseEntity {
   public void retry() {
     this.status = QuestionSetStatus.PENDING;
     this.retryCount++;
+  }
+
+  public boolean hasExhaustedRetries() {
+    return this.retryCount >= MAX_RETRY_COUNT;
   }
 }
