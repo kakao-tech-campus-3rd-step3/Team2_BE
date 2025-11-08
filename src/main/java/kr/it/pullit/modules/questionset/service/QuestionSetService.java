@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
+import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
@@ -18,9 +19,7 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.enums.QuestionSetStatus;
 import kr.it.pullit.modules.questionset.event.QuestionSetCreatedEvent;
-import kr.it.pullit.modules.questionset.exception.QuestionSetFailedException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetNotFoundException;
-import kr.it.pullit.modules.questionset.exception.QuestionSetNotReadyException;
 import kr.it.pullit.modules.questionset.exception.QuestionSetUnauthorizedException;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
 import kr.it.pullit.modules.questionset.repository.MarkingResultRepository;
@@ -30,8 +29,6 @@ import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequest
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.modules.wronganswer.exception.WrongAnswerNotFoundException;
-import kr.it.pullit.shared.error.BusinessException;
 import kr.it.pullit.shared.event.EventPublisher;
 import kr.it.pullit.shared.paging.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +50,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   private final SourcePublicApi sourcePublicApi;
   private final MemberPublicApi memberPublicApi;
   private final EventPublisher eventPublisher;
+  private final QuestionSetExceptionHandler exceptionHandler;
 
   @Override
   @Transactional(readOnly = true)
@@ -75,7 +73,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
     QuestionSet questionSet =
         questionSetRepository
             .findWithQuestionsForFirstSolving(id, memberId)
-            .orElseThrow(() -> handleQuestionSetNotFound(id, memberId));
+            .orElseThrow(() -> exceptionHandler.handleQuestionSetNotFound(id, memberId));
 
     return QuestionSetResponse.from(questionSet);
   }
@@ -84,35 +82,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
     return questionSetRepository
         .findQuestionSetForReviewing(id, memberId)
         .map(QuestionSetResponse::from)
-        .orElseThrow(() -> handleReviewSetNotFound(id, memberId));
-  }
-
-  private RuntimeException handleReviewSetNotFound(Long id, Long memberId) {
-    QuestionSet qs =
-        questionSetRepository
-            .findByIdAndMemberId(id, memberId)
-            .orElseThrow(() -> QuestionSetNotFoundException.byId(id));
-
-    if (qs.getStatus() != QuestionSetStatus.COMPLETE) {
-      return handleQuestionSetStatusException(qs);
-    }
-
-    return WrongAnswerNotFoundException.noWrongAnswersToReview();
-  }
-
-  private RuntimeException handleQuestionSetNotFound(Long id, Long memberId) {
-    return questionSetRepository
-        .findByIdAndMemberId(id, memberId)
-        .map(this::handleQuestionSetStatusException)
-        .orElse(QuestionSetNotFoundException.byId(id));
-  }
-
-  private BusinessException handleQuestionSetStatusException(QuestionSet qs) {
-    return switch (qs.getStatus()) {
-      case PENDING -> QuestionSetNotReadyException.byId(qs.getId());
-      case FAILED -> QuestionSetFailedException.byId(qs.getId());
-      default -> QuestionSetNotFoundException.byId(qs.getId());
-    };
+        .orElseThrow(() -> exceptionHandler.handleReviewSetNotFound(id, memberId));
   }
 
   @Transactional
@@ -278,7 +248,7 @@ public class QuestionSetService implements QuestionSetPublicApi {
   public void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId) {
     commonFolderPublicApi
         .findFolderEntityById(memberId, folderId)
-        .orElseThrow(() -> new IllegalArgumentException("해당 ID의 폴더를 찾을 수 없거나 권한이 없습니다."));
+        .orElseThrow(() -> FolderNotFoundException.byId(folderId));
 
     CommonFolder defaultFolder =
         commonFolderPublicApi.getOrCreateDefaultQuestionSetFolder(memberId);

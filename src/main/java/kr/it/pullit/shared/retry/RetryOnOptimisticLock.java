@@ -16,15 +16,11 @@ import org.springframework.retry.annotation.Retryable;
     listeners = "optimisticLockingRetryListener")
 public @interface RetryOnOptimisticLock {
 
-  /**
-   * 호출 지점에서 backoff 전략을 바꿔 쓸 수 있도록 노출합니다. 기본은 1초 지연.
-   */
+  /** 호출 지점에서 backoff 전략을 바꿔 쓸 수 있도록 노출합니다. 기본은 1초 지연. */
   @AliasFor(annotation = Retryable.class, attribute = "backoff")
   Backoff backoff() default @Backoff(delay = 1000);
 
-  /**
-   * 최대 시도 횟수를 노출합니다. (기본값 3 — Retryable 기본과 동일)
-   */
+  /** 최대 시도 횟수를 노출합니다. (기본값 3 — Retryable 기본과 동일) */
   @AliasFor(annotation = Retryable.class, attribute = "maxAttempts")
   int maxAttempts() default 3;
 }

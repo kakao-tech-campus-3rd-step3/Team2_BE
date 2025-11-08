@@ -52,7 +52,7 @@ public class GeminiClient implements LlmClient {
     } catch (IOException e) {
       throw LlmResponseParseException.create(e);
     } catch (Exception e) {
-      throw LlmException.withCause(e);
+      throw LlmException.ofTemporary(e);
     }
   }
 
@@ -71,8 +71,12 @@ public class GeminiClient implements LlmClient {
               }
               var knownReason = finishReason.knownEnum();
               if (knownReason != Known.STOP && knownReason != Known.FINISH_REASON_UNSPECIFIED) {
-                throw LlmException.generationFailed(
-                    "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")");
+                String reason =
+                    "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")";
+                if (finishReason.toString().contains("exceeds the supported page limit")) {
+                  throw LlmException.ofPermanent(reason);
+                }
+                throw LlmException.ofTemporary(reason);
               }
             })
         .map(GenerateContentResponse::text)

@@ -53,7 +53,7 @@ public record GeminiRequest(String model, Content content, GenerateContentConfig
       try {
         parts.add(Part.fromBytes(Files.readAllBytes(fileData), "application/pdf"));
       } catch (IOException e) {
-        throw LlmException.withCause(e);
+        throw LlmException.from(e);
       }
     }
     return parts;

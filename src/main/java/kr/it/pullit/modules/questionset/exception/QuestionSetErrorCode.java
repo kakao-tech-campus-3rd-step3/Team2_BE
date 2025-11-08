@@ -17,7 +17,9 @@ public enum QuestionSetErrorCode implements ErrorCode {
   SOURCE_NOT_READY(
       HttpStatus.BAD_REQUEST, "QSE_007", "아직 처리 중인 소스 파일이 있어 문제집을 생성할 수 없습니다. (Source IDs: %s)"),
   UNSUPPORTED_QUESTION_TYPE(
-      HttpStatus.INTERNAL_SERVER_ERROR, "QSE_008", "지원하지 않는 문제 유형입니다. (Type: %s)");
+      HttpStatus.INTERNAL_SERVER_ERROR, "QSE_008", "지원하지 않는 문제 유형입니다. (Type: %s)"),
+  QUESTION_SET_UNPROCESSABLE(
+      HttpStatus.UNPROCESSABLE_ENTITY, "QSE_009", "영구적인 오류로 인해 문제집을 처리할 수 없습니다.");
 
   private final HttpStatus status;
   private final String code;

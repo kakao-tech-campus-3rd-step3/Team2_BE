@@ -2,6 +2,7 @@ package kr.it.pullit.modules.questionset.event;
 
 import java.util.Optional;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
+import kr.it.pullit.modules.questionset.client.exception.LlmErrorType;
 import kr.it.pullit.modules.questionset.client.exception.LlmException;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,14 @@ public class QuestionGenerationFailureHandler {
     log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
 
     if (isPermanentLlmError(e)) {
-      handlePermanentFailure(event.questionSetId(), "페이지 한도 초과");
+      handlePermanentFailure(event.questionSetId(), "페이지 한도 초과와 같은 영구적인 LLM 오류");
       return;
     }
     handleTemporaryFailure(event);
   }
 
   private boolean isPermanentLlmError(Exception e) {
-    return e instanceof LlmException && e.getMessage().contains("exceeds the supported page limit");
+    return e instanceof LlmException llmEx && llmEx.getErrorType() == LlmErrorType.PERMANENT;
   }
 
   private void handlePermanentFailure(Long questionSetId, String reason) {
