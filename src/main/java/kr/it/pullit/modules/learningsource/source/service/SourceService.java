@@ -154,12 +154,14 @@ public class SourceService implements SourcePublicApi {
     return sourceRepository.findByIdIn(ids);
   }
 
+  /**
+   * 소스 삭제 시 문제집과의 연관 관계를 자동으로 제거해준다. @SQLDelete 어노테이션에 의해 soft delete 처리된다. S3 파일 삭제는 별도의 배치 작업으로
+   * 처리한다. Source 엔티티의 @PreRemove 콜백이 QuestionSet과의 연관 관계를 자동으로 제거해준다.
+   */
   @Override
   public void deleteSource(Long sourceId, Long memberId) {
     Source source = getOrElseThrow(sourceId, memberId);
 
-    // @SQLDelete 어노테이션에 의해 soft delete 처리된다.
-    // S3 파일 삭제는 별도의 배치 작업으로 처리한다.
     sourceRepository.delete(source);
   }
 

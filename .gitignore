@@ -50,3 +50,4 @@ htmlReport
 # 로컬 개발용 SSL 인증서 개인 키 제외
 nginx/certs/*.key
 nginx/certs/*.crt
+nginx/certs/*.pem

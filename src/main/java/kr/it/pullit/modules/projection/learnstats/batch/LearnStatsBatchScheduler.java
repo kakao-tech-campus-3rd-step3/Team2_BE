@@ -10,6 +10,9 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +31,11 @@ public class LearnStatsBatchScheduler {
       name = "triggerWeeklyResetAndRecalibration",
       lockAtMostFor = "50m",
       lockAtLeastFor = "10m")
+  @Retryable(
+      value = {ObjectOptimisticLockingFailureException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 5000),
+      listeners = "optimisticLockingRetryListener")
   public void triggerWeeklyResetAndRecalibration() {
     log.info("주간 학습 통계 초기화 및 보정 작업을 시작합니다.");
 
