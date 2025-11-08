@@ -26,12 +26,6 @@ public class LlmException extends BusinessException {
     return new LlmException(LlmErrorType.TEMPORARY, cause, cause.getMessage());
   }
 
-  /**
-   * 다른 예외(cause)를 감싸서 일시적인 LlmException으로 변환합니다.
-   *
-   * @param cause 근본 원인이 되는 예외
-   * @return 원인을 포함하는 새로운 LlmException
-   */
   public static LlmException from(Throwable cause) {
     return ofTemporary(cause);
   }
