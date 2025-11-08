@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -71,6 +72,7 @@ public class QuestionSet extends BaseEntity {
       name = "question_set_source",
       joinColumns = @JoinColumn(name = "question_set_id"),
       inverseJoinColumns = @JoinColumn(name = "source_id"))
+  @BatchSize(size = 100)
   private Set<Source> sources = new HashSet<>();
 
   // TODO: 리팩토링 대상 타이틀 정책이 빈약함.

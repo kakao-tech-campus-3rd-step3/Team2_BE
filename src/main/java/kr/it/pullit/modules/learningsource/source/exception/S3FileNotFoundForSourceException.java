@@ -10,7 +10,6 @@ public class S3FileNotFoundForSourceException extends BusinessException {
 
   public static S3FileNotFoundForSourceException bySourceIdAndFilePath(
       Long sourceId, String filePath) {
-    return new S3FileNotFoundForSourceException(
-        "S3에 파일이 존재하지 않습니다. (sourceId: %d, filePath: '%s')", sourceId, filePath);
+    return new S3FileNotFoundForSourceException(sourceId, filePath);
   }
 }
