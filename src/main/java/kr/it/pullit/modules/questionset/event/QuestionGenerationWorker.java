@@ -9,7 +9,6 @@ import kr.it.pullit.modules.questionset.domain.entity.Question;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationRequest;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionGenerationSpecification;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
-import kr.it.pullit.modules.questionset.client.exception.LlmException;
 import kr.it.pullit.modules.questionset.service.SourceValidator;
 import kr.it.pullit.modules.questionset.service.creationstrategy.QuestionCreationStrategyFactory;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
@@ -21,8 +20,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Slf4j
 @Component

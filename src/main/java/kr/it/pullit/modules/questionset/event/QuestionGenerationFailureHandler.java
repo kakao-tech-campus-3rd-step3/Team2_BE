@@ -31,10 +31,7 @@ public class QuestionGenerationFailureHandler {
 
   private void handlePermanentFailure(Long questionSetId, String reason) {
     questionSetPublicApi.markAsUnprocessable(questionSetId);
-    log.warn(
-        "문제집 ID {}는 처리 불가능한(UNPROCESSABLE) 상태로 변경되었습니다. (사유: {})",
-        questionSetId,
-        reason);
+    log.warn("문제집 ID {}는 처리 불가능한(UNPROCESSABLE) 상태로 변경되었습니다. (사유: {})", questionSetId, reason);
   }
 
   private void handleTemporaryFailure(QuestionSetCreatedEvent event) {
