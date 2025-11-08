@@ -1,4 +1,4 @@
-package kr.it.pullit.shared.support.retry;
+package kr.it.pullit.shared.retry;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;

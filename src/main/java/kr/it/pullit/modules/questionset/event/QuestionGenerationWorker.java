@@ -27,8 +27,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class QuestionGenerationWorker {
 
-  private static final int MAX_RETRY_COUNT = 3;
-
   private final RabbitTemplate rabbitTemplate;
   private final QuestionPublicApi questionPublicApi;
   private final QuestionSetPublicApi questionSetPublicApi;

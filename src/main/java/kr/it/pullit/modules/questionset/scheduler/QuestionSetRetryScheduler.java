@@ -4,12 +4,11 @@ import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
 import kr.it.pullit.modules.questionset.event.QuestionSetCreatedEvent;
 import kr.it.pullit.shared.event.EventPublisher;
+import kr.it.pullit.shared.retry.RetryOnOptimisticLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,11 +25,7 @@ public class QuestionSetRetryScheduler {
       name = "retryFailedQuestionSetGeneration",
       lockAtMostFor = "4m",
       lockAtLeastFor = "1m")
-  @Retryable(
-      value = {ObjectOptimisticLockingFailureException.class},
-      maxAttempts = 3,
-      backoff = @Backoff(delay = 1000),
-      listeners = "optimisticLockingRetryListener")
+  @RetryOnOptimisticLock(backoff = @Backoff(delay = 1000))
   public void retryFailedQuestionSetGeneration() {
     log.info("'생성실패' 상태의 문제집 재시도 작업을 시작합니다.");
 

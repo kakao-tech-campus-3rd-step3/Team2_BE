@@ -6,12 +6,11 @@ import kr.it.pullit.modules.projection.outbox.domain.OutboxEvent;
 import kr.it.pullit.modules.projection.outbox.domain.ProcessedEvent;
 import kr.it.pullit.modules.projection.outbox.repository.OutboxEventJpaRepository;
 import kr.it.pullit.modules.projection.outbox.repository.ProcessedEventRepository;
+import kr.it.pullit.shared.retry.RetryOnOptimisticLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -27,12 +26,8 @@ public class OutboxEventRelay {
   private final TransactionTemplate transactionTemplate;
 
   @Scheduled(fixedDelay = 1000)
-  @SchedulerLock(name = "relayOutboxEvents", lockAtMostFor = "900ms", lockAtLeastFor = "100ms")
-  @Retryable(
-      value = {ObjectOptimisticLockingFailureException.class},
-      maxAttempts = 3,
-      backoff = @Backoff(delay = 500),
-      listeners = "optimisticLockingRetryListener")
+  @SchedulerLock(name = "relayOutboxEvents", lockAtMostFor = "5s", lockAtLeastFor = "100ms")
+  @RetryOnOptimisticLock(backoff = @Backoff(delay = 500))
   public void relayOutboxEvents() {
     List<OutboxEvent> events = outboxEventRepository.findTop100ByOrderByCreatedAtAsc();
 

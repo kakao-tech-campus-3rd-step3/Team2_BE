@@ -5,12 +5,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.domain.entity.QuestionSet;
+import kr.it.pullit.shared.retry.RetryOnOptimisticLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,11 +30,7 @@ public class QuestionSetCleanupScheduler {
       lockAtMostFor = "9m",
       lockAtLeastFor = "1m")
   @Transactional
-  @Retryable(
-      value = {ObjectOptimisticLockingFailureException.class},
-      maxAttempts = 3,
-      backoff = @Backoff(delay = 1000),
-      listeners = "optimisticLockingRetryListener")
+  @RetryOnOptimisticLock(backoff = @Backoff(delay = 1000))
   public void cleanupStalePendingQuestionSets() {
     log.info("오래된 '생성중' 상태의 문제집 정리 작업을 시작합니다.");
     LocalDateTime threshold = LocalDateTime.now(clock).minusMinutes(STALE_THRESHOLD_MINUTES);
