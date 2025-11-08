@@ -52,6 +52,10 @@ public class GeminiClient implements LlmClient {
     } catch (IOException e) {
       throw LlmResponseParseException.create(e);
     } catch (Exception e) {
+      String message = e.getMessage();
+      if (message != null && message.contains("exceeds the supported page limit")) {
+        throw LlmException.permanent(e);
+      }
       throw LlmException.ofTemporary(e);
     }
   }
@@ -70,14 +74,20 @@ public class GeminiClient implements LlmClient {
                 return;
               }
               var knownReason = finishReason.knownEnum();
-              if (knownReason != Known.STOP && knownReason != Known.FINISH_REASON_UNSPECIFIED) {
-                String reason =
-                    "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")";
-                if (finishReason.toString().contains("exceeds the supported page limit")) {
-                  throw LlmException.ofPermanent(reason);
-                }
-                throw LlmException.ofTemporary(reason);
+              if (knownReason == Known.STOP || knownReason == Known.FINISH_REASON_UNSPECIFIED) {
+                return;
               }
+
+              String reasonText =
+                  "AI 모델이 비정상적으로 응답 생성을 중단했습니다. (사유: " + response.finishReason() + ")";
+
+              if (knownReason == Known.MAX_TOKENS
+                  || knownReason == Known.SAFETY
+                  || knownReason == Known.RECITATION) {
+                throw LlmException.permanent(reasonText);
+              }
+
+              throw LlmException.ofTemporary(reasonText);
             })
         .map(GenerateContentResponse::text)
         .filter(text -> text != null && !text.isEmpty())

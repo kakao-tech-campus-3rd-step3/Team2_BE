@@ -33,4 +33,12 @@ public class LlmException extends BusinessException {
   public static LlmException ofPermanent(String reason) {
     return new LlmException(LlmErrorType.PERMANENT, reason);
   }
+
+  public static LlmException permanent(String reason) {
+    return new LlmException(LlmErrorType.PERMANENT, reason);
+  }
+
+  public static LlmException permanent(Throwable cause) {
+    return new LlmException(LlmErrorType.PERMANENT, cause, cause.getMessage());
+  }
 }
