@@ -31,5 +31,7 @@ public interface SourcePublicApi {
 
   void deleteSource(Long sourceId, Long memberId);
 
+  void synchronizeS3Files();
+
   void migrateUploadedSourcesToReady();
 }

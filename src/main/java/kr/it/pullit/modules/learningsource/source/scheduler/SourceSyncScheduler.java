@@ -1,6 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.scheduler;
 
-import kr.it.pullit.modules.learningsource.source.service.SourceService;
+import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.shared.retry.RetryOnOptimisticLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SourceSyncScheduler {
 
-  private final SourceService sourceService;
+  private final SourcePublicApi sourcePublicApi;
 
   /** S3와 DB의 Source 데이터 정합성을 맞추기 위해 15분마다 스케줄러를 실행한다. */
   @Scheduled(cron = "0 0/15 * * * ?", zone = "Asia/Seoul")
@@ -23,7 +23,7 @@ public class SourceSyncScheduler {
   public void runSourceS3Sync() {
     log.info("S3와 DB의 Source 데이터 정합성 동기화 스케줄러를 시작합니다.");
     try {
-      sourceService.synchronizeS3Files();
+      sourcePublicApi.synchronizeS3Files();
     } catch (Exception e) {
       log.error("Source 데이터 동기화 스케줄러 실행 중 오류가 발생했습니다.", e);
     }
