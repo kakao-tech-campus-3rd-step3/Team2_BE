@@ -39,7 +39,7 @@ public class NotificationEventService implements NotificationEventPublicApi {
     publishAndSend(userId, SseEventType.QUESTION_SET_CREATION_COMPLETE, data);
   }
 
-  @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS, zone = "Asia/Seoul")
+  @Scheduled(fixedRate = HEARTBEAT_INTERVAL_MS)
   public void sendHeartbeat() {
     Map<Long, NotificationChannel> channels = notificationChannelRepository.findAll();
     if (channels.isEmpty()) {
