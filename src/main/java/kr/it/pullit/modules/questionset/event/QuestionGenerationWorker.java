@@ -32,6 +32,7 @@ public class QuestionGenerationWorker {
   private final QuestionSetPublicApi questionSetPublicApi;
   private final SourceValidator sourceValidator;
   private final QuestionCreationStrategyFactory questionCreationStrategyFactory;
+  private final QuestionGenerationFailureHandler failureHandler;
 
   @RabbitListener(queues = RabbitMqConfig.QUEUE_NAME)
   public void handleQuestionGenerationRequest(QuestionSetCreatedEvent event) {
@@ -41,7 +42,7 @@ public class QuestionGenerationWorker {
       processQuestionGeneration(event);
       handleSuccess(event);
     } catch (Exception e) {
-      handleFailure(event, e);
+      failureHandler.handle(event, e);
     }
   }
 
@@ -121,10 +122,5 @@ public class QuestionGenerationWorker {
         RabbitMqConfig.COMPLETION_EXCHANGE_NAME,
         RabbitMqConfig.COMPLETION_ROUTING_KEY,
         completionEvent);
-  }
-
-  private void handleFailure(QuestionSetCreatedEvent event, Exception e) {
-    log.error("문제 생성 중 오류 발생. QuestionSet ID: {}", event.questionSetId(), e);
-    questionSetPublicApi.markAsFailed(event.questionSetId());
   }
 }

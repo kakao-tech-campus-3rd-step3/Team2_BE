@@ -20,6 +20,8 @@ public interface QuestionSetPublicApi {
 
   void markAsFailed(Long questionSetId);
 
+  void markAsUnprocessable(Long questionSetId);
+
   void update(Long questionSetId, QuestionSetUpdateRequestDto request, Long memberId);
 
   void updateAndMarkAsComplete(
@@ -30,8 +32,6 @@ public interface QuestionSetPublicApi {
   void deleteAllByFolderId(Long folderId);
 
   void relocateQuestionSetsToDefaultFolder(Long memberId, Long folderId);
-
-  List<QuestionSet> findAllByFolderId(Long folderId);
 
   List<QuestionSet> findStalePending(LocalDateTime threshold);
 
@@ -58,5 +58,5 @@ public interface QuestionSetPublicApi {
 
   long countByMemberId(Long memberId);
 
-  QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long id, Long memberId);
+  QuestionSetResponse getQuestionSetWhenHaveNoQuestionsYet(Long questionSetId, Long ownerId);
 }

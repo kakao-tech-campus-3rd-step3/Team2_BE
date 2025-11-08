@@ -4,12 +4,14 @@ import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsEventPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
+import kr.it.pullit.shared.retry.RetryOnOptimisticLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,7 @@ public class LearnStatsBatchScheduler {
       name = "triggerWeeklyResetAndRecalibration",
       lockAtMostFor = "50m",
       lockAtLeastFor = "10m")
+  @RetryOnOptimisticLock(backoff = @Backoff(delay = 5000))
   public void triggerWeeklyResetAndRecalibration() {
     log.info("주간 학습 통계 초기화 및 보정 작업을 시작합니다.");
 

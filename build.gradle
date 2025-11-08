@@ -160,6 +160,10 @@ dependencies {
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'com.squareup.okhttp3:okhttp-sse'
+    // spring retry
+    implementation 'org.springframework.retry:spring-retry'
+    // batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
 
 // 의존성 버전 관리 (BOM 사용)

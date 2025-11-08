@@ -10,7 +10,7 @@ class LlmExceptionTest {
   @Test
   @DisplayName("생성 실패 사유를 포함한 예외를 생성한다")
   void generationFailedIncludesReason() {
-    LlmException exception = LlmException.generationFailed("네트워크 오류");
+    LlmException exception = LlmException.ofTemporary("네트워크 오류");
 
     assertThat(exception.getErrorCode()).isEqualTo(LlmErrorCode.LLM_GENERATION_FAILED);
     assertThat(exception).hasMessageContaining("네트워크 오류");
@@ -21,7 +21,7 @@ class LlmExceptionTest {
   void withCauseWrapsOriginalMessage() {
     IllegalStateException cause = new IllegalStateException("API unavailable");
 
-    LlmException exception = LlmException.withCause(cause);
+    LlmException exception = LlmException.from(cause);
 
     assertThat(exception.getErrorCode()).isEqualTo(LlmErrorCode.LLM_GENERATION_FAILED);
     assertThat(exception).hasMessageContaining("API unavailable");

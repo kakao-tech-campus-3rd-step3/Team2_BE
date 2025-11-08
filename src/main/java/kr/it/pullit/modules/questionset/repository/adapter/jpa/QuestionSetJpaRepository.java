@@ -55,7 +55,6 @@ public interface QuestionSetJpaRepository extends JpaRepository<QuestionSet, Lon
        SELECT qs
        FROM QuestionSet qs
        LEFT JOIN FETCH qs.questions
-       LEFT JOIN FETCH qs.sources
        WHERE qs.id = :id
        AND qs.ownerId = :memberId
        AND qs.status = 'COMPLETE'

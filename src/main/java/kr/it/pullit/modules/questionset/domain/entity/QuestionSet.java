@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -45,6 +46,8 @@ import org.hibernate.annotations.SQLRestriction;
     sql = "UPDATE question_set SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND version = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class QuestionSet extends BaseEntity {
+
+  public static final int MAX_RETRY_COUNT = 3;
 
   @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Question> questions = new ArrayList<>();
@@ -69,6 +72,7 @@ public class QuestionSet extends BaseEntity {
       name = "question_set_source",
       joinColumns = @JoinColumn(name = "question_set_id"),
       inverseJoinColumns = @JoinColumn(name = "source_id"))
+  @BatchSize(size = 100)
   private Set<Source> sources = new HashSet<>();
 
   // TODO: 리팩토링 대상 타이틀 정책이 빈약함.
@@ -188,6 +192,10 @@ public class QuestionSet extends BaseEntity {
     this.status = QuestionSetStatus.FAILED;
   }
 
+  public void markAsUnprocessable() {
+    this.status = QuestionSetStatus.UNPROCESSABLE;
+  }
+
   public void updateTitle(String title) {
     this.title = title;
   }
@@ -199,5 +207,9 @@ public class QuestionSet extends BaseEntity {
   public void retry() {
     this.status = QuestionSetStatus.PENDING;
     this.retryCount++;
+  }
+
+  public boolean hasExhaustedRetries() {
+    return this.retryCount >= MAX_RETRY_COUNT;
   }
 }
