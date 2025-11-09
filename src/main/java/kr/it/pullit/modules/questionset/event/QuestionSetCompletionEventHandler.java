@@ -1,11 +1,11 @@
 package kr.it.pullit.modules.questionset.event;
 
+import kr.it.pullit.configuration.RabbitMqConfig;
 import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsRecalibrationPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetCreationCompleteResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.QuestionSetResponse;
-import kr.it.pullit.platform.config.RabbitMqConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

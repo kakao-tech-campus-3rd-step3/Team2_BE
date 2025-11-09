@@ -3,8 +3,8 @@ package kr.it.pullit.modules.questionset.event;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
+import kr.it.pullit.configuration.RabbitMqConfig;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
-import kr.it.pullit.platform.config.RabbitMqConfig;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import kr.it.pullit.support.fixture.QuestionSetFixtures;
 import org.junit.jupiter.api.DisplayName;
