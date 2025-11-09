@@ -17,7 +17,7 @@ import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.exception.SourceFileSizeExceededException;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadResponse;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
-import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
+import kr.it.pullit.platform.storage.dto.PresignedUrlResponse;
 import kr.it.pullit.support.annotation.IntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -3,8 +3,8 @@ package kr.it.pullit.platform.storage.api;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
-import kr.it.pullit.platform.storage.s3.dto.S3FileMetadata;
+import kr.it.pullit.platform.storage.dto.PresignedUrlResponse;
+import kr.it.pullit.platform.storage.dto.S3FileMetadata;
 
 public interface S3PublicApi {
 

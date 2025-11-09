@@ -21,7 +21,7 @@ import kr.it.pullit.modules.learningsource.sourcefolder.domain.entity.SourceFold
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.platform.storage.api.S3PublicApi;
-import kr.it.pullit.platform.storage.s3.dto.PresignedUrlResponse;
+import kr.it.pullit.platform.storage.dto.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

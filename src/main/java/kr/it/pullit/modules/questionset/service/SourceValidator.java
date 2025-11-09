@@ -4,7 +4,9 @@ import java.util.List;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
 import kr.it.pullit.modules.learningsource.source.constant.SourceStatus;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
+import kr.it.pullit.modules.questionset.exception.SourceNotExistOnS3Exception;
 import kr.it.pullit.modules.questionset.exception.SourceNotReadyException;
+import kr.it.pullit.modules.questionset.exception.SourceProcessingFailedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -40,12 +42,26 @@ public class SourceValidator {
   }
 
   private void handleNotReadySources(List<Source> notReadySources, Long questionSetId) {
-    if (!notReadySources.isEmpty()) {
-      throw createException(notReadySources);
+    if (notReadySources.isEmpty()) {
+      return;
     }
-  }
 
-  private SourceNotReadyException createException(List<Source> notReadySources) {
-    return new SourceNotReadyException(notReadySources);
+    List<Source> notExistSources =
+        notReadySources.stream()
+            .filter(source -> source.getStatus() == SourceStatus.NOT_EXIST)
+            .toList();
+    if (!notExistSources.isEmpty()) {
+      throw new SourceNotExistOnS3Exception(notExistSources);
+    }
+
+    List<Source> failedSources =
+        notReadySources.stream()
+            .filter(source -> source.getStatus() == SourceStatus.FAILED)
+            .toList();
+    if (!failedSources.isEmpty()) {
+      throw new SourceProcessingFailedException(failedSources);
+    }
+
+    throw new SourceNotReadyException(notReadySources);
   }
 }
