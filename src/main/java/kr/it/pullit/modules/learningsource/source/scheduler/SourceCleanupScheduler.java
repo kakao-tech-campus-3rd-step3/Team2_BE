@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.learningsource.source.batch;
+package kr.it.pullit.modules.learningsource.source.scheduler;
 
 import kr.it.pullit.shared.retry.RetryOnOptimisticLock;
 import lombok.RequiredArgsConstructor;

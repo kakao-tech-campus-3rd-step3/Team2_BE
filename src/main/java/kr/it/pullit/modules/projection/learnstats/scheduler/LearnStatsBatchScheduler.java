@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.projection.learnstats.batch;
+package kr.it.pullit.modules.projection.learnstats.scheduler;
 
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.domain.entity.Member;

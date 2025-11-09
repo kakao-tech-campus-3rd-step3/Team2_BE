@@ -1,4 +1,4 @@
-package kr.it.pullit.modules.learningsource.source.batch;
+package kr.it.pullit.modules.learningsource.source.scheduler;
 
 import java.util.List;
 import kr.it.pullit.modules.learningsource.source.domain.entity.Source;
