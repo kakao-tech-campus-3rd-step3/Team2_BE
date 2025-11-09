@@ -1,4 +1,4 @@
-package kr.it.pullit.platform.fommater;
+package kr.it.pullit.platform.fommatter;
 
 import com.p6spy.engine.logging.Category;
 import com.p6spy.engine.spy.P6SpyOptions;
