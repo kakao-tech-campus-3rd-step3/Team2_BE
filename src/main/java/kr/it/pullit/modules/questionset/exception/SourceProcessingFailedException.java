@@ -19,4 +19,3 @@ public class SourceProcessingFailedException extends BusinessException {
         .collect(Collectors.joining(", "));
   }
 }
-
