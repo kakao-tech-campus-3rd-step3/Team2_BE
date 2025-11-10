@@ -36,4 +36,9 @@ public class MarkingResultRepositoryImpl implements MarkingResultRepository {
   public long countByMemberIdAndIsCorrectIsTrue(Long memberId) {
     return jpaRepository.countByMemberIdAndIsCorrectIsTrue(memberId);
   }
+
+  @Override
+  public long countCorrectAnswersByMemberId(Long memberId) {
+    return jpaRepository.countCorrectAnswersByMemberId(memberId);
+  }
 }

@@ -6,6 +6,7 @@ import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsPublicApi;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
+import kr.it.pullit.modules.questionset.api.MarkingResultPublicApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LearnStatsService implements LearnStatsPublicApi {
 
   private final LearnStatsRepository repo;
+  private final MarkingResultPublicApi markingResultPublicApi;
   private final Clock clock;
 
   @Override
@@ -32,6 +34,14 @@ public class LearnStatsService implements LearnStatsPublicApi {
     repo.save(p);
   }
 
+  public void recalculateCorrectQuestionCount(Long memberId) {
+    long totalCorrectQuestionCount = markingResultPublicApi.countCorrectAnswersByMemberId(memberId);
+
+    LearnStats p = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
+    p.updateTotalCorrectQuestionCount(totalCorrectQuestionCount);
+    repo.save(p);
+  }
+
   @Override
   public void applyQuestionSetDeleted(Long memberId, long correctQuestionCount) {
     repo.findById(memberId)
@@ -40,12 +50,6 @@ public class LearnStatsService implements LearnStatsPublicApi {
               learnStats.onQuestionSetDeleted(correctQuestionCount);
               repo.save(learnStats);
             });
-  }
-
-  public void increaseCorrectQuestionCount(Long memberId, long correctCount) {
-    LearnStats p = repo.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
-    p.increaseCorrectQuestionCount(correctCount);
-    repo.save(p);
   }
 
   @Override

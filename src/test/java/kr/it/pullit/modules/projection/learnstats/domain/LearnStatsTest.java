@@ -53,15 +53,13 @@ class LearnStatsTest {
   class OnQuestionSetSolved {
 
     @Test
-    @DisplayName("문제집 풀이 통계와 연속 학습일이 업데이트된다")
+    @DisplayName("문제집 풀이 관련 통계가 정상적으로 업데이트된다")
     void updatesStatsCorrectly() {
       projection.onQuestionSetSolved(15, today);
 
       assertThat(projection.getTotalSolvedQuestionSetCount()).isEqualTo(1);
       assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(15);
       assertThat(projection.getWeeklySolvedQuestionCount()).isEqualTo(15);
-      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
-      assertThat(projection.getLastLearningDate()).isEqualTo(today);
     }
 
     @Test
@@ -74,43 +72,26 @@ class LearnStatsTest {
     }
 
     @Test
-    @DisplayName("같은 날 여러번 풀어도 연속 학습일은 1을 유지한다")
+    @DisplayName("같은 날 여러번 풀어도 풀이 통계가 누적된다")
     void withMultipleSolvesOnSameDay_maintainsConsecutiveDays() {
       // when
       projection.onQuestionSetSolved(10, today);
       projection.onQuestionSetSolved(5, today);
 
       // then
-      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
       assertThat(projection.getTotalSolvedQuestionSetCount()).isEqualTo(2);
       assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(15);
     }
+  }
 
-    @Test
-    @DisplayName("다음 날 풀면 연속 학습일이 증가한다")
-    void withSolveOnNextDay_incrementsConsecutiveDays() {
-      // given
-      projection.onQuestionSetSolved(10, today);
+  @Test
+  @DisplayName("updateTotalCorrectQuestionCount: 맞은 문제 수를 업데이트한다")
+  void updateTotalCorrectQuestionCount() {
+    // when
+    projection.updateTotalCorrectQuestionCount(100L);
 
-      // when
-      projection.onQuestionSetSolved(5, today.plusDays(1));
-
-      // then
-      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("이틀 이상 뒤에 풀면 연속 학습일이 1로 초기화된다")
-    void withSolveAfterGap_resetsConsecutiveDays() {
-      // given
-      projection.onQuestionSetSolved(10, today);
-
-      // when
-      projection.onQuestionSetSolved(5, today.plusDays(3));
-
-      // then
-      assertThat(projection.getConsecutiveLearningDays()).isEqualTo(1);
-    }
+    // then
+    assertThat(projection.getTotalCorrectQuestionCount()).isEqualTo(100L);
   }
 
   @Nested
@@ -129,7 +110,7 @@ class LearnStatsTest {
               );
 
       // when
-      projection.recalibrate(150L, 120L, 20, completedDates);
+      projection.recalibrate(150L, 120L, 20, completedDates, today);
 
       // then
       assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(150L);
@@ -147,7 +128,7 @@ class LearnStatsTest {
 
       // when
 
-      projection.recalibrate(10L, 8L, 5, List.of());
+      projection.recalibrate(10L, 8L, 5, List.of(), today);
 
       // then
       assertThat(projection.getTotalSolvedQuestionCount()).isEqualTo(10L);

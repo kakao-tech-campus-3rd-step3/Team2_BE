@@ -41,8 +41,8 @@ public class LearnStatsEventPublisher implements LearnStatsEventPublicApi {
 
   @Override
   @SneakyThrows
-  public void publishCorrectAnswerCount(Long memberId, long correctCount) {
-    CorrectAnswerPayload payload = new CorrectAnswerPayload(memberId, correctCount);
+  public void publishRecalculateCorrectAnswerCount(Long memberId) {
+    CorrectAnswerPayload payload = new CorrectAnswerPayload(memberId, 0);
     String jsonPayload = objectMapper.writeValueAsString(payload);
     OutboxEvent event =
         OutboxEvent.of(

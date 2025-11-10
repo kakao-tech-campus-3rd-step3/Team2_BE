@@ -16,4 +16,6 @@ public interface MarkingResultPublicApi {
    * @return 총 맞힌 문제 수
    */
   long countTotalCorrectQuestionsByMemberId(Long memberId);
+
+  long countCorrectAnswersByMemberId(Long memberId);
 }

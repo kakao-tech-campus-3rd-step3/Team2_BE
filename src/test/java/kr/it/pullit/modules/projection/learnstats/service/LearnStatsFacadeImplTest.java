@@ -38,7 +38,7 @@ class LearnStatsFacadeImplTest {
     void givenExistingLearnStatsReturnsCombinedStats() {
       // given
       LearnStats existingStats = LearnStats.newOf(memberId);
-      existingStats.increaseCorrectQuestionCount(10); // 임의의 통계 데이터 추가
+      existingStats.updateTotalCorrectQuestionCount(10); // 임의의 통계 데이터 추가
 
       long totalQuestionSetCount = 20L;
 

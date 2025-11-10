@@ -12,4 +12,6 @@ public interface MarkingResultRepository {
   long countDistinctQuestionByMemberId(Long memberId);
 
   long countByMemberIdAndIsCorrectIsTrue(Long memberId);
+
+  long countCorrectAnswersByMemberId(Long memberId);
 }

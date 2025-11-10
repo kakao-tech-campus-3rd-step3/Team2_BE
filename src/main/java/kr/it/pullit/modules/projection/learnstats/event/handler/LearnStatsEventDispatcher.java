@@ -41,7 +41,7 @@ public class LearnStatsEventDispatcher {
       case CORRECT_ANSWER_COUNT_INCREASED -> {
         CorrectAnswerPayload payload =
             objectMapper.readValue(e.getPayload(), CorrectAnswerPayload.class);
-        projectionService.increaseCorrectQuestionCount(payload.memberId(), payload.correctCount());
+        projectionService.recalculateCorrectQuestionCount(payload.memberId());
       }
       default -> {
         return false;

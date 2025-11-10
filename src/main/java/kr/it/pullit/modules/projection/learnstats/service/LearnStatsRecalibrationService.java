@@ -2,6 +2,7 @@ package kr.it.pullit.modules.projection.learnstats.service;
 
 import java.time.Clock;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
@@ -70,7 +71,12 @@ public class LearnStatsRecalibrationService implements LearnStatsRecalibrationPu
     LearnStats stats =
         learnStatsRepository.findById(memberId).orElseGet(() -> LearnStats.newOf(memberId));
 
-    stats.recalibrate(totalAttemptedCount, totalCorrectCount, weeklySolvedCount, completedDates);
+    stats.recalibrate(
+        totalAttemptedCount,
+        totalCorrectCount,
+        weeklySolvedCount,
+        completedDates,
+        LocalDate.now(clock));
     stats.updateTotalQuestionCount(totalQuestionCount);
 
     learnStatsRepository.save(stats);
