@@ -6,5 +6,5 @@ public interface LearnStatsEventPublicApi {
 
   void publishQuestionSetSolved(Long memberId, int solvedQuestionCount);
 
-  void publishCorrectAnswerCount(Long memberId, long correctCount);
+  void publishRecalculateCorrectAnswerCount(Long memberId);
 }

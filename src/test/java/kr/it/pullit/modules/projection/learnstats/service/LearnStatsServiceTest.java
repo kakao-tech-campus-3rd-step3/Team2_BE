@@ -4,10 +4,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
 import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
+import kr.it.pullit.modules.questionset.api.MarkingResultPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.support.annotation.SpringUnitTest;
 import kr.it.pullit.support.config.MutableClockConfig;
@@ -28,6 +28,8 @@ class LearnStatsServiceTest {
   @MockitoBean private LearnStatsRepository learnStatsRepository;
 
   @MockitoBean private QuestionSetPublicApi questionSetPublicApi;
+
+  @MockitoBean private MarkingResultPublicApi markingResultPublicApi;
 
   @Nested
   @DisplayName("주간 초기화 적용 시")
@@ -108,12 +110,11 @@ class LearnStatsServiceTest {
     void givenExistingProjectionThenUpdatesAndSaves() {
       // given
       Long memberId = 1L;
-      long correctCount = 5L;
       LearnStats existingProjection = LearnStats.newOf(memberId);
       given(learnStatsRepository.findById(memberId)).willReturn(Optional.of(existingProjection));
 
       // when
-      sut.increaseCorrectQuestionCount(memberId, correctCount);
+      sut.recalculateCorrectQuestionCount(memberId);
 
       // then
       verify(learnStatsRepository, times(1)).save(existingProjection);
@@ -124,11 +125,10 @@ class LearnStatsServiceTest {
     void givenNoProjectionThenCreatesUpdatesAndSaves() {
       // given
       Long memberId = 1L;
-      long correctCount = 5L;
       given(learnStatsRepository.findById(memberId)).willReturn(Optional.empty());
 
       // when
-      sut.increaseCorrectQuestionCount(memberId, correctCount);
+      sut.recalculateCorrectQuestionCount(memberId);
 
       // then
       verify(learnStatsRepository, times(1)).save(any(LearnStats.class));

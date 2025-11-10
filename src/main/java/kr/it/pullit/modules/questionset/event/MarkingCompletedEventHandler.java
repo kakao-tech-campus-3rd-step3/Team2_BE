@@ -25,9 +25,9 @@ public class MarkingCompletedEventHandler {
       return;
     }
 
-    long correctCount = event.results().stream().filter(MarkingResultDto::isCorrect).count();
-    if (correctCount > 0) {
-      learnStatsEventPublicApi.publishCorrectAnswerCount(event.memberId(), correctCount);
+    boolean hasCorrectAnswer = event.results().stream().anyMatch(MarkingResultDto::isCorrect);
+    if (hasCorrectAnswer) {
+      learnStatsEventPublicApi.publishRecalculateCorrectAnswerCount(event.memberId());
     }
 
     learnStatsEventPublicApi.publishQuestionSetSolved(event.memberId(), event.results().size());

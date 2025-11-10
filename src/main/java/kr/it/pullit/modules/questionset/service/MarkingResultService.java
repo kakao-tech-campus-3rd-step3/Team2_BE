@@ -22,4 +22,9 @@ public class MarkingResultService implements MarkingResultPublicApi {
   public long countTotalCorrectQuestionsByMemberId(Long memberId) {
     return markingResultRepository.countByMemberIdAndIsCorrectIsTrue(memberId);
   }
+
+  @Override
+  public long countCorrectAnswersByMemberId(Long memberId) {
+    return markingResultRepository.countCorrectAnswersByMemberId(memberId);
+  }
 }

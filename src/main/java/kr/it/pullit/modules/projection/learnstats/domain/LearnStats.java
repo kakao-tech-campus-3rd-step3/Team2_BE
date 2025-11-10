@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import kr.it.pullit.modules.projection.learnstats.exception.InvalidSolvedQuestionCountException;
 import kr.it.pullit.shared.jpa.BaseEntity;
@@ -78,7 +78,6 @@ public class LearnStats extends BaseEntity {
     this.totalSolvedQuestionSetCount++;
     this.totalSolvedQuestionCount += solvedQuestionCount;
     this.weeklySolvedQuestionCount += solvedQuestionCount;
-    updateConsecutiveStreak(today);
   }
 
   public void onQuestionSetDeleted(long correctQuestionsInSet) {
@@ -94,57 +93,54 @@ public class LearnStats extends BaseEntity {
     this.totalSolvedQuestionCount = realCount;
   }
 
-  public void increaseCorrectQuestionCount(long correctCount) {
-    if (correctCount > 0) {
-      this.totalCorrectQuestionCount += correctCount;
-    }
+  public void updateTotalCorrectQuestionCount(long totalCorrectQuestionCount) {
+    this.totalCorrectQuestionCount = totalCorrectQuestionCount;
   }
 
   public void recalibrate(
       long totalAttemptedQuestionCount,
       long totalCorrectQuestionCount,
       int weeklySolvedQuestionCount,
-      List<LocalDateTime> completedDates) {
+      List<LocalDateTime> completedDates,
+      LocalDate today) {
     this.totalSolvedQuestionCount = totalAttemptedQuestionCount;
     this.totalCorrectQuestionCount = totalCorrectQuestionCount;
     this.weeklySolvedQuestionCount = weeklySolvedQuestionCount;
-    this.consecutiveLearningDays = calculateConsecutiveDaysFrom(completedDates);
+    this.consecutiveLearningDays = calculateCurrentStreakFrom(completedDates, today);
     this.lastLearningDate = findLastLearningDateFrom(completedDates);
   }
 
-  private int calculateConsecutiveDaysFrom(List<LocalDateTime> completedDates) {
+  private int calculateCurrentStreakFrom(List<LocalDateTime> completedDates, LocalDate today) {
     if (completedDates == null || completedDates.isEmpty()) {
       return 0;
     }
 
-    List<LocalDateTime> sortedCompletedDates = completedDates.stream().sorted().toList();
+    List<LocalDate> distinctSortedDates =
+        completedDates.stream()
+            .map(LocalDateTime::toLocalDate)
+            .distinct()
+            .sorted(Comparator.reverseOrder())
+            .toList();
 
-    int consecutiveDays = 0;
-    LocalDate previousDate = null;
+    LocalDate lastDate = distinctSortedDates.get(0);
 
-    for (LocalDateTime completedDateTime : sortedCompletedDates) {
-      LocalDate currentDate = completedDateTime.toLocalDate();
-      consecutiveDays = updateConsecutiveCount(consecutiveDays, previousDate, currentDate);
-      previousDate = currentDate;
+    if (DAYS.between(lastDate, today) > 1) {
+      return 0;
+    }
+
+    int consecutiveDays = 1;
+    LocalDate previousDate = lastDate;
+
+    for (int i = 1; i < distinctSortedDates.size(); i++) {
+      LocalDate currentDate = distinctSortedDates.get(i);
+      if (DAYS.between(currentDate, previousDate) == 1) {
+        consecutiveDays++;
+        previousDate = currentDate;
+      } else {
+        break;
+      }
     }
     return consecutiveDays;
-  }
-
-  private int updateConsecutiveCount(
-      int currentConsecutiveDays, LocalDate previousDate, LocalDate currentDate) {
-    if (previousDate == null) {
-      return 1;
-    }
-
-    long daysBetween = ChronoUnit.DAYS.between(previousDate, currentDate);
-
-    if (daysBetween == 1) {
-      return currentConsecutiveDays + 1;
-    }
-    if (daysBetween > 1) {
-      return 1;
-    }
-    return currentConsecutiveDays;
   }
 
   private LocalDate findLastLearningDateFrom(List<LocalDateTime> completedDates) {
@@ -155,38 +151,6 @@ public class LearnStats extends BaseEntity {
         .map(LocalDateTime::toLocalDate)
         .max(LocalDate::compareTo)
         .orElse(null);
-  }
-
-  private void updateConsecutiveStreak(LocalDate today) {
-    if (lastLearningDate == null) {
-      consecutiveLearningDays = 1;
-      lastLearningDate = today;
-      return;
-    }
-
-    int delta = (int) DAYS.between(lastLearningDate, today);
-
-    if (isSameOrPastDay(delta)) {
-      updateLastLearningDateIfNeeded(today);
-      return;
-    }
-
-    updateConsecutiveDays(delta);
-    lastLearningDate = today;
-  }
-
-  private void updateConsecutiveDays(int delta) {
-    consecutiveLearningDays = (delta == 1) ? consecutiveLearningDays + 1 : 1;
-  }
-
-  private void updateLastLearningDateIfNeeded(LocalDate today) {
-    if (today.isAfter(lastLearningDate)) {
-      lastLearningDate = today;
-    }
-  }
-
-  private boolean isSameOrPastDay(int delta) {
-    return delta <= 0;
   }
 
   public void resetConsecutiveDaysIfMissed(LocalDate today) {

@@ -37,7 +37,7 @@ class MarkingCompletedEventHandlerTest {
     sut.handleMarkingCompletedEvent(event);
 
     // then
-    verify(learnStatsEventPublicApi).publishCorrectAnswerCount(memberId, expectedCorrectCount);
+    verify(learnStatsEventPublicApi).publishRecalculateCorrectAnswerCount(memberId);
   }
 
   @Test
@@ -52,7 +52,7 @@ class MarkingCompletedEventHandlerTest {
     sut.handleMarkingCompletedEvent(event);
 
     // then
-    verify(learnStatsEventPublicApi, never()).publishCorrectAnswerCount(memberId, 0L);
+    verify(learnStatsEventPublicApi, never()).publishRecalculateCorrectAnswerCount(memberId);
   }
 
   @Test

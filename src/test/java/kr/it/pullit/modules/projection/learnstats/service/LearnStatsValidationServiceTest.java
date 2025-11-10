@@ -32,7 +32,12 @@ class LearnStatsValidationServiceTest {
     LearnStats stats = LearnStats.newOf(member.getId());
     // 이틀 전이 마지막 학습일이라고 가정 (어제 학습 누락)
 
-    stats.recalibrate(10L, 8L, 5, List.of(LocalDate.now(clock).minusDays(2).atStartOfDay()));
+    stats.recalibrate(
+        10L,
+        8L,
+        5,
+        List.of(LocalDate.now(clock).minusDays(2).atStartOfDay()),
+        LocalDate.now(clock));
     learnStatsRepository.save(stats);
 
     // when
