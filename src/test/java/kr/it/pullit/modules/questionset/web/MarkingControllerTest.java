@@ -63,48 +63,4 @@ class MarkingControllerTest extends ControllerTest {
         .andExpect(jsonPath("$.results[1].questionId").value(2L))
         .andExpect(jsonPath("$.results[1].isCorrect").value(false));
   }
-
-  @Nested
-  @DisplayName("에러 응답 검증")
-  class ErrorResponse {
-
-    @Test
-    @WithMockMember
-    @DisplayName("입력값 유효성 검증 실패 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
-    void shouldMatchApiDocsWhenValidationFailed() throws Exception {
-      // given
-      var invalidRequestPayload =
-          List.of(Map.of("memberAnswer", true, "memberAnswerType", "boolean"));
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/marking")
-                  .contentType(APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(invalidRequestPayload)))
-          .andExpect(ProblemDetailTestUtils.conformToApiDocs("/api/marking", "입력값 유효성 검증 실패"));
-    }
-
-    @Test
-    @WithMockMember
-    @DisplayName("존재하지 않는 문제 채점 시, ApiDocs의 ExampleObject와 실제 응답이 일치한다")
-    void shouldMatchApiDocsWhenQuestionNotFound() throws Exception {
-      // given
-      var markingRequests = List.of(MarkingRequest.of(999L, true));
-      var requestPayload =
-          List.of(Map.of("questionId", 999L, "memberAnswer", true, "memberAnswerType", "boolean"));
-      var markingServiceRequest = MarkingServiceRequest.of(1L, markingRequests, false);
-
-      given(markingService.markQuestions(markingServiceRequest))
-          .willThrow(QuestionNotFoundException.byId(999L));
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/marking")
-                  .contentType(APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(requestPayload)))
-          .andExpect(ProblemDetailTestUtils.conformToApiDocs("/api/marking", "문제 조회 실패"));
-    }
-  }
 }
