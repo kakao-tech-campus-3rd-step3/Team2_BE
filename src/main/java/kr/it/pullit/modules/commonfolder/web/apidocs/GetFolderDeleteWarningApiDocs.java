@@ -40,7 +40,16 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = FolderDeleteWarningResponse.class))),
+              schema = @Schema(implementation = FolderDeleteWarningResponse.class),
+              examples =
+                  @ExampleObject(
+                      name = "삭제 경고 응답",
+                      value =
+                          """
+                          {
+                            "questionSetCount": 5
+                          }
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "존재하지 않거나 권한이 없는 폴더",

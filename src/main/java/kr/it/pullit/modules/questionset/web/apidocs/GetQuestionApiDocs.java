@@ -2,6 +2,7 @@ package kr.it.pullit.modules.questionset.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,7 +33,23 @@ import org.springframework.http.ProblemDetail;
   @ApiResponse(
       responseCode = "200",
       description = "조회 성공",
-      content = @Content(schema = @Schema(implementation = QuestionResponse.class))),
+      content =
+          @Content(
+              schema = @Schema(implementation = QuestionResponse.class),
+              examples =
+                  @ExampleObject(
+                      name = "문제 조회 예시 (객관식)",
+                      value =
+                          """
+                          {
+                            "id": 101,
+                            "questionType": "MULTIPLE_CHOICE",
+                            "questionText": "다음 중 Java의 기본 타입이 아닌 것은?",
+                            "options": ["int", "String", "boolean", "char"],
+                            "answer": 2,
+                            "explanation": "String은 참조 타입입니다."
+                          }
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "문제를 찾을 수 없는 경우",

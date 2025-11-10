@@ -40,7 +40,20 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = CommonFolderResponse.class))),
+              schema = @Schema(implementation = CommonFolderResponse.class),
+              examples =
+                  @ExampleObject(
+                      name = "사용자 폴더 조회 예시",
+                      value =
+                          """
+                          {
+                            "id": 101,
+                            "name": "JPA 심화",
+                            "type": "QUESTION_SET",
+                            "scope": "CUSTOM",
+                            "sortOrder": 1
+                          }
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "존재하지 않거나 권한이 없는 폴더",

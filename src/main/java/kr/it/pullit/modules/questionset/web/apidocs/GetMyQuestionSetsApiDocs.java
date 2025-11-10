@@ -2,6 +2,7 @@ package kr.it.pullit.modules.questionset.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,5 +33,45 @@ import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsWithStats
 @ApiResponse(
     responseCode = "200",
     description = "조회 성공",
-    content = @Content(schema = @Schema(implementation = MyQuestionSetsWithStatsResponse.class)))
+    content =
+        @Content(
+            schema = @Schema(implementation = MyQuestionSetsWithStatsResponse.class),
+            examples =
+                @ExampleObject(
+                    name = "나의 문제집 목록 조회 예시",
+                    value =
+                        """
+                        {
+                          "questionSets": {
+                            "data": [
+                              {
+                                "questionSetId": 1,
+                                "title": "Java 기초 문제집",
+                                "sourceIds": [1],
+                                "sourceNames": ["Java.pdf"],
+                                "questionCount": 20,
+                                "difficultyType": "EASY",
+                                "questionType": "MULTIPLE_CHOICE",
+                                "status": "COMPLETE",
+                                "learningStatus": "IN_PROGRESS",
+                                "commonFolderId": 5,
+                                "commonFolderName": "기본 폴더",
+                                "createdAt": "2025-01-01T12:00:00"
+                              }
+                            ],
+                            "nextCursor": 1,
+                            "hasNext": true
+                          },
+                          "learnStats": {
+                            "totalQuestionSetCount": 15,
+                            "totalSolvedQuestionSetCount": 10,
+                            "totalQuestionCount": 300,
+                            "totalSolvedQuestionCount": 250,
+                            "totalCorrectQuestionCount": 200,
+                            "weeklySolvedQuestionCount": 50,
+                            "consecutiveLearningDays": 7,
+                            "lastLearningDate": "2025-11-10"
+                          }
+                        }
+                        """)))
 public @interface GetMyQuestionSetsApiDocs {}

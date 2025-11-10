@@ -3,6 +3,7 @@ package kr.it.pullit.modules.projection.learnstats.web.apidocs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,7 +36,23 @@ import org.springframework.http.ProblemDetail;
       description = "일별 학습 통계 조회 성공",
       content =
           @Content(
-              array = @ArraySchema(schema = @Schema(implementation = DailyStatsResponse.class)))),
+              array = @ArraySchema(schema = @Schema(implementation = DailyStatsResponse.class)),
+              examples =
+                  @ExampleObject(
+                      name = "일별 학습 통계 예시",
+                      value =
+                          """
+                          [
+                            {
+                              "date": "2025-11-09",
+                              "count": 15
+                            },
+                            {
+                              "date": "2025-11-10",
+                              "count": 25
+                            }
+                          ]
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",
