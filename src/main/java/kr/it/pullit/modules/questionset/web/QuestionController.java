@@ -3,11 +3,11 @@ package kr.it.pullit.modules.questionset.web;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.questionset.service.QuestionService;
 import kr.it.pullit.modules.questionset.web.apidocs.CreateQuestionApiDocs;
 import kr.it.pullit.modules.questionset.web.apidocs.DeleteQuestionApiDocs;
 import kr.it.pullit.modules.questionset.web.apidocs.GetQuestionApiDocs;
-import kr.it.pullit.modules.questionset.web.apidocs.QuestionApiDocs;
 import kr.it.pullit.modules.questionset.web.apidocs.UpdateQuestionApiDocs;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionCreateRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionUpdateRequestDto;
@@ -28,7 +28,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/question")
-@QuestionApiDocs
+@AuthApiDocs
 public class QuestionController {
 
   private final QuestionService questionService;

@@ -22,7 +22,9 @@ import org.springframework.http.ProblemDetail;
     summary = "폴더 삭제 경고 조회",
     description =
         """
-            폴더를 삭제하기 전, 해당 폴더에 포함된 컨텐츠(예: 문제집)의 개수를 조회하여 사용자에게 경고를 표시하기 위한 API입니다.
+            [Legacy] 폴더를 삭제하기 전, 해당 폴더에 포함된 컨텐츠(예: 문제집)의 개수를 조회하여 사용자에게 경고를 표시하기 위한 API입니다.
+            반환된 `count`가 0보다 클 경우, 사용자에게 삭제 여부를 재확인하는 UI를 표시할 수 있습니다.
+            현재는 폴더를 삭제해도 폴더 내부의 컨텐츠는 삭제되지 않습니다.
 
             [Request]
             - `id`: 확인할 폴더 ID (Path Variable, 필수)
@@ -38,16 +40,7 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = FolderDeleteWarningResponse.class),
-              examples =
-                  @ExampleObject(
-                      name = "삭제 경고 응답",
-                      value =
-                          """
-                          {
-                            "count": 5
-                          }
-                          """))),
+              schema = @Schema(implementation = FolderDeleteWarningResponse.class))),
   @ApiResponse(
       responseCode = "404",
       description = "존재하지 않거나 권한이 없는 폴더",

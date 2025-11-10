@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+@Tag(name = "Marking API", description = "문제 채점 관련 API")
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/marking")

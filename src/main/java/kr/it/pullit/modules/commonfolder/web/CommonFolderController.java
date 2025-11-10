@@ -4,10 +4,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.api.FolderFacade;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
-import kr.it.pullit.modules.commonfolder.web.apidocs.CommonFolderApiDocs;
 import kr.it.pullit.modules.commonfolder.web.apidocs.CreateFolderApiDocs;
 import kr.it.pullit.modules.commonfolder.web.apidocs.DeleteFolderApiDocs;
 import kr.it.pullit.modules.commonfolder.web.apidocs.GetFolderByIdApiDocs;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/common-folders")
-@CommonFolderApiDocs
+@AuthApiDocs
 public class CommonFolderController {
 
   private final CommonFolderPublicApi commonFolderPublicApi;

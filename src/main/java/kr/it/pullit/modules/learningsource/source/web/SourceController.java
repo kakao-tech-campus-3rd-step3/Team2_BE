@@ -3,7 +3,12 @@ package kr.it.pullit.modules.learningsource.source.web;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.learningsource.source.api.SourcePublicApi;
+import kr.it.pullit.modules.learningsource.source.web.apidocs.DeleteSourceApiDocs;
+import kr.it.pullit.modules.learningsource.source.web.apidocs.GenerateUploadUrlApiDocs;
+import kr.it.pullit.modules.learningsource.source.web.apidocs.GetMySourcesApiDocs;
+import kr.it.pullit.modules.learningsource.source.web.apidocs.ProcessUploadCompleteApiDocs;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadCompleteRequest;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceUploadRequest;
@@ -23,11 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/learning/source")
+@AuthApiDocs
 public class SourceController {
 
   private final SourcePublicApi sourcePublicApi;
 
   @PostMapping("/upload")
+  @GenerateUploadUrlApiDocs
   public ResponseEntity<SourceUploadResponse> generateUploadUrl(
       @AuthenticationPrincipal Long memberId, @Valid @RequestBody SourceUploadRequest request) {
     SourceUploadResponse uploadResponse =
@@ -38,6 +45,7 @@ public class SourceController {
   }
 
   @PostMapping("/upload-complete")
+  @ProcessUploadCompleteApiDocs
   public ResponseEntity<Void> processUploadComplete(
       @AuthenticationPrincipal Long memberId,
       @Valid @RequestBody SourceUploadCompleteRequest request) {
@@ -46,11 +54,13 @@ public class SourceController {
   }
 
   @GetMapping
+  @GetMySourcesApiDocs
   public ResponseEntity<List<SourceResponse>> getMySources(@AuthenticationPrincipal Long memberId) {
     return ResponseEntity.ok(sourcePublicApi.getMySources(memberId));
   }
 
   @DeleteMapping("/{sourceId}")
+  @DeleteSourceApiDocs
   public ResponseEntity<Void> deleteSource(
       @PathVariable Long sourceId, @AuthenticationPrincipal Long memberId) {
     sourcePublicApi.deleteSource(sourceId, memberId);

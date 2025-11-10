@@ -2,6 +2,8 @@ package kr.it.pullit.modules.home.web;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
+import kr.it.pullit.modules.home.web.apidocs.HealthCheckApiDocs;
+import kr.it.pullit.modules.home.web.apidocs.HomeApiDocs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class HomeController {
 
   @GetMapping("/")
+  @HomeApiDocs
   public ResponseEntity<String> home() {
     return ResponseEntity.ok("Pullit API Server is running!");
   }
 
   @GetMapping("/health")
+  @HealthCheckApiDocs
   public ResponseEntity<String> health() {
     return ResponseEntity.ok("OK");
   }

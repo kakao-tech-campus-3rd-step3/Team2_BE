@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.member.web;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.member.api.MemberPublicApi;
 import kr.it.pullit.modules.member.exception.MemberNotFoundException;
 import kr.it.pullit.modules.member.web.apidocs.GetMyInfoApiDocs;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/members")
+@AuthApiDocs
 public class MemberController {
 
   private final MemberPublicApi memberPublicApi;

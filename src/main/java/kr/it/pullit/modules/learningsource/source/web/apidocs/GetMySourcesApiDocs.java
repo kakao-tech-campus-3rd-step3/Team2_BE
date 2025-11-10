@@ -15,12 +15,21 @@ import java.lang.annotation.Target;
 import kr.it.pullit.modules.learningsource.source.web.dto.SourceResponse;
 import org.springframework.http.ProblemDetail;
 
-// TODO: 상태코드 정상화. 실제 응답으로 ExampleObject작성 필요.
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(
     summary = "내 학습 소스 목록 조회",
-    description = "사용자가 업로드한 학습 소스 목록을 최신 순으로 조회합니다.\n\n" + "[Request]\n" + "- 인증 토큰 필요 (Bearer)",
+    description =
+        """
+            인증된 사용자가 업로드한 학습 소스 목록을 최신 순으로 조회합니다.
+            현재는 페이지네이션을 지원하지 않으며, 모든 소스를 한 번에 반환합니다.
+
+            [Request]
+            - 인증 토큰 필요 (Bearer)
+
+            [Response]
+            - 성공 시, `SourceResponse` 객체 배열을 반환합니다.
+            - 업로드한 소스가 없을 경우 빈 배열을 반환합니다.""",
     security = @SecurityRequirement(name = "bearerAuth"))
 @ApiResponses({
   @ApiResponse(
@@ -29,27 +38,7 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = SourceResponse.class)),
-              examples =
-                  @ExampleObject(
-                      name = "성공",
-                      summary = "소스 목록 조회",
-                      value =
-                          """
-                        [
-                          {
-                            \"id\": 1,
-                            \"originalName\": \"orientation.pdf\",
-                            \"sourceFolderName\": \"기본 폴더\",
-                            \"status\": \"READY\",
-                            \"questionSetCount\": 2,
-                            \"pageCount\": 15,
-                            \"fileSizeBytes\": 204800,
-                            \"createdAt\": \"2024-03-01\",
-                            \"recentQuestionGeneratedAt\": \"2024-03-05\"
-                          }
-                        ]
-                        """))),
+              array = @ArraySchema(schema = @Schema(implementation = SourceResponse.class)))),
   @ApiResponse(
       responseCode = "400",
       description = "요청 정보가 유효하지 않음",

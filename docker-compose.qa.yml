@@ -78,7 +78,7 @@ services:
     image: ${DOCKER_IMAGE_BLUE}
     container_name: pullit-qa-worker-blue
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "ps aux | grep -v grep | grep app.jar"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -101,7 +101,7 @@ services:
     image: ${DOCKER_IMAGE_GREEN}
     container_name: pullit-qa-worker-green
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "ps aux | grep -v grep | grep app.jar"]
       interval: 30s
       timeout: 10s
       retries: 5

@@ -42,21 +42,7 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = MarkQuestionsResponse.class),
-              examples =
-                  @ExampleObject(
-                      name = "채점 결과 응답",
-                      value =
-                          """
-                                {
-                                  "results": [
-                                    { "questionId": 1, "isCorrect": true },
-                                    { "questionId": 2, "isCorrect": false }
-                                  ],
-                                  "totalQuestions": 2,
-                                  "correctCount": 1
-                                }
-                                """))),
+              schema = @Schema(implementation = MarkQuestionsResponse.class))),
   @ApiResponse(
       responseCode = "400",
       description = "잘못된 요청 (예: 값 누락, 타입 불일치)",
@@ -83,24 +69,7 @@ import org.springframework.http.ProblemDetail;
               })),
   @ApiResponse(
       responseCode = "404",
-      description = "존재하지 않는 문제",
-      content =
-          @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "문제 조회 실패",
-                      value =
-                          """
-                              {
-                                "type": "about:blank",
-                                "title": "Not Found",
-                                "status": 404,
-                                "detail": "문제를 찾을 수 없습니다.",
-                                "instance": "/api/marking",
-                                "code": "Q_006"
-                              }
-                              """)))
+      description = "채점할 문제를 찾을 수 없음",
+      content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
 })
 public @interface MarkQuestionsApiDocs {}

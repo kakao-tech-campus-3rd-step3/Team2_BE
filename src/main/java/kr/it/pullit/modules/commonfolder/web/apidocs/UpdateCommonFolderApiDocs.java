@@ -2,7 +2,6 @@ package kr.it.pullit.modules.commonfolder.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,36 +27,12 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
             content =
                 @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = UpdateFolderRequest.class),
-                    examples =
-                        @ExampleObject(
-                            name = "폴더 수정 요청",
-                            summary = "폴더 이름 변경",
-                            value =
-                                """
-                                {
-                                  \"name\": \"심화 학습\",
-                                  \"type\": \"QUESTION_SET\"
-                                }
-                                """))))
+                    schema = @Schema(implementation = UpdateFolderRequest.class))))
 @ApiResponse(
     responseCode = "200",
     description = "폴더 수정 성공",
     content =
         @Content(
             mediaType = "application/json",
-            schema = @Schema(implementation = CommonFolderResponse.class),
-            examples =
-                @ExampleObject(
-                    name = "수정된 폴더",
-                    summary = "이름이 변경된 폴더",
-                    value =
-                        """
-                        {
-                          \"id\": 5,
-                          \"name\": \"심화 학습\",
-                          \"type\": \"QUESTION_SET\",
-                          \"sortOrder\": 0
-                        }
-                        """)))
+            schema = @Schema(implementation = CommonFolderResponse.class)))
 public @interface UpdateCommonFolderApiDocs {}

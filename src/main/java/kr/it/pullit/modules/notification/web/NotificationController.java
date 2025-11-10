@@ -1,7 +1,9 @@
 package kr.it.pullit.modules.notification.web;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.notification.api.NotificationEventPublicApi;
+import kr.it.pullit.modules.notification.web.apidocs.SubscribeNotificationsApiDocs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,10 +18,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController()
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@AuthApiDocs
 public class NotificationController {
   private final NotificationEventPublicApi notificationEventPublicApi;
 
   @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @SubscribeNotificationsApiDocs
   public SseEmitter subscribe(
       @AuthenticationPrincipal Long memberId,
       @RequestHeader(value = "Last-Event-ID", required = false) String headerLastEventId,

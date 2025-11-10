@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.questionset.web.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,17 +13,40 @@ import lombok.Getter;
 @Getter
 public class QuestionSetResponse {
 
+  @Schema(description = "문제집 ID", example = "1")
   private final Long id;
+
+  @Schema(description = "소스 ID 목록", example = "[1, 2]")
   private final List<Long> sourceIds;
+
+  @Schema(description = "소유자 ID", example = "10")
   private final Long ownerID;
+
+  @Schema(description = "문제집 제목", example = "Java 기초 문제집")
   private final String title;
+
+  @Schema(description = "문제 목록")
   private final List<QuestionResponse> questions;
+
+  @Schema(description = "난이도", example = "EASY")
   private final DifficultyType difficulty;
+
+  @Schema(description = "문제 유형", example = "MULTIPLE_CHOICE")
   private final QuestionType type;
+
+  @Schema(description = "문제 수", example = "20")
   private final Integer questionLength;
+
+  @Schema(description = "폴더 ID", example = "5")
   private final Long commonFolderId;
+
+  @Schema(description = "폴더 이름", example = "기본 폴더")
   private final String commonFolderName;
+
+  @Schema(description = "생성 시간", example = "2025-01-01T12:00:00")
   private final LocalDateTime createTime;
+
+  @Schema(description = "수정 시간", example = "2025-01-02T15:30:00")
   private final LocalDateTime updateTime;
 
   public QuestionSetResponse(QuestionSet questionSet) {

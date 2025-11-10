@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.web.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -18,18 +19,38 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SourceUploadCompleteRequest {
 
+  @Schema(
+      description = "업로드 세션 식별자 (UUID)",
+      requiredMode = Schema.RequiredMode.REQUIRED,
+      example = "18c9c8be-e5d4-4c37-b0c4-ccf3c4fc4b65")
   @NotBlank(message = "업로드 ID는 필수입니다")
   private String uploadId;
 
+  @Schema(
+      description = "S3에 저장된 파일 경로",
+      requiredMode = Schema.RequiredMode.REQUIRED,
+      example = "source/1/2025/11/10/uuid-filename.pdf")
   @NotBlank(message = "파일 경로는 필수입니다")
   private String filePath;
 
+  @Schema(
+      description = "원본 파일명",
+      requiredMode = Schema.RequiredMode.REQUIRED,
+      example = "my-document.pdf")
   @NotBlank(message = "원본 파일명은 필수입니다")
   private String originalName;
 
+  @Schema(
+      description = "파일의 MIME 타입",
+      requiredMode = Schema.RequiredMode.REQUIRED,
+      example = "application/pdf")
   @NotBlank(message = "콘텐츠 타입은 필수입니다")
   private String contentType;
 
+  @Schema(
+      description = "파일 크기 (바이트 단위)",
+      requiredMode = Schema.RequiredMode.REQUIRED,
+      example = "204800")
   @NotNull(message = "파일 크기는 필수입니다")
   @Positive(message = "파일 크기는 양수여야 합니다")
   private Long fileSizeBytes;
