@@ -15,7 +15,10 @@ import org.springframework.http.ProblemDetail;
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(summary = "관리자 권한 해제", description = "특정 회원의 관리자(ADMIN) 역할을 해제합니다.")
 @ApiResponses({
-  @ApiResponse(responseCode = "200", description = "관리자 권한 해제 성공"),
+  @ApiResponse(
+      responseCode = "200",
+      description = "관리자 권한 해제 성공",
+      content = @Content(schema = @Schema(hidden = true))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",

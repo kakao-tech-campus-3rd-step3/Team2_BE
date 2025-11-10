@@ -3,7 +3,6 @@ package kr.it.pullit.modules.commonfolder.web.apidocs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,18 +27,7 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
             content =
                 @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = CreateFolderRequest.class),
-                    examples =
-                        @ExampleObject(
-                            name = "폴더 생성 요청",
-                            summary = "QUESTION_SET 폴더 생성",
-                            value =
-                                """
-                                {
-                                  \"name\": \"개념 정리\",
-                                  \"type\": \"QUESTION_SET\"
-                                }
-                                """))))
+                    schema = @Schema(implementation = CreateFolderRequest.class))))
 @ApiResponse(
     responseCode = "201",
     description = "폴더 생성 성공",

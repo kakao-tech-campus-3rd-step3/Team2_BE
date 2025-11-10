@@ -2,7 +2,6 @@ package kr.it.pullit.modules.commonfolder.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -40,19 +39,7 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = CommonFolderResponse.class),
-              examples =
-                  @ExampleObject(
-                      name = "폴더 수정 응답",
-                      value =
-                          """
-                          {
-                            "id": 2,
-                            "name": "Spring",
-                            "type": "QUESTION_SET",
-                            "sortOrder": 1
-                          }
-                          """))),
+              schema = @Schema(implementation = CommonFolderResponse.class))),
   @ApiResponse(
       responseCode = "400",
       description = "유효하지 않은 입력값입니다.",

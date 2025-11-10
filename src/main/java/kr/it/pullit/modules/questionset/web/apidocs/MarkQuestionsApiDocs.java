@@ -42,21 +42,7 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = MarkQuestionsResponse.class),
-              examples =
-                  @ExampleObject(
-                      name = "채점 결과 응답",
-                      value =
-                          """
-                                {
-                                  "results": [
-                                    { "questionId": 1, "isCorrect": true },
-                                    { "questionId": 2, "isCorrect": false }
-                                  ],
-                                  "totalQuestions": 2,
-                                  "correctCount": 1
-                                }
-                                """))),
+              schema = @Schema(implementation = MarkQuestionsResponse.class))),
   @ApiResponse(
       responseCode = "400",
       description = "잘못된 요청 (예: 값 누락, 타입 불일치)",

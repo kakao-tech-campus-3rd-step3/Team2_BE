@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.wronganswer.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,13 +10,32 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import kr.it.pullit.modules.wronganswer.web.dto.WrongAnswerSetResponse;
 import org.springframework.http.ProblemDetail;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Operation(summary = "나의 모든 오답노트 조회 (간략 정보)", description = "나의 모든 오답노트의 간략한 정보 목록을 조회합니다.")
+@Operation(
+    summary = "나의 모든 오답노트 조회 (간략 정보)",
+    description =
+        """
+            인증된 사용자의 모든 오답노트(문제집 단위)에 대한 간략한 정보 목록을 조회합니다.
+            오답노트 복습을 위해 특정 문제집을 선택하는 UI(예: 드롭다운)를 구현할 때 사용됩니다.
+
+            [Request]
+            - 인증 토큰 필요 (Bearer)
+
+            [Response]
+            - 성공 시, 오답노트 목록을 배열 형태로 반환합니다.
+            - 오답노트가 하나도 없을 경우 빈 배열을 반환합니다.""")
 @ApiResponses({
-  @ApiResponse(responseCode = "200", description = "조회 성공"),
+  @ApiResponse(
+      responseCode = "200",
+      description = "조회 성공",
+      content =
+          @Content(
+              array =
+                  @ArraySchema(schema = @Schema(implementation = WrongAnswerSetResponse.class)))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",

@@ -10,6 +10,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import org.springframework.http.ProblemDetail;
 
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
@@ -28,7 +29,10 @@ import org.springframework.http.ProblemDetail;
             - 성공 시, 문제의 상세 정보를 반환합니다.""",
     security = @SecurityRequirement(name = "bearerAuth"))
 @ApiResponses({
-  @ApiResponse(responseCode = "200", description = "조회 성공"),
+  @ApiResponse(
+      responseCode = "200",
+      description = "조회 성공",
+      content = @Content(schema = @Schema(implementation = QuestionResponse.class))),
   @ApiResponse(
       responseCode = "404",
       description = "문제를 찾을 수 없는 경우",

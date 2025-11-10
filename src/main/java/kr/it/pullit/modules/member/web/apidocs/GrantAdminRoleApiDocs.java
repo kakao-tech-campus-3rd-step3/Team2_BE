@@ -15,7 +15,10 @@ import org.springframework.http.ProblemDetail;
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(summary = "관리자 권한 부여", description = "특정 회원에게 관리자(ADMIN) 역할을 부여합니다.")
 @ApiResponses({
-  @ApiResponse(responseCode = "200", description = "관리자 권한 부여 성공"),
+  @ApiResponse(
+      responseCode = "200",
+      description = "관리자 권한 부여 성공",
+      content = @Content(schema = @Schema(hidden = true))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",

@@ -9,13 +9,17 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import kr.it.pullit.modules.questionset.web.dto.response.QuestionResponse;
 import org.springframework.http.ProblemDetail;
 
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(summary = "문제 수정")
 @ApiResponses({
-  @ApiResponse(responseCode = "200", description = "수정 성공"),
+  @ApiResponse(
+      responseCode = "200",
+      description = "수정 성공",
+      content = @Content(schema = @Schema(implementation = QuestionResponse.class))),
   @ApiResponse(
       responseCode = "400",
       description = "유효하지 않은 입력값입니다.",

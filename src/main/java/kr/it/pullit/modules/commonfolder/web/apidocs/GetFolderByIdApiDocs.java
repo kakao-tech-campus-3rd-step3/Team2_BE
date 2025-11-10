@@ -22,7 +22,8 @@ import org.springframework.http.ProblemDetail;
     summary = "특정 폴더 상세 조회",
     description =
         """
-            인증된 사용자의 특정 폴더 ID에 해당하는 상세 정보를 조회합니다.
+            폴더 ID로 특정 폴더의 상세 정보를 조회합니다.
+            '공통 폴더'가 아닌 사용자가 직접 생성한 폴더를 조회할 때 사용됩니다.
 
             [Request]
             - `id`: 폴더 ID (Path Variable, 필수)
@@ -39,19 +40,7 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              schema = @Schema(implementation = CommonFolderResponse.class),
-              examples =
-                  @ExampleObject(
-                      name = "폴더 상세 정보 응답",
-                      value =
-                          """
-                          {
-                            "id": 2,
-                            "name": "JPA",
-                            "type": "QUESTION_SET",
-                            "sortOrder": 1
-                          }
-                          """))),
+              schema = @Schema(implementation = CommonFolderResponse.class))),
   @ApiResponse(
       responseCode = "404",
       description = "존재하지 않거나 권한이 없는 폴더",
