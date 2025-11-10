@@ -1,10 +1,10 @@
 package kr.it.pullit.modules.projection.learnstats.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
 import java.util.Optional;
 import kr.it.pullit.modules.projection.learnstats.domain.LearnStats;
 import kr.it.pullit.modules.projection.learnstats.repository.LearnStatsRepository;
@@ -111,6 +111,9 @@ class LearnStatsServiceTest {
     void givenExistingProjectionThenUpdatesAndSaves() {
       // given
       Long memberId = 1L;
+      long expectedCorrectCount = 5L;
+      given(markingResultPublicApi.countCorrectAnswersByMemberId(memberId))
+          .willReturn(expectedCorrectCount);
       LearnStats existingProjection = LearnStats.newOf(memberId);
       given(learnStatsRepository.findById(memberId)).willReturn(Optional.of(existingProjection));
 
@@ -118,7 +121,9 @@ class LearnStatsServiceTest {
       sut.recalculateCorrectQuestionCount(memberId);
 
       // then
+      verify(markingResultPublicApi, times(1)).countCorrectAnswersByMemberId(memberId);
       verify(learnStatsRepository, times(1)).save(existingProjection);
+      assertThat(existingProjection.getTotalCorrectQuestionCount()).isEqualTo(expectedCorrectCount);
     }
 
     @Test
@@ -126,12 +131,16 @@ class LearnStatsServiceTest {
     void givenNoProjectionThenCreatesUpdatesAndSaves() {
       // given
       Long memberId = 1L;
+      long expectedCorrectCount = 5L;
+      given(markingResultPublicApi.countCorrectAnswersByMemberId(memberId))
+          .willReturn(expectedCorrectCount);
       given(learnStatsRepository.findById(memberId)).willReturn(Optional.empty());
 
       // when
       sut.recalculateCorrectQuestionCount(memberId);
 
       // then
+      verify(markingResultPublicApi, times(1)).countCorrectAnswersByMemberId(memberId);
       verify(learnStatsRepository, times(1)).save(any(LearnStats.class));
     }
   }
