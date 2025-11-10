@@ -8,18 +8,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import java.util.Map;
-import kr.it.pullit.modules.questionset.exception.QuestionNotFoundException;
 import kr.it.pullit.modules.questionset.service.MarkingService;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingRequest;
 import kr.it.pullit.modules.questionset.web.dto.request.MarkingServiceRequest;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkQuestionsResponse;
 import kr.it.pullit.modules.questionset.web.dto.response.MarkingResultDto;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
-import kr.it.pullit.support.apidocs.ProblemDetailTestUtils;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 

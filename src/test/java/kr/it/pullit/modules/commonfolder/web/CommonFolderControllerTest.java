@@ -1,7 +1,6 @@
 package kr.it.pullit.modules.commonfolder.web;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -14,21 +13,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import kr.it.pullit.modules.commonfolder.api.CommonFolderPublicApi;
 import kr.it.pullit.modules.commonfolder.api.FolderFacade;
-import kr.it.pullit.modules.commonfolder.domain.entity.CommonFolder;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 import kr.it.pullit.modules.commonfolder.domain.enums.FolderScope;
-import kr.it.pullit.modules.commonfolder.exception.CommonFolderErrorCode;
-import kr.it.pullit.modules.commonfolder.exception.FolderNotFoundException;
-import kr.it.pullit.modules.commonfolder.exception.InvalidFolderOperationException;
 import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
 import kr.it.pullit.modules.commonfolder.web.dto.CreateFolderRequest;
 import kr.it.pullit.modules.commonfolder.web.dto.UpdateFolderRequest;
 import kr.it.pullit.support.annotation.AuthenticatedMvcSliceTest;
-import kr.it.pullit.support.apidocs.ProblemDetailTestUtils;
 import kr.it.pullit.support.security.WithMockMember;
 import kr.it.pullit.support.test.ControllerTest;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
