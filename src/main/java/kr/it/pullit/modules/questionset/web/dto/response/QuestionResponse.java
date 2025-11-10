@@ -1,6 +1,7 @@
 package kr.it.pullit.modules.questionset.web.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import kr.it.pullit.modules.questionset.domain.entity.MultipleChoiceQuestion;
 import kr.it.pullit.modules.questionset.domain.entity.Question;
@@ -14,12 +15,19 @@ import lombok.Builder;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record QuestionResponse(
-    Long id,
-    QuestionType questionType,
-    String questionText,
-    List<String> options,
-    Object answer,
-    String explanation) {
+    @Schema(description = "문제 ID", example = "101") Long id,
+    @Schema(description = "문제 유형", example = "MULTIPLE_CHOICE") QuestionType questionType,
+    @Schema(description = "문제 내용", example = "다음 중 Java의 기본 타입이 아닌 것은?") String questionText,
+    @Schema(
+            description = "객관식 문제의 보기 (객관식 유형에만 존재)",
+            example = "[\"int\", \"String\", \"boolean\", \"char\"]")
+        List<String> options,
+    @Schema(
+            description = "정답 (객관식: 1, T/F: true, 주관식: \"정답\")",
+            oneOf = {Integer.class, Boolean.class, String.class},
+            example = "2")
+        Object answer,
+    @Schema(description = "해설", example = "String은 참조 타입입니다.") String explanation) {
 
   public static QuestionResponse from(Question question) {
     return createResponseByType(question);

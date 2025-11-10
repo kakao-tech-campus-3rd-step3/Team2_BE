@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.web.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -21,6 +22,22 @@ import jakarta.validation.constraints.Positive;
  * @author Hyeonjun0527
  */
 public record SourceUploadRequest(
-    @NotBlank(message = "파일명은 필수입니다") String fileName,
-    @NotBlank(message = "콘텐츠 타입은 필수입니다") String contentType,
-    @NotNull(message = "파일 크기는 필수입니다") @Positive(message = "파일 크기는 양수여야 합니다") Long fileSize) {}
+    @Schema(
+            description = "업로드할 파일의 원본 이름",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "my-document.pdf")
+        @NotBlank(message = "파일명은 필수입니다")
+        String fileName,
+    @Schema(
+            description = "파일의 MIME 타입",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "application/pdf")
+        @NotBlank(message = "콘텐츠 타입은 필수입니다")
+        String contentType,
+    @Schema(
+            description = "파일 크기 (바이트 단위)",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "204800")
+        @NotNull(message = "파일 크기는 필수입니다")
+        @Positive(message = "파일 크기는 양수여야 합니다")
+        Long fileSize) {}

@@ -1,5 +1,6 @@
 package kr.it.pullit.modules.learningsource.source.web.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 import lombok.Getter;
 
@@ -15,46 +16,26 @@ import lombok.Getter;
 @Getter
 public class SourceUploadResponse {
 
-  /**
-   * S3에 파일을 업로드할 수 있는 Pre-signed URL
-   *
-   * <p>이 URL은 제한된 시간 동안만 유효하며, 프론트엔드는 이 URL을 사용하여 PUT 요청으로 파일을 S3에 직접 업로드해야 합니다.
-   */
+  @Schema(
+      description = "S3에 파일을 업로드할 수 있는 Pre-signed URL",
+      example = "https://s3.ap-northeast-2.amazonaws.com/pullit/...")
   private final String uploadUrl;
 
-  /**
-   * S3에 저장될 파일 경로
-   *
-   * <p>실제 S3 버킷 내에서 파일이 저장되는 경로입니다. 보안을 위해 원본 파일명 대신 UUID가 포함된 경로가 사용됩니다.
-   */
+  @Schema(
+      description = "S3에 저장될 파일 경로",
+      example = "source/1/2025/11/10/uuid-filename.pdf")
   private final String filePath;
 
-  /**
-   * 원본 파일명
-   *
-   * <p>사용자가 업로드한 파일의 원래 이름입니다. 데이터베이스에 저장되어 사용자에게 표시됩니다.
-   */
+  @Schema(description = "원본 파일명", example = "my-document.pdf")
   private final String originalName;
 
-  /**
-   * 파일의 MIME 타입
-   *
-   * <p>"application/pdf" S3 업로드 시 Content-Type 헤더로 사용되어야 합니다.
-   */
+  @Schema(description = "파일의 MIME 타입", example = "application/pdf")
   private final String contentType;
 
-  /**
-   * 파일 크기 (바이트 단위)
-   *
-   * <p>파일의 실제 크기를 나타냅니다. S3 업로드 검증 및 사용자 표시를 위해 사용됩니다.
-   */
+  @Schema(description = "파일 크기 (바이트 단위)", example = "204800")
   private final Long fileSizeBytes;
 
-  /**
-   * 업로드 세션 식별자
-   *
-   * <p>각 업로드 요청마다 고유하게 생성되는 UUID입니다. 업로드 완료 알림 시 세션 유효성을 검증하는 데 사용됩니다.
-   */
+  @Schema(description = "업로드 세션 식별자 (UUID)", example = "18c9c8be-e5d4-4c37-b0c4-ccf3c4fc4b65")
   private final String uploadId;
 
   public SourceUploadResponse(

@@ -146,12 +146,42 @@ Pullit은 안정적인 서비스 제공을 위해 API 서버와 백그라운드 
 
 | 구성 요소 | 설명 |
 |:---|:---|
-| **리버스 프록시** | **Nginx**를 통해 SSL 종료, 로드 밸런싱, 요청 라우팅을 담당합니다. |
-| **애플리케이션 서버** | **Spring Boot** 기반의 API 서버와 Worker 서버를 분리 운영합니다. 무거운 작업을 Worker에게 위임하여 API 서버의 안정성을 확보했으며, 핵심 설계 원칙은 하단에 별도로 기술했습니다. |
-| **데이터 & 캐시** | 영구 데이터는 **MariaDB**에 저장하며, **Redis**는 **리프레시 토큰 관리** 및 캐시 데이터 저장에 사용하여 성능을 최적화합니다. |
-| **비동기 처리** | **RabbitMQ**를 도입하여 대용량 파일 업로드 시 발생하던 메모리 부족 문제를 해결했습니다. 요청을 즉시 처리하는 대신 큐에 등록하고 Worker가 순차 처리하여 시스템 안정성을 확보했습니다. 특히 **학습 성과 대시보드**의 경우, **트랜잭션 아웃박스 패턴**을 통해 데이터 정합성을 보장함과 동시에 통계 집계 시 발생할 수 있는 **예상 성능 저하를 선제적으로 해결**했습니다. 다만, 메세지 큐가 도입되기 전 일부 로직에서 여전히 내장 `ApplicationEventPublisher`를 사용하고 있기도 합니다. |
-| **CI/CD** | **GitHub Actions**를 통해 **블루/그린 무중단 배포** 파이프라인을 구축했습니다. Nginx를 통해 트래픽을 전환하여, 사용자는 서비스 중단 없이 새로운 기능을 안정적으로 제공받을 수 있습니다. |
-| **외부 서비스** | Google Gemini(AI)와 통신 시, 명확한 JSON 응답 스키마를 정의하고 검증하여 비정형적인 응답에 안정적으로 문제를 생성하도록 구현했습니다. 그 외 **Kakao(OAuth)**, **AWS S3(파일 스토리지)** 와 통신합니다. |
+| **리버스 프록시** | **Nginx**를 통해 SSL 종료, 로드 밸런싱, 요청 라우팅을 담당합니다. <br> 🕵️ *관련 경로: [Nginx 설정 문서](https://pullit-docs-server.vercel.app/#05-deploy-nginx)* |
+| **애플리케이션 서버** | **Spring Boot** 기반의 API 서버와 Worker 서버를 분리 운영합니다. 무거운 작업을 Worker에게 위임하여 API 서버의 안정성을 확보했으며, 핵심 설계 원칙은 하단에 별도로 기술했습니다. <br> 🕵️ *관련 경로: `docker-compose.qa.yml`* |
+| **데이터 & 캐시** | 영구 데이터는 **MariaDB**에 저장하며, **Redis**는 **리프레시 토큰 관리** 및 캐시 데이터 저장에 사용하여 성능을 최적화합니다. <br> 🕵️ *관련 경로: `RedisConfig.java`, `AuthService.java`, `RefreshTokenRepository.java`* |
+| **비동기 처리** | **RabbitMQ**를 도입하여 대용량 파일 업로드 시 발생하던 메모리 부족 문제를 해결했습니다. 요청을 즉시 처리하는 대신 큐에 등록하고 Worker가 순차 처리하여 시스템 안정성을 확보했습니다. 특히 **학습 성과 대시보드**의 경우, **트랜잭션 아웃박스 패턴**을 통해 데이터 정합성을 보장함과 동시에 통계 집계 시 발생할 수 있는 **예상 성능 저하를 선제적으로 해결**했습니다. 다만, 메세지 큐가 도입되기 전 일부 로직에서 여전히 내장 `ApplicationEventPublisher`를 사용하고 있기도 합니다. <br> 🕵️ *관련 경로: `RabbitMqConfig.java`, `QuestionGenerationEventHandler.java`, `QuestionGenerationWorker.java`* |
+| **CI/CD** | **GitHub Actions**를 통해 **블루/그린 무중단 배포** 파이프라인을 구축했습니다. Nginx를 통해 트래픽을 전환하여, 사용자는 서비스 중단 없이 새로운 기능을 안정적으로 제공받을 수 있습니다. <br> 🕵️ *관련 경로: `.github/workflows/ci.yml`, `.github/workflows/cd.yml`* |
+| **외부 서비스** | Google Gemini(AI)와 통신 시, 명확한 JSON 응답 스키마를 정의하고 검증하여 비정형적인 응답에 안정적으로 문제를 생성하도록 구현했습니다. 그 외 **Kakao(OAuth)**, **AWS S3(파일 스토리지)** 와 통신합니다. <br> 🕵️ *관련 경로: `GeminiConfigBuilder.java`, `GeminiClient.java`, `QuestionService.java`, `S3FileStorageClientManagingClient.java`, `CustomOAuth2UserService.java`, `KakaoPrincipal.java`* |
+
+#### 📦 그 외 살펴볼 클래스
+
+Pullit의 아키텍처와 비즈니스 로직을 빠르게 파악하고 싶으시다면, 아래 파일들을 먼저 살펴보시는 것을 추천합니다.
+
+- **인증 및 보안 (Authentication & Security)**
+  - `kr.it.pullit.platform.security.config.SecurityConfig`: JWT와 OAuth2를 포함한 전체적인 Spring Security 설정의 중심입니다.
+  - `kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter`: 모든 API 요청의 JWT 토큰을 검증하는 필터입니다.
+  - `kr.it.pullit.modules.auth.kakaoauth.service.CustomOAuth2UserService`: 카카오 소셜 로그인 성공 후 사용자 정보를 처리합니다.
+  - `kr.it.pullit.platform.security.handler.OAuth2AuthenticationSuccessHandler`: OAuth2 인증 성공 후 토큰 발급 및 리다이렉션을 처리하는 핸들러입니다.
+  - `kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository`: OAuth2 인증 요청 과정에서 상태(state)와 리다이렉션 URI를 임시 저장합니다.
+
+- **AI 문제 생성 (AI Question Generation)**
+  - `kr.it.pullit.modules.questionset.service.QuestionSetService`: 문제집 생성 요청을 접수하고 전체 흐름을 관리합니다.
+  - `kr.it.pullit.modules.questionset.event.QuestionGenerationWorker`: RabbitMQ로부터 이벤트를 받아 실제 AI 문제 생성을 비동기적으로 처리하는 워커입니다.
+  - `kr.it.pullit.modules.questionset.client.GeminiClient`: Google Gemini AI 모델과 통신하여 문제를 생성하는 클라이언트입니다.
+
+- **문제 채점 및 통계 (Marking & Statistics)**
+  - `kr.it.pullit.modules.questionset.service.MarkingService`: 사용자가 제출한 답안을 채점하는 핵심 로직을 담고 있습니다.
+  - `kr.it.pullit.modules.questionset.event.MarkingCompletedEvent`: 채점이 완료된 후 발행되는 동기 이벤트입니다.
+  - `kr.it.pullit.modules.wronganswer.service.WrongAnswerEventListener`: `MarkingCompletedEvent`를 받아 오답 노트를 생성합니다.
+  - `kr.it.pullit.modules.projection.learnstats.event.handler.LearnStatsEventDispatcher`: `MarkingCompletedEvent`를 받아 학습 통계를 업데이트합니다.
+
+- **학습 자료 및 파일 관리 (Learning Source & File Management)**
+  - `kr.it.pullit.modules.learningsource.source.service.SourceService`: 학습 자료(PDF 등) 업로드 및 상태 관리를 담당합니다.
+  - `kr.it.pullit.platform.storage.client.S3FileStorageClientManagingClient`: AWS S3와의 파일 통신을 담당하는 클라이언트입니다.
+
+- **공통 및 기반 구조 (Common & Platform)**
+  - `kr.it.pullit.shared.error.GlobalExceptionHandler`: 프로젝트 전역의 예외를 처리하여 일관된 오류 응답을 제공합니다.
+  - `kr.it.pullit.shared.jpa.BaseEntity`: 모든 엔티티가 공통으로 상속받는 기본 엔티티 클래스입니다.
 
 </details>
 

@@ -55,49 +55,11 @@ import org.springframework.http.ProblemDetail;
                           """))),
   @ApiResponse(
       responseCode = "400",
-      description = "잘못된 요청 (예: '전체' 폴더 수정 시도, ID 타입 불일치)",
-      content =
-          @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = ProblemDetail.class),
-              examples = {
-                @ExampleObject(
-                    name = "기본 폴더 수정 시도",
-                    value =
-                        """
-                                {
-                                  "type": "about:blank",
-                                  "title": "Bad Request",
-                                  "status": 400,
-                                  "detail": "기본 폴더명은 변경할 수 없습니다.",
-                                  "instance": "/api/common-folders/1",
-                                  "code": "CF_002"
-                                }
-                                """),
-                @ExampleObject(
-                    name = "인수 타입 불일치",
-                    ref = "#/components/examples/argumentTypeMismatchExample")
-              })),
+      description = "유효하지 않은 입력값입니다.",
+      content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
   @ApiResponse(
       responseCode = "404",
-      description = "존재하지 않거나 권한이 없는 폴더",
-      content =
-          @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = ProblemDetail.class),
-              examples =
-                  @ExampleObject(
-                      name = "폴더 조회 실패",
-                      value =
-                          """
-                                {
-                                  "type": "about:blank",
-                                  "title": "Not Found",
-                                  "status": 404,
-                                  "detail": "해당 폴더를 찾을 수 없습니다.",
-                                  "instance": "/api/common-folders/999",
-                                  "code": "CF_003"
-                                }
-                                """)))
+      description = "수정할 폴더를 찾을 수 없거나 접근 권한이 없는 경우",
+      content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
 })
 public @interface UpdateFolderApiDocs {}

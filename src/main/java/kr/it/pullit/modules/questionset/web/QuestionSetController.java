@@ -4,8 +4,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.questionset.api.QuestionSetPublicApi;
 import kr.it.pullit.modules.questionset.api.QuestionSetWithStatsFacade;
+import kr.it.pullit.modules.questionset.web.apidocs.CreateQuestionSetApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.DeleteQuestionSetApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.GetAllMyQuestionSetsApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.GetMyQuestionSetsApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.GetQuestionSetByIdApiDocs;
+import kr.it.pullit.modules.questionset.web.apidocs.UpdateQuestionSetApiDocs;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetCreateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.request.QuestionSetUpdateRequestDto;
 import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
@@ -30,6 +37,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/question-set")
+@AuthApiDocs
 public class QuestionSetController {
 
   private final QuestionSetPublicApi questionSetPublicApi;
@@ -44,6 +52,7 @@ public class QuestionSetController {
    * @return 문제집 응답
    */
   @GetMapping("/{id}")
+  @GetQuestionSetByIdApiDocs
   public ResponseEntity<QuestionSetResponse> getQuestionSetById(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
@@ -60,6 +69,7 @@ public class QuestionSetController {
    * @return 회원의 모든 문제집 목록
    */
   @GetMapping
+  @GetMyQuestionSetsApiDocs
   public ResponseEntity<MyQuestionSetsWithStatsResponse> getMyQuestionSets(
       @AuthenticationPrincipal Long memberId,
       @RequestParam(required = false) Long cursor,
@@ -71,6 +81,7 @@ public class QuestionSetController {
   }
 
   @GetMapping("/all")
+  @GetAllMyQuestionSetsApiDocs
   public ResponseEntity<List<MyQuestionSetsResponse>> getAllMyQuestionSets(
       @AuthenticationPrincipal Long memberId) {
     return ResponseEntity.ok(questionSetPublicApi.getMemberQuestionSets(memberId));
@@ -85,6 +96,7 @@ public class QuestionSetController {
    */
   @PostMapping
   @Idempotent
+  @CreateQuestionSetApiDocs
   public ResponseEntity<Void> createQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @Valid @RequestBody QuestionSetCreateRequestDto questionSetCreateRequestDto) {
@@ -109,6 +121,7 @@ public class QuestionSetController {
    * @return 200 OK
    */
   @PatchMapping("/{id}")
+  @UpdateQuestionSetApiDocs
   public ResponseEntity<Void> updateQuestionSet(
       @AuthenticationPrincipal Long memberId,
       @PathVariable Long id,
@@ -125,6 +138,7 @@ public class QuestionSetController {
    * @return 문제집 삭제 응답
    */
   @DeleteMapping("/{id}")
+  @DeleteQuestionSetApiDocs
   public ResponseEntity<Void> deleteQuestionSet(
       @AuthenticationPrincipal Long memberId, @PathVariable Long id) {
     questionSetPublicApi.delete(id, memberId);

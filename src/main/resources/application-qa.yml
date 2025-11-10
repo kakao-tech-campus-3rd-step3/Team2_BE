@@ -40,6 +40,10 @@ server:
     include-message: always
   forward-headers-strategy: framework
 
+springdoc:
+  swagger-ui:
+    enabled: false
+
 info:
   app:
     name: Pullit QA
@@ -91,6 +95,7 @@ cors:
     - "https://www.pull.it.kr"
     - "https://pull.it.kr"
     - "https://local.pull.it.kr:5173"
+    - "https://pullit-docs-server.vercel.app"
 
 # 나머지 외부 연동 설정(S3, Google, Kakao 키 등)은 application.yml의 정의를 상속
 

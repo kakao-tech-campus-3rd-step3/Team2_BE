@@ -3,8 +3,11 @@ package kr.it.pullit.modules.projection.learnstats.web;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
+import kr.it.pullit.modules.auth.web.apidocs.AuthApiDocs;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsDailyPublicApi;
 import kr.it.pullit.modules.projection.learnstats.api.LearnStatsFacade;
+import kr.it.pullit.modules.projection.learnstats.web.apidocs.GetDailyStatsApiDocs;
+import kr.it.pullit.modules.projection.learnstats.web.apidocs.GetLearnStatsApiDocs;
 import kr.it.pullit.modules.projection.learnstats.web.dto.DailyStatsResponse;
 import kr.it.pullit.modules.projection.learnstats.web.dto.LearnStatsResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +22,20 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Learn Stats API", description = "학습 통계 조회 API")
 @RestController
 @RequiredArgsConstructor
+@AuthApiDocs
 public class LearnStatsController {
 
   private final LearnStatsFacade learnStatsFacade;
   private final LearnStatsDailyPublicApi learnStatsDailyPublicApi;
 
   @GetMapping("/api/members/{memberId}/learn-stats")
+  @GetLearnStatsApiDocs
   public ResponseEntity<LearnStatsResponse> getLearnStats(@PathVariable Long memberId) {
     return ResponseEntity.ok(learnStatsFacade.getLearnStats(memberId));
   }
 
   @GetMapping("/api/members/{memberId}/daily-stats")
+  @GetDailyStatsApiDocs
   public ResponseEntity<List<DailyStatsResponse>> getDailyStats(
       @PathVariable Long memberId,
       @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate from,
