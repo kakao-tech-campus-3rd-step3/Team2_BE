@@ -59,45 +59,45 @@
 ### 1. 문제 생성
 > 학습 자료(PDF 등)를 올리면 Gemini AI가 다양한 유형의 문제를 자동으로 생성합니다.
 
-| 기능 미리보기 1 | 기능 미리보기 2 |
+| 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/question_creation_1.png" alt="문제 생성 1" width="400"/> | <img src="docs/project_picture/question_creation_2.png" alt="문제 생성 2" width="400"/> |
+| <img src="docs/project_picture/create_pc.gif" alt="문제 생성 PC" width="400"/> | <img src="docs/project_picture/create_mobile.gif" alt="문제 생성 Mobile" width="400"/> |
 
 ---
 
 ### 2. 문제 풀이
 > 생성된 문제를 풀고 즉시 채점하며 상세한 해설을 확인할 수 있습니다.
 
-| 기능 미리보기 1 | 기능 미리보기 2 |
+| 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/question_solve_1.png" alt="문제 풀이 1" width="400"/> | <img src="docs/project_picture/question_solve_2.png" alt="문제 풀이 2" width="400"/> |
+| <img src="docs/project_picture/solve_pc.gif" alt="문제 풀이 PC" width="400"/> | <img src="docs/project_picture/solve_mobile.gif" alt="문제 풀이 Mobile" width="400"/> |
 
 ---
 
 ### 3. 문제 관리
 > 생성된 문제집과 학습 자료를 폴더별로 효율적으로 관리할 수 있습니다.
 
-| 기능 미리보기 1 | 기능 미리보기 2 |
+| 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/question_management_1.png" alt="문제 관리 1" width="400"/> | <img src="docs/project_picture/question_management_2.png" alt="문제 관리 2" width="400"/> |
+| <img src="docs/project_picture/library_pc.gif" alt="문제 관리 PC" width="400"/> | <img src="docs/project_picture/library_mobile.gif" alt="문제 관리 Mobile" width="400"/> |
 
 ---
 
 ### 4. 오답 노트
 > 틀린 문제는 자동으로 오답 노트에 기록되어 취약점을 집중적으로 학습할 수 있습니다.
 
-| 기능 미리보기 1 | 기능 미리보기 2 |
+| 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/wrong_answer_1.png" alt="오답 노트 1" width="400"/> | <img src="docs/project_picture/wrong_answer_2.png" alt="오답 노트 2" width="400"/> |
+| <img src="docs/project_picture/wrong_pc.gif" alt="오답 노트 PC" width="400"/> | <img src="docs/project_picture/wrong_mobile.gif" alt="오답 노트 Mobile" width="400"/> |
 
 ---
 
 ### 5. 대시보드
 > 학습 현황과 성과를 통계로 시각화하여 학습 동기를 부여합니다.
 
-| 기능 미리보기 1 |
-| :---: |
-| <img src="docs/project_picture/dash_board_1.png" alt="대시보드 1" width="400"/> |
+| 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
+| :---: | :---: |
+| <img src="docs/project_picture/dashboard_pc.gif" alt="대시보드 PC" width="400"/> | <img src="docs/project_picture/dashboard_mobile.gif" alt="대시보드 Mobile" width="400"/> |
 
 ---
 
