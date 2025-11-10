@@ -61,7 +61,7 @@
 
 | 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/create_pc.gif" alt="문제 생성 PC" width="400"/> | <img src="docs/project_picture/create_mobile.gif" alt="문제 생성 Mobile" width="400"/> |
+| <img src="docs/project_picture/create_pc.gif" alt="문제 생성 PC" width="380"/> | <img src="docs/project_picture/create_mobile.gif" alt="문제 생성 Mobile" width="380"/> |
 
 ---
 
