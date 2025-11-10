@@ -9,7 +9,10 @@ import lombok.Builder;
 
 @Builder
 public record QuestionCreateRequest(
-    @Schema(description = "문제가 추가될 문제집 ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @Schema(
+            description = "문제가 추가될 문제집 ID",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "1")
         @NotNull(message = "문제집 ID는 필수입니다.")
         Long questionSetId,
     @Schema(

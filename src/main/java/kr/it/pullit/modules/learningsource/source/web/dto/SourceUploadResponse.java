@@ -21,9 +21,7 @@ public class SourceUploadResponse {
       example = "https://s3.ap-northeast-2.amazonaws.com/pullit/...")
   private final String uploadUrl;
 
-  @Schema(
-      description = "S3에 저장될 파일 경로",
-      example = "source/1/2025/11/10/uuid-filename.pdf")
+  @Schema(description = "S3에 저장될 파일 경로", example = "source/1/2025/11/10/uuid-filename.pdf")
   private final String filePath;
 
   @Schema(description = "원본 파일명", example = "my-document.pdf")

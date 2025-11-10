@@ -6,7 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import kr.it.pullit.modules.commonfolder.domain.enums.CommonFolderType;
 
 public record CreateFolderRequest(
-    @Schema(description = "생성할 폴더의 이름", requiredMode = Schema.RequiredMode.REQUIRED, example = "Java 기초")
+    @Schema(
+            description = "생성할 폴더의 이름",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "Java 기초")
         @NotBlank
         String name,
     @Schema(

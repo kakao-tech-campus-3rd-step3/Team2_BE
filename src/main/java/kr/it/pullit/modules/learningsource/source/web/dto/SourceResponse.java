@@ -28,10 +28,16 @@ public record SourceResponse(
     @Schema(description = "PDF 등 문서의 페이지 수", example = "50") Integer pageCount,
     @Schema(description = "파일 크기 (byte 단위)", example = "204800") Long fileSizeBytes,
     @Schema(description = "소스 업로드 날짜", example = "2025-01-01")
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+        @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd",
+            timezone = "Asia/Seoul")
         LocalDateTime createdAt,
     @Schema(description = "해당 소스로 문제집을 생성한 가장 최근 날짜", example = "2025-01-10")
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+        @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd",
+            timezone = "Asia/Seoul")
         LocalDateTime recentQuestionGeneratedAt) {
   public static SourceResponse from(Source source) {
     return new SourceResponse(

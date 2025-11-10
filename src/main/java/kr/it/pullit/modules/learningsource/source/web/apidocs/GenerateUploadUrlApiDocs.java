@@ -14,9 +14,7 @@ import org.springframework.http.ProblemDetail;
 // TODO: 상태코드 정상화
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Operation(
-    summary = "S3 파일 업로드 URL 생성",
-    description = "S3에 파일을 업로드하기 위한 Presigned URL을 생성합니다.")
+@Operation(summary = "S3 파일 업로드 URL 생성", description = "S3에 파일을 업로드하기 위한 Presigned URL을 생성합니다.")
 @ApiResponses({
   @ApiResponse(responseCode = "200", description = "URL 생성 성공"),
   @ApiResponse(
