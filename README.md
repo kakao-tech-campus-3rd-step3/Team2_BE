@@ -61,7 +61,7 @@
 
 | 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/create_pc.gif" alt="문제 생성 PC" width="400"/> | <img src="docs/project_picture/create_mobile.gif" alt="문제 생성 Mobile" width="400"/> |
+| <img src="docs/project_picture/create_pc.gif" alt="문제 생성 PC" width="380"/> | <img src="docs/project_picture/create_mobile.gif" alt="문제 생성 Mobile" width="380"/> |
 
 ---
 
@@ -70,7 +70,7 @@
 
 | 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/solve_pc.gif" alt="문제 풀이 PC" width="400"/> | <img src="docs/project_picture/solve_mobile.gif" alt="문제 풀이 Mobile" width="400"/> |
+| <img src="docs/project_picture/solve_pc.gif" alt="문제 풀이 PC" width="380"/> | <img src="docs/project_picture/solve_mobile.gif" alt="문제 풀이 Mobile" width="380"/> |
 
 ---
 
@@ -79,7 +79,7 @@
 
 | 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/library_pc.gif" alt="문제 관리 PC" width="400"/> | <img src="docs/project_picture/library_mobile.gif" alt="문제 관리 Mobile" width="400"/> |
+| <img src="docs/project_picture/library_pc.gif" alt="문제 관리 PC" width="380"/> | <img src="docs/project_picture/library_mobile.gif" alt="문제 관리 Mobile" width="380"/> |
 
 ---
 
@@ -88,7 +88,7 @@
 
 | 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/wrong_pc.gif" alt="오답 노트 PC" width="400"/> | <img src="docs/project_picture/wrong_mobile.gif" alt="오답 노트 Mobile" width="400"/> |
+| <img src="docs/project_picture/wrong_pc.gif" alt="오답 노트 PC" width="380"/> | <img src="docs/project_picture/wrong_mobile.gif" alt="오답 노트 Mobile" width="380"/> |
 
 ---
 
@@ -97,7 +97,7 @@
 
 | 기능 미리보기 (PC) | 기능 미리보기 (Mobile) |
 | :---: | :---: |
-| <img src="docs/project_picture/dashboard_pc.gif" alt="대시보드 PC" width="400"/> | <img src="docs/project_picture/dashboard_mobile.gif" alt="대시보드 Mobile" width="400"/> |
+| <img src="docs/project_picture/dashboard_pc.gif" alt="대시보드 PC" width="380"/> | <img src="docs/project_picture/dashboard_mobile.gif" alt="대시보드 Mobile" width="380"/> |
 
 ---
 
@@ -106,7 +106,7 @@
 
 | 기능 미리보기 1 |
 | :---: |
-| <img src="docs/project_picture/alarm_1.png" alt="알림 1" width="400"/> |
+| <img src="docs/project_picture/alarm_1.png" alt="알림 1" width="380"/> |
 
 ---
 
