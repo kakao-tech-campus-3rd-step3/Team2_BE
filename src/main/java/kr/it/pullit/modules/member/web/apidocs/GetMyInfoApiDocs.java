@@ -2,6 +2,7 @@ package kr.it.pullit.modules.member.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -31,7 +32,20 @@ import org.springframework.http.ProblemDetail;
   @ApiResponse(
       responseCode = "200",
       description = "내 정보 조회 성공",
-      content = @Content(schema = @Schema(implementation = MemberInfoResponse.class))),
+      content =
+          @Content(
+              schema = @Schema(implementation = MemberInfoResponse.class),
+              examples =
+                  @ExampleObject(
+                      name = "내 정보 조회 예시",
+                      value =
+                          """
+                          {
+                            "id": 1,
+                            "name": "홍길동",
+                            "email": "gildong@example.com"
+                          }
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",

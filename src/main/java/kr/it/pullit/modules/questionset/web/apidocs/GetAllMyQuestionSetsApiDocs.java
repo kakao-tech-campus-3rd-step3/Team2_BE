@@ -3,6 +3,7 @@ package kr.it.pullit.modules.questionset.web.apidocs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.lang.annotation.ElementType;
@@ -31,5 +32,27 @@ import kr.it.pullit.modules.questionset.web.dto.response.MyQuestionSetsResponse;
     description = "조회 성공",
     content =
         @Content(
-            array = @ArraySchema(schema = @Schema(implementation = MyQuestionSetsResponse.class))))
+            array = @ArraySchema(schema = @Schema(implementation = MyQuestionSetsResponse.class)),
+            examples =
+                @ExampleObject(
+                    name = "나의 모든 문제집 조회 예시",
+                    value =
+                        """
+                        [
+                          {
+                            "questionSetId": 1,
+                            "title": "Java 기초 문제집",
+                            "sourceIds": [1, 2],
+                            "sourceNames": ["Java.pdf", "객체지향.pdf"],
+                            "questionCount": 20,
+                            "difficultyType": "EASY",
+                            "questionType": "MULTIPLE_CHOICE",
+                            "status": "COMPLETE",
+                            "learningStatus": "IN_PROGRESS",
+                            "commonFolderId": 5,
+                            "commonFolderName": "기본 폴더",
+                            "createdAt": "2025-01-01T12:00:00"
+                          }
+                        ]
+                        """)))
 public @interface GetAllMyQuestionSetsApiDocs {}

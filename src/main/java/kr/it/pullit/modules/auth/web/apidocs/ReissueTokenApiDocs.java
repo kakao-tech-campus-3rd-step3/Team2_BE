@@ -2,6 +2,7 @@ package kr.it.pullit.modules.auth.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.lang.annotation.ElementType;
@@ -18,5 +19,16 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
 @ApiResponse(
     responseCode = "200",
     description = "액세스 토큰 재발급 성공",
-    content = @Content(schema = @Schema(implementation = AccessTokenResponse.class)))
+    content =
+        @Content(
+            schema = @Schema(implementation = AccessTokenResponse.class),
+            examples =
+                @ExampleObject(
+                    name = "토큰 재발급 성공",
+                    value =
+                        """
+                        {
+                          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNjE2MjI0MjQyLCJleHAiOjE2MTYyMjc4NDJ9"
+                        }
+                        """)))
 public @interface ReissueTokenApiDocs {}

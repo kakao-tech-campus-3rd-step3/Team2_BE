@@ -38,7 +38,37 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = SourceResponse.class)))),
+              array = @ArraySchema(schema = @Schema(implementation = SourceResponse.class)),
+              examples =
+                  @ExampleObject(
+                      name = "학습 소스 목록 조회 예시",
+                      value =
+                          """
+                          [
+                            {
+                              "id": 1,
+                              "originalName": "orientation.pdf",
+                              "sourceFolderName": "기본 폴더",
+                              "status": "READY",
+                              "questionSetCount": 2,
+                              "pageCount": 15,
+                              "fileSizeBytes": 204800,
+                              "createdAt": "2025-01-01",
+                              "recentQuestionGeneratedAt": "2025-01-05"
+                            },
+                            {
+                              "id": 2,
+                              "originalName": "jpa-programming.pdf",
+                              "sourceFolderName": "CS 스터디",
+                              "status": "PROCESSING",
+                              "questionSetCount": 0,
+                              "pageCount": 350,
+                              "fileSizeBytes": 1024500,
+                              "createdAt": "2025-02-10",
+                              "recentQuestionGeneratedAt": null
+                            }
+                          ]
+                          """))),
   @ApiResponse(
       responseCode = "400",
       description = "요청 정보가 유효하지 않음",

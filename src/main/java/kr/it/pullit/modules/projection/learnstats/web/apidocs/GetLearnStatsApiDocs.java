@@ -2,6 +2,7 @@ package kr.it.pullit.modules.projection.learnstats.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,7 +31,25 @@ import org.springframework.http.ProblemDetail;
   @ApiResponse(
       responseCode = "200",
       description = "학습 통계 조회 성공",
-      content = @Content(schema = @Schema(implementation = LearnStatsResponse.class))),
+      content =
+          @Content(
+              schema = @Schema(implementation = LearnStatsResponse.class),
+              examples =
+                  @ExampleObject(
+                      name = "종합 학습 통계 예시",
+                      value =
+                          """
+                          {
+                            "totalQuestionSetCount": 15,
+                            "totalSolvedQuestionSetCount": 10,
+                            "totalQuestionCount": 300,
+                            "totalSolvedQuestionCount": 250,
+                            "totalCorrectQuestionCount": 200,
+                            "weeklySolvedQuestionCount": 50,
+                            "consecutiveLearningDays": 7,
+                            "lastLearningDate": "2025-11-10"
+                          }
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",

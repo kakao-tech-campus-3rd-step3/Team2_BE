@@ -2,6 +2,7 @@ package kr.it.pullit.modules.learningsource.source.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,7 +36,23 @@ import org.springframework.http.ProblemDetail;
   @ApiResponse(
       responseCode = "200",
       description = "URL 생성 성공",
-      content = @Content(schema = @Schema(implementation = SourceUploadResponse.class))),
+      content =
+          @Content(
+              schema = @Schema(implementation = SourceUploadResponse.class),
+              examples =
+                  @ExampleObject(
+                      name = "S3 Presigned URL 생성 응답",
+                      value =
+                          """
+                          {
+                            "uploadUrl": "https://s3.ap-northeast-2.amazonaws.com/pullit/source/1/2025/11/10/...",
+                            "filePath": "source/1/2025/11/10/generated-uuid-filename.pdf",
+                            "originalName": "my-document.pdf",
+                            "contentType": "application/pdf",
+                            "fileSizeBytes": 204800,
+                            "uploadId": "18c9c8be-e5d4-4c37-b0c4-ccf3c4fc4b65"
+                          }
+                          """))),
   @ApiResponse(
       responseCode = "400",
       description = "파일 크기 제한 초과",

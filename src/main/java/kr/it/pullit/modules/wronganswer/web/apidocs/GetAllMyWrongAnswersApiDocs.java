@@ -3,6 +3,7 @@ package kr.it.pullit.modules.wronganswer.web.apidocs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,7 +36,33 @@ import org.springframework.http.ProblemDetail;
       content =
           @Content(
               array =
-                  @ArraySchema(schema = @Schema(implementation = WrongAnswerSetResponse.class)))),
+                  @ArraySchema(schema = @Schema(implementation = WrongAnswerSetResponse.class)),
+              examples =
+                  @ExampleObject(
+                      name = "오답노트 목록 예시",
+                      value =
+                          """
+                          [
+                            {
+                              "questionSetId": 1,
+                              "questionSetTitle": "Java 기초 문제집",
+                              "sourceNames": ["Java.pdf", "객체지향.pdf"],
+                              "difficulty": "EASY",
+                              "majorTopic": "Java",
+                              "incorrectCount": 5,
+                              "category": "MULTIPLE_CHOICE"
+                            },
+                            {
+                              "questionSetId": 2,
+                              "questionSetTitle": "Spring Core",
+                              "sourceNames": ["Spring.pdf"],
+                              "difficulty": "NORMAL",
+                              "majorTopic": "Spring",
+                              "incorrectCount": 3,
+                              "category": "SHORT_ANSWER"
+                            }
+                          ]
+                          """))),
   @ApiResponse(
       responseCode = "404",
       description = "회원을 찾을 수 없음",

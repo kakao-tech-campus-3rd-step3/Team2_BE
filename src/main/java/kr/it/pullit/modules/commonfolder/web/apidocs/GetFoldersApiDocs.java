@@ -2,6 +2,7 @@ package kr.it.pullit.modules.commonfolder.web.apidocs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -33,5 +34,27 @@ import kr.it.pullit.modules.commonfolder.web.dto.CommonFolderResponse;
     content =
         @Content(
             mediaType = "application/json",
-            schema = @Schema(implementation = CommonFolderResponse.class, type = "array")))
+            schema = @Schema(implementation = CommonFolderResponse.class, type = "array"),
+            examples =
+                @ExampleObject(
+                    name = "내 폴더 목록 예시",
+                    value =
+                        """
+                        [
+                          {
+                            "id": 101,
+                            "name": "JPA 심화",
+                            "type": "QUESTION_SET",
+                            "scope": "CUSTOM",
+                            "sortOrder": 1
+                          },
+                          {
+                            "id": 102,
+                            "name": "Spring Core",
+                            "type": "QUESTION_SET",
+                            "scope": "CUSTOM",
+                            "sortOrder": 2
+                          }
+                        ]
+                        """)))
 public @interface GetFoldersApiDocs {}
