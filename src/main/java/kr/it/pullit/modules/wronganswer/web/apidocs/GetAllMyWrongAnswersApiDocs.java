@@ -35,8 +35,7 @@ import org.springframework.http.ProblemDetail;
       description = "조회 성공",
       content =
           @Content(
-              array =
-                  @ArraySchema(schema = @Schema(implementation = WrongAnswerSetResponse.class)),
+              array = @ArraySchema(schema = @Schema(implementation = WrongAnswerSetResponse.class)),
               examples =
                   @ExampleObject(
                       name = "오답노트 목록 예시",

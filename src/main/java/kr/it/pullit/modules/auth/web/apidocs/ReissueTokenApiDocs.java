@@ -28,7 +28,7 @@ import kr.it.pullit.shared.apidocs.ApiDocsGroup;
                     value =
                         """
                         {
-                          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNjE2MjI0MjQyLCJleHAiOjE2MTYyMjc4NDJ9"
+                          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOHAiOjE2MTYyMjc4NDJ9"
                         }
                         """)))
 public @interface ReissueTokenApiDocs {}
