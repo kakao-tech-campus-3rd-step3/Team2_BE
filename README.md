@@ -1,6 +1,7 @@
 <div align="center">
   <h1 align="center">Pullit</h1>
-  <h3> AI 기반 자동 문제 생성 및 학습 플랫폼 [ 🏆 최우수상 ]</h3>
+  <h3> AI 기반 자동 문제 생성 및 학습 플랫폼</h3>
+  <h3> [ 🏆 최우수상 ] </h3>
   <p>
     <strong>학습 자료를 업로드하면 AI가 똑똑하게 문제를 만들어 드립니다.</strong>
     <br />
