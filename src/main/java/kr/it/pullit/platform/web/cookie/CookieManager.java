@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class CookieManager {
 
   private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-  public static final String REFRESH_TOKEN_COOKIE_PATH = "/auth/refresh";
+  public static final String DEFAULT_REFRESH_TOKEN_COOKIE_PATH = "/auth/refresh";
 
   private final JwtProps jwtProps;
 
@@ -32,7 +32,7 @@ public class CookieManager {
         ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, value)
             .httpOnly(true)
             .secure(true)
-            .path(REFRESH_TOKEN_COOKIE_PATH)
+            .path(getRefreshTokenCookiePath())
             .maxAge(maxAge)
             .sameSite("None");
 
@@ -48,23 +48,33 @@ public class CookieManager {
     String domain = determineDomainFromRequest(request);
     String path = determinePathForCookie(cookieName);
 
-    ResponseCookie cookie =
+    ResponseCookie.ResponseCookieBuilder cookieBuilder =
         ResponseCookie.from(cookieName, "")
             .httpOnly(true)
             .secure(true)
             .path(path)
             .maxAge(0)
-            .sameSite("None")
-            .domain(domain)
-            .build();
-    response.addHeader("Set-Cookie", cookie.toString());
+            .sameSite("None");
+
+    if (domain != null && !domain.isBlank()) {
+      cookieBuilder.domain(domain);
+    }
+
+    response.addHeader("Set-Cookie", cookieBuilder.build().toString());
   }
 
   private String determinePathForCookie(String cookieName) {
     if (REFRESH_TOKEN_COOKIE_NAME.equals(cookieName)) {
-      return REFRESH_TOKEN_COOKIE_PATH;
+      return getRefreshTokenCookiePath();
     }
     return "/";
+  }
+
+  private String getRefreshTokenCookiePath() {
+    String configuredPath = jwtProps.refreshTokenCookiePath();
+    return configuredPath == null || configuredPath.isBlank()
+        ? DEFAULT_REFRESH_TOKEN_COOKIE_PATH
+        : configuredPath;
   }
 
   private String determineDomainFromRequest(HttpServletRequest request) {
@@ -73,9 +83,13 @@ public class CookieManager {
       log.warn("요청에서 호스트를 추출할 수 없어 기본 쿠키 도메인을 사용합니다.");
       return getDefaultCookieDomain();
     }
+    if ("localhost".equalsIgnoreCase(host)) {
+      return null;
+    }
 
-    return jwtProps.authorizedCookieDomains().stream()
-        .filter(host::endsWith)
+    List<String> domains = getAuthorizedCookieDomains();
+    return domains.stream()
+        .filter(domain -> matchesCookieDomain(host, domain))
         .findFirst()
         .orElseGet(
             () -> {
@@ -85,11 +99,22 @@ public class CookieManager {
   }
 
   private String getDefaultCookieDomain() {
+    return getAuthorizedCookieDomains().getFirst();
+  }
+
+  private List<String> getAuthorizedCookieDomains() {
     List<String> domains = jwtProps.authorizedCookieDomains();
     if (domains == null || domains.isEmpty()) {
       log.error("설정된 쿠키 도메인이 없습니다.");
       throw new IllegalStateException("No authorized cookie domains configured");
     }
-    return domains.getFirst();
+    return domains;
+  }
+
+  private boolean matchesCookieDomain(String host, String configuredDomain) {
+    String normalizedDomain =
+        configuredDomain.startsWith(".") ? configuredDomain.substring(1) : configuredDomain;
+    return host.equalsIgnoreCase(normalizedDomain)
+        || host.toLowerCase().endsWith("." + normalizedDomain.toLowerCase());
   }
 }

@@ -33,6 +33,7 @@ class JwtTokenProviderImplTest {
             "test-audience",
             Duration.ofMinutes(30),
             Duration.ofDays(14),
+            "/pull-it/auth/refresh",
             Collections.emptyList(),
             Collections.emptyList());
     jwtTokenProvider = new JwtTokenProviderImpl(jwtProps, clock);

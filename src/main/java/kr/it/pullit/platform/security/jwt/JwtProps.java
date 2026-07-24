@@ -11,5 +11,6 @@ public record JwtProps(
     String audience,
     Duration accessTokenExpirationMinutes,
     Duration refreshTokenExpirationDays,
+    String refreshTokenCookiePath,
     List<String> authorizedRedirectUris,
     List<String> authorizedCookieDomains) {}

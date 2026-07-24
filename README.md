@@ -19,18 +19,15 @@
 
 ## 🔗 바로가기 (Links)
 
-- **배포 URL**: [https://pull.it.kr](https://pull.it.kr)
-- **프로젝트 문서 및 API 명세**: [https://pullit-docs-server.vercel.app](https://pullit-docs-server.vercel.app)
+- **배포 URL**: [https://portfolio.yeon.world/pull-it](https://portfolio.yeon.world/pull-it)
+- **프로젝트 문서 및 API 명세**: [https://portfolio.yeon.world/pull-it/docs](https://portfolio.yeon.world/pull-it/docs)
 - **팀 노션 페이지**: [https://www.notion.so/2-245c61d733498000a869fc6fb977d52e](https://www.notion.so/2-245c61d733498000a869fc6fb977d52e)
 
-
-- (*현재 도메인은 QA지만 운영 역할을 하고 있습니다.*)
-- **운영 API 서버**: [https://qa.api.pull.it.kr](https://qa.api.pull.it.kr)
-  - **Swagger API**: [https://qa.api.pull.it.kr/swagger-ui/index.html](https://qa.api.pull.it.kr/swagger-ui/index.html)
-- **모니터링 & 인프라**
-  - **Prometheus**: [https://prometheus.qa.api.pull.it.kr](https://prometheus.qa.api.pull.it.kr)
-  - **Grafana**: [https://grafana.qa.api.pull.it.kr](https://grafana.qa.api.pull.it.kr)
-  - **RabbitMQ**: [https://rabbitmq.qa.api.pull.it.kr](https://rabbitmq.qa.api.pull.it.kr)
+- **운영 API 서버**: [https://portfolio.yeon.world/pull-it/api](https://portfolio.yeon.world/pull-it/api)
+  - **OpenAPI 원본**: [https://portfolio.yeon.world/pull-it/api-docs](https://portfolio.yeon.world/pull-it/api-docs)
+- 기존 QA 전용 Prometheus, Grafana, RabbitMQ 공개 주소는 이번 포트폴리오
+  복구 범위에 포함하지 않습니다. 복구 환경의 상태는 Docker Compose
+  healthcheck와 Spring Actuator로 확인합니다.
 
 ---
 
@@ -147,7 +144,7 @@ Pullit은 안정적인 서비스 제공을 위해 API 서버와 백그라운드 
 
 | 구성 요소 | 설명 |
 |:---|:---|
-| **리버스 프록시** | **Nginx**를 통해 SSL 종료, 로드 밸런싱, 요청 라우팅을 담당합니다. <br> 🕵️ *관련 경로: [Nginx 설정 문서](https://pullit-docs-server.vercel.app/#05-deploy-nginx)* |
+| **리버스 프록시** | **Nginx**를 통해 SSL 종료, 로드 밸런싱, 요청 라우팅을 담당합니다. <br> 🕵️ *관련 경로: [Nginx 설정 문서](https://portfolio.yeon.world/pull-it/docs/#05-deploy-nginx)* |
 | **애플리케이션 서버** | **Spring Boot** 기반의 API 서버와 Worker 서버를 분리 운영합니다. 무거운 작업을 Worker에게 위임하여 API 서버의 안정성을 확보했으며, 핵심 설계 원칙은 하단에 별도로 기술했습니다. <br> 🕵️ *관련 경로: `docker-compose.qa.yml`* |
 | **데이터 & 캐시** | 영구 데이터는 **MariaDB**에 저장하며, **Redis**는 **리프레시 토큰 관리** 및 캐시 데이터 저장에 사용하여 성능을 최적화합니다. <br> 🕵️ *관련 경로: `RedisConfig.java`, `AuthService.java`, `RefreshTokenRepository.java`* |
 | **비동기 처리** | **RabbitMQ**를 도입하여 대용량 파일 업로드 시 발생하던 메모리 부족 문제를 해결했습니다. 요청을 즉시 처리하는 대신 큐에 등록하고 Worker가 순차 처리하여 시스템 안정성을 확보했습니다. 특히 **학습 성과 대시보드**의 경우, **트랜잭션 아웃박스 패턴**을 통해 데이터 정합성을 보장함과 동시에 통계 집계 시 발생할 수 있는 **예상 성능 저하를 선제적으로 해결**했습니다. 다만, 메세지 큐가 도입되기 전 일부 로직에서 여전히 내장 `ApplicationEventPublisher`를 사용하고 있기도 합니다. <br> 🕵️ *관련 경로: `RabbitMqConfig.java`, `QuestionGenerationEventHandler.java`, `QuestionGenerationWorker.java`* |
@@ -378,7 +375,7 @@ sequenceDiagram
 
 ## 🚀 Onboarding | 온보딩 문서
 
-새로운 팀원이 프로젝트에 빠르게 적응하고 기여할 수 있도록 체계적인 온보딩 문서를 마련했습니다. 프로젝트의 아키텍처, 개발 컨벤션, 배포 프로세스 등을 상세히 기술한 **[가이드 문서 및 API 명세서](https://pullit-docs-server.vercel.app)**를 제공하여 학습 비용을 줄이고 원활한 협업을 지원합니다.
+새로운 팀원이 프로젝트에 빠르게 적응하고 기여할 수 있도록 체계적인 온보딩 문서를 마련했습니다. 프로젝트의 아키텍처, 개발 컨벤션, 배포 프로세스 등을 상세히 기술한 **[가이드 문서 및 API 명세서](https://portfolio.yeon.world/pull-it/docs)**를 제공하여 학습 비용을 줄이고 원활한 협업을 지원합니다.
 
 ---
 
