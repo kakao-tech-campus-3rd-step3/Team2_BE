@@ -3,6 +3,7 @@ package kr.it.pullit.platform.security.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -55,6 +56,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
     given(authentication.getPrincipal()).willReturn(oauth2User);
     given(jwtProps.authorizedRedirectUris()).willReturn(List.of("https://frontend.pull.it.kr"));
+    lenient().when(jwtProps.authorizedCookieDomains()).thenReturn(List.of(".pull.it.kr"));
   }
 
   @Nested
@@ -324,7 +326,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("pull.it.kr로 끝나는 호스트는 .pull.it.kr 도메인을 반환한다")
+    @DisplayName("설정된 하위 도메인 호스트는 설정된 쿠키 도메인을 반환한다")
     void returnsPullItKrDomainForMatchingHost() throws IOException {
       // given
       Long kakaoId = 123456L;
@@ -347,6 +349,32 @@ class OAuth2AuthenticationSuccessHandlerTest {
       // then
       verify(cookieManager)
           .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq(".pull.it.kr"));
+    }
+
+    @Test
+    @DisplayName("포트폴리오 호스트는 portfolio.yeon.world 쿠키 도메인을 반환한다")
+    void returnsPortfolioDomainForMatchingHost() throws IOException {
+      // given
+      Long kakaoId = 123456L;
+      final Long memberId = 1L;
+      final var member = mock(Member.class);
+      final var authTokens = new AuthTokens("access-token", "refresh-token");
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("id", kakaoId);
+
+      request.setServerName("portfolio.yeon.world");
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
+      given(oauth2User.getAttributes()).willReturn(attributes);
+      given(memberPublicApi.findByKakaoId(kakaoId)).willReturn(Optional.of(member));
+      given(member.getId()).willReturn(memberId);
+      given(authService.issueAndSaveTokens(memberId)).willReturn(authTokens);
+
+      // when
+      handler.onAuthenticationSuccess(request, response, authentication);
+
+      // then
+      verify(cookieManager)
+          .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq("portfolio.yeon.world"));
     }
 
     @Test

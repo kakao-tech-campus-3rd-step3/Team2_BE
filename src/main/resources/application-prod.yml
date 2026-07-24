@@ -8,6 +8,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   jpa:
     hibernate:
       ddl-auto: validate  # 프로덕션에서는 validate로 변경
@@ -53,5 +58,5 @@ management:
 
 cors:
   allowed-origins:
-    - "https://www.pull.it.kr"
-    - "https://pull.it.kr"
+    - ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:https://portfolio.yeon.world}
+    - ${ACCESS_CONTROL_ALLOWED_ORIGIN_2:https://pull.it.kr}

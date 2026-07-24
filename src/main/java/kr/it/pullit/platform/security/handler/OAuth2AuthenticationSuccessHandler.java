@@ -113,18 +113,21 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       return null;
     }
 
-    if (host.endsWith("pull.it.kr")) {
-      return ".pull.it.kr";
-    }
-
     return jwtProps.authorizedCookieDomains().stream()
-        .filter(host::endsWith)
+        .filter(domain -> matchesCookieDomain(host, domain))
         .findFirst()
         .orElseGet(
             () -> {
               log.warn("호스트 '{}'에 일치하는 쿠키 도메인 설정이 없어 기본 쿠키 도메인을 사용합니다.", host);
               return getDefaultCookieDomain();
             });
+  }
+
+  private boolean matchesCookieDomain(String host, String configuredDomain) {
+    String normalizedDomain =
+        configuredDomain.startsWith(".") ? configuredDomain.substring(1) : configuredDomain;
+    return host.equalsIgnoreCase(normalizedDomain)
+        || host.toLowerCase().endsWith("." + normalizedDomain.toLowerCase());
   }
 
   private String getDefaultCookieDomain() {
