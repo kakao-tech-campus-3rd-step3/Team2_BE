@@ -12,6 +12,7 @@ fi
 
 readonly RUNNER_USER="pullit-runner"
 readonly RUNNER_HOME="/opt/actions-runner"
+readonly FRONTEND_RUNNER_HOME="/opt/actions-runner-frontend"
 readonly RUNTIME_HOME="/opt/pullit"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -30,6 +31,7 @@ fi
 usermod --append --groups docker "${RUNNER_USER}"
 install --directory --owner="${RUNNER_USER}" --group="${RUNNER_USER}" --mode=750 \
   "${RUNNER_HOME}" \
+  "${FRONTEND_RUNNER_HOME}" \
   "${RUNTIME_HOME}"
 
-echo "Pull-it 전용 호스트 초기화가 완료되었습니다. 다음 단계는 pullit-runner 계정으로 GitHub Actions 러너를 등록하는 것입니다."
+echo "Pull-it 전용 호스트 초기화가 완료되었습니다. 다음 단계는 pullit-runner 계정으로 backend와 frontend GitHub Actions 러너를 각각 등록하는 것입니다."

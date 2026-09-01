@@ -84,6 +84,17 @@ Vite의 `VITE_*` 값은 브라우저에 공개된다. `VITE_SENTRY_DSN`은 식�
 5. FE GitHub Environment `pullit-frontend-production`과 Docs Vercel `Production` Environment에는 각 표에 적힌 값만 등록한다. FE build job과 deploy job은 같은 FE Environment만 사용한다. Docs DB는 문서 전용 PostgreSQL이어야 한다.
 6. 서버의 `/opt/pullit/pullit-production.env`를 배포 전용 runner 계정 소유 `0600`으로 만든다. workflow는 `umask 077` 임시 파일을 형식 검증한 뒤 `install`로 교체하며, 로그·Compose 명령행·원격 셸에 비밀값을 출력하지 않는지 검토한다.
 
+## Self-hosted runner 분리 계약
+
+같은 새 Pull-it 전용 EC2를 쓰더라도 backend와 frontend는 별도 runner 등록으로 분리한다. 기존 Yeon runner, 기존 QA runner, 다른 repository runner를 공유하거나 label만 덧붙이지 않는다.
+
+| 역할 | GitHub repository | runner 이름 | 디렉터리 | 전용 label |
+| --- | --- | --- | --- | --- |
+| backend·worker·Compose | `Hyeonjun0527/Team2_BE` | `pullit-production-runner` | `/opt/actions-runner` | `pullit-production` |
+| 정적 frontend | `Hyeonjun0527/Team2_FE` | `pullit-frontend-runner` | `/opt/actions-runner-frontend` | `pullit-frontend-production` |
+
+두 runner는 별도 systemd service와 별도 working directory로 등록한다. frontend workflow에는 `pullit-frontend-production` Environment 값만 주입하고 backend `pullit-production` Environment secret을 절대 주입하지 않는다. backend runtime secret 파일은 계속 배포 계정 소유 `0600`으로 유지한다. 같은 전용 EC2에서 Docker를 사용하는 runner 분리는 실수 방지를 위한 repository·workflow·Environment 경계이지, 악의적인 임의 Docker 명령까지 막는 OS 권한 격리는 아니다. 그 강한 격리가 필요해지면 frontend runner를 별도 EC2로 옮긴다. 등록에는 GitHub가 발행한 짧은 수명의 repository runner registration token만 사용하고, 장기 PAT·registration token을 파일·Keychain·GitHub Environment에 보관하지 않는다. token은 runner 등록 직후 폐기된다.
+
 ## 배포 전 불변 검사
 
 - `pull.it.kr`, `api.pull.it.kr`, `qa.api.pull.it.kr`은 production 설정, OAuth callback, CORS, 문서 링크에 남기지 않는다.
