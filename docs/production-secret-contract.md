@@ -17,7 +17,7 @@
 | S3 리전 | `ap-northeast-2` | `S3_REGION` |
 | 앱 DB/Rabbit 사용자 | `pullit_app` | `DB_USERNAME`, `RABBITMQ_DEFAULT_USER` |
 
-`PULLIT_DATABASE_NAME=pullit_prod`와 세 `PULLIT_*_VOLUME` 값은 서버의 읽기 전용 인벤토리와 백업 복구 검증이 끝난 뒤에만 확정한다. Compose는 이 볼륨을 생성하지 않는다.
+`PULLIT_DATABASE_NAME=pullit`, `PULLIT_DB_VOLUME=pullit-prod-db-data`, `PULLIT_REDIS_VOLUME=pullit-prod-redis-data`, `PULLIT_RABBITMQ_VOLUME=pullit-prod-rabbitmq-data`는 복구 대상의 고정 이름이다. 아직 어느 volume도 생성하지 않았고, 서버의 읽기 전용 인벤토리와 백업 복구 검증이 끝날 때까지 Compose가 이 volume을 생성하거나 초기화하지 않는다.
 
 `yeon.world`의 로그인·세션·OAuth 앱과 Pull-it은 공유하지 않는다. Pull-it의 Kakao 앱, JWT 서명 키, `refresh_token` cookie의 `/pull-it/auth/refresh` 경로, `PULLIT_OAUTH_SESSION` cookie, DB 사용자와 데이터는 모두 전용으로 유지한다.
 
