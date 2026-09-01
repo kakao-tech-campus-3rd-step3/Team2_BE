@@ -5,13 +5,11 @@ info:
   version: 1.0.0
   contact:
     name: Pullit API Support
-    url: https://pullit.kr
-    email: support@pullit.kr
+    url: https://portfolio.yeon.world/pull-it
+    email: support@yeon.world
 servers:
-  - url: https://qa.api.pull.it.kr
-    description: QA 서버 (HTTPS)
-  - url: https://api.pullit.kr
-    description: 운영 서버 (HTTPS)
+  - url: https://portfolio.yeon.world/pull-it/api
+    description: Pull-it 운영 API (HTTPS)
 tags:
   - name: learning-source
     description: 학습 소스에 관한 API

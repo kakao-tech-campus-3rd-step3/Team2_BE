@@ -1,30 +1,29 @@
 x-pullit-common-environment: &pullit-common-environment
-  DB_URL: jdbc:mariadb://pullit-prod-db:3306/pullit_prod?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-  DB_USERNAME: ${DB_USERNAME}
-  DB_PASSWORD: ${DB_PASSWORD}
+  DB_URL: jdbc:mariadb://pullit-prod-db:3306/${PULLIT_DATABASE_NAME:?PULLIT_DATABASE_NAME is required}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+  DB_USERNAME: ${DB_USERNAME:?DB_USERNAME is required}
+  DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
   REDIS_HOST: pullit-prod-redis
   REDIS_PORT: 6379
   RABBITMQ_HOST: pullit-prod-rabbitmq
-  SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
-  SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
-  KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
-  KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+  SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+  SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
+  KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:?KAKAO_REST_API_KEY is required}
+  KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:?KAKAO_CLIENT_SECRET is required}
   KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI:-https://portfolio.yeon.world/pull-it/login/oauth2/code/kakao}
-  JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
   JWT_REDIRECT_URL_1: ${JWT_REDIRECT_URL_1:-https://portfolio.yeon.world/pull-it/login-success}
   JWT_COOKIE_DOMAIN_1: ${JWT_COOKIE_DOMAIN_1:-portfolio.yeon.world}
   JWT_REFRESH_COOKIE_PATH: ${JWT_REFRESH_COOKIE_PATH:-/pull-it/auth/refresh}
   PULLIT_OAUTH2_REDIRECT_URI: ${PULLIT_OAUTH2_REDIRECT_URI:-https://portfolio.yeon.world/pull-it/login-success}
   ACCESS_CONTROL_ALLOWED_ORIGIN_1: ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:-https://portfolio.yeon.world}
-  GEMINI_API_KEY: ${GEMINI_API_KEY}
-  S3_BUCKET_NAME: ${S3_BUCKET_NAME:-pullit-uploaded-files}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY is required}
+  S3_BUCKET_NAME: ${S3_BUCKET_NAME:?S3_BUCKET_NAME is required}
   S3_REGION: ${S3_REGION:-ap-northeast-2}
-  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  SENTRY_DSN: ${SENTRY_DSN:?SENTRY_DSN is required}
   JAVA_OPTS: ${JAVA_OPTS:--Xmx768m -Xms256m -XX:+UseG1GC}
 
 x-pullit-runtime: &pullit-runtime
-  image: ${PULLIT_BACKEND_IMAGE}
+  image: ${PULLIT_BACKEND_IMAGE:?PULLIT_BACKEND_IMAGE is required}
   restart: unless-stopped
   depends_on:
     pullit-prod-db:
@@ -46,11 +45,6 @@ services:
       SPRING_PROFILES_ACTIVE: prod
     ports:
       - "127.0.0.1:${PULLIT_BACKEND_PORT:-18082}:8080"
-    networks:
-      pullit-prod:
-      yeon-edge:
-        aliases:
-          - pullit-backend
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -75,15 +69,14 @@ services:
     image: mariadb:10.11
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: pullit_prod
-      MARIADB_USER: ${DB_USERNAME}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${PULLIT_DATABASE_NAME:?PULLIT_DATABASE_NAME is required}
+      MARIADB_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
       MARIADB_CHARSET: utf8mb4
       MARIADB_COLLATION: utf8mb4_unicode_ci
     volumes:
       - pullit-prod-db:/var/lib/mysql
-      - ./db/init:/docker-entrypoint-initdb.d:ro
     networks:
       - pullit-prod
     healthcheck:
@@ -115,8 +108,8 @@ services:
     image: rabbitmq:3-management-alpine
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
     volumes:
       - pullit-prod-rabbitmq:/var/lib/rabbitmq
     networks:
@@ -128,13 +121,36 @@ services:
       retries: 10
       start_period: 30s
 
+  pullit-prod-tunnel:
+    image: cloudflare/cloudflared:2026.3.0@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0
+    restart: unless-stopped
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+      - --token-file
+      - /run/secrets/PULLIT_CLOUDFLARE_TUNNEL_TOKEN
+    secrets:
+      - PULLIT_CLOUDFLARE_TUNNEL_TOKEN
+    networks:
+      - pullit-prod
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   pullit-prod-db:
+    external: true
+    name: ${PULLIT_DB_VOLUME:?PULLIT_DB_VOLUME is required}
   pullit-prod-redis:
+    external: true
+    name: ${PULLIT_REDIS_VOLUME:?PULLIT_REDIS_VOLUME is required}
   pullit-prod-rabbitmq:
+    external: true
+    name: ${PULLIT_RABBITMQ_VOLUME:?PULLIT_RABBITMQ_VOLUME is required}
+
+secrets:
+  PULLIT_CLOUDFLARE_TUNNEL_TOKEN:
+    environment: PULLIT_CLOUDFLARE_TUNNEL_TOKEN
 
 networks:
   pullit-prod:
-  yeon-edge:
-    name: yeon-edge
-    external: true

@@ -19,6 +19,7 @@ import kr.it.pullit.modules.member.domain.entity.Member;
 import kr.it.pullit.platform.security.jwt.JwtProps;
 import kr.it.pullit.platform.security.jwt.dto.AuthTokens;
 import kr.it.pullit.platform.web.cookie.CookieManager;
+import kr.it.pullit.shared.error.exception.InvalidConfigurationException;
 import kr.it.pullit.support.annotation.MockitoUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,8 +56,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
     oauth2User = mock(OAuth2User.class);
 
     given(authentication.getPrincipal()).willReturn(oauth2User);
-    given(jwtProps.authorizedRedirectUris()).willReturn(List.of("https://frontend.pull.it.kr"));
-    lenient().when(jwtProps.authorizedCookieDomains()).thenReturn(List.of(".pull.it.kr"));
+    given(jwtProps.authorizedRedirectUris()).willReturn(List.of("https://portfolio.yeon.world"));
+    lenient().when(jwtProps.authorizedCookieDomains()).thenReturn(List.of("portfolio.yeon.world"));
   }
 
   @Nested
@@ -74,7 +75,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 
-      request.setServerName("frontend.pull.it.kr");
+      request.setServerName("portfolio.yeon.world");
 
       given(oauth2User.getAttributes()).willReturn(attributes);
       given(memberPublicApi.findByKakaoId(kakaoId)).willReturn(Optional.of(member));
@@ -88,7 +89,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
       verify(memberPublicApi).findByKakaoId(kakaoId);
       verify(authService).issueAndSaveTokens(memberId);
       verify(cookieManager)
-          .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq(".pull.it.kr"));
+          .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq("portfolio.yeon.world"));
       assertThat(response.getRedirectedUrl()).contains("accessToken=access-token");
     }
 
@@ -102,9 +103,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
       final var authTokens = new AuthTokens("access-token", "refresh-token");
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
-      String customRedirectUri = "https://frontend.pull.it.kr/custom";
+      String customRedirectUri = "https://portfolio.yeon.world";
 
-      request.setServerName("frontend.pull.it.kr");
+      request.setServerName("portfolio.yeon.world");
       HttpSession session = request.getSession();
       session.setAttribute(
           OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, customRedirectUri);
@@ -158,7 +159,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
     @DisplayName("세션에 유효한 리다이렉션 URI가 있으면 해당 URI를 사용한다")
     void usesValidRedirectUriFromSession() {
       // given
-      String validUri = "https://frontend.pull.it.kr/callback";
+      String validUri = "https://portfolio.yeon.world";
       HttpSession session = request.getSession();
       session.setAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, validUri);
 
@@ -182,7 +183,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
       String targetUrl = invokeDetermineTargetUrl("access-token");
 
       // then
-      assertThat(targetUrl).contains("https://frontend.pull.it.kr");
+      assertThat(targetUrl).contains("https://portfolio.yeon.world");
       assertThat(targetUrl).contains("accessToken=access-token");
     }
 
@@ -193,7 +194,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
       String targetUrl = invokeDetermineTargetUrl("access-token");
 
       // then
-      assertThat(targetUrl).contains("https://frontend.pull.it.kr");
+      assertThat(targetUrl).contains("https://portfolio.yeon.world");
       assertThat(targetUrl).contains("accessToken=access-token");
     }
 
@@ -206,7 +207,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("id", kakaoId);
 
-        request.setServerName("frontend.pull.it.kr");
+        request.setServerName("portfolio.yeon.world");
 
         given(oauth2User.getAttributes()).willReturn(attributes);
         given(memberPublicApi.findByKakaoId(kakaoId)).willReturn(Optional.of(member));
@@ -227,24 +228,35 @@ class OAuth2AuthenticationSuccessHandlerTest {
   class DescribeIsAuthorizedRedirectUri {
 
     @Test
-    @DisplayName("호스트와 포트가 일치하는 URI는 권한이 있다고 판단한다")
-    void returnsTrueForMatchingHostAndPort() {
+    @DisplayName("설정과 완전히 일치하는 URI는 권한이 있다고 판단한다")
+    void returnsTrueForExactMatch() {
       // given
       given(jwtProps.authorizedRedirectUris())
-          .willReturn(List.of("https://frontend.pull.it.kr:443"));
+          .willReturn(List.of("https://portfolio.yeon.world:443"));
 
       // when
-      boolean result = invokeIsAuthorizedRedirectUri("https://frontend.pull.it.kr:443/callback");
+      boolean result = invokeIsAuthorizedRedirectUri("https://portfolio.yeon.world:443");
 
       // then
       assertThat(result).isTrue();
     }
 
     @Test
+    @DisplayName("같은 호스트라도 경로가 다르면 권한이 없다고 판단한다")
+    void returnsFalseForDifferentPath() {
+      given(jwtProps.authorizedRedirectUris())
+          .willReturn(List.of("https://portfolio.yeon.world/login-success"));
+
+      boolean result = invokeIsAuthorizedRedirectUri("https://portfolio.yeon.world/other");
+
+      assertThat(result).isFalse();
+    }
+
+    @Test
     @DisplayName("호스트가 다르면 권한이 없다고 판단한다")
     void returnsFalseForDifferentHost() {
       // given
-      given(jwtProps.authorizedRedirectUris()).willReturn(List.of("https://frontend.pull.it.kr"));
+      given(jwtProps.authorizedRedirectUris()).willReturn(List.of("https://portfolio.yeon.world"));
 
       // when
       boolean result = invokeIsAuthorizedRedirectUri("https://evil.com");
@@ -258,10 +270,10 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void returnsFalseForDifferentPort() {
       // given
       given(jwtProps.authorizedRedirectUris())
-          .willReturn(List.of("https://frontend.pull.it.kr:443"));
+          .willReturn(List.of("https://portfolio.yeon.world:443"));
 
       // when
-      boolean result = invokeIsAuthorizedRedirectUri("https://frontend.pull.it.kr:8080");
+      boolean result = invokeIsAuthorizedRedirectUri("https://portfolio.yeon.world:8080");
 
       // then
       assertThat(result).isFalse();
@@ -278,7 +290,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         HttpSession session = request.getSession();
         session.setAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, uri);
-        request.setServerName("frontend.pull.it.kr");
+        request.setServerName("portfolio.yeon.world");
 
         given(oauth2User.getAttributes()).willReturn(attributes);
         given(memberPublicApi.findByKakaoId(kakaoId)).willReturn(Optional.of(member));
@@ -336,7 +348,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
       Map<String, Object> attributes = new HashMap<>();
       attributes.put("id", kakaoId);
 
-      request.setServerName("frontend.pull.it.kr");
+      request.setServerName("portfolio.yeon.world");
 
       given(oauth2User.getAttributes()).willReturn(attributes);
       given(memberPublicApi.findByKakaoId(kakaoId)).willReturn(Optional.of(member));
@@ -348,7 +360,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
       // then
       verify(cookieManager)
-          .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq(".pull.it.kr"));
+          .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq("portfolio.yeon.world"));
     }
 
     @Test
@@ -378,8 +390,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("일치하는 도메인이 없으면 기본 도메인을 반환한다")
-    void returnsDefaultDomainWhenNoMatch() throws IOException {
+    @DisplayName("일치하는 도메인이 없으면 예외를 발생시킨다")
+    void throwsWhenNoCookieDomainMatches() {
       // given
       Long kakaoId = 123456L;
       final Long memberId = 1L;
@@ -389,19 +401,16 @@ class OAuth2AuthenticationSuccessHandlerTest {
       attributes.put("id", kakaoId);
 
       request.setServerName("other-domain.com");
-      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
 
       given(oauth2User.getAttributes()).willReturn(attributes);
       given(memberPublicApi.findByKakaoId(kakaoId)).willReturn(Optional.of(member));
       given(member.getId()).willReturn(memberId);
       given(authService.issueAndSaveTokens(memberId)).willReturn(authTokens);
 
-      // when
-      handler.onAuthenticationSuccess(request, response, authentication);
-
-      // then
-      verify(cookieManager)
-          .addRefreshTokenCookie(eq(response), eq("refresh-token"), eq(".pull.it.kr"));
+      org.assertj.core.api.Assertions.assertThatThrownBy(
+              () -> handler.onAuthenticationSuccess(request, response, authentication))
+          .isInstanceOf(InvalidConfigurationException.class);
     }
   }
 }
