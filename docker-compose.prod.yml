@@ -14,6 +14,8 @@ x-pullit-common-environment: &pullit-common-environment
   JWT_REDIRECT_URL_1: ${JWT_REDIRECT_URL_1:-https://portfolio.yeon.world/pull-it/login-success}
   JWT_COOKIE_DOMAIN_1: ${JWT_COOKIE_DOMAIN_1:-portfolio.yeon.world}
   JWT_REFRESH_COOKIE_PATH: ${JWT_REFRESH_COOKIE_PATH:-/pull-it/auth/refresh}
+  SERVER_SERVLET_SESSION_COOKIE_NAME: ${SERVER_SERVLET_SESSION_COOKIE_NAME:-PULLIT_OAUTH_SESSION}
+  SERVER_SERVLET_SESSION_COOKIE_PATH: ${SERVER_SERVLET_SESSION_COOKIE_PATH:-/pull-it}
   PULLIT_OAUTH2_REDIRECT_URI: ${PULLIT_OAUTH2_REDIRECT_URI:-https://portfolio.yeon.world/pull-it/login-success}
   ACCESS_CONTROL_ALLOWED_ORIGIN_1: ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:-https://portfolio.yeon.world}
   GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY is required}

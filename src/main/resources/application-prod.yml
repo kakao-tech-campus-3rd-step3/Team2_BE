@@ -29,6 +29,14 @@ spring:
     livereload:
       enabled: false
 
+jwt:
+  # Local development callback/domain values must never be accepted by the
+  # portfolio deployment's OAuth success handler.
+  authorized-redirect-uris:
+    - ${JWT_REDIRECT_URL_1:https://portfolio.yeon.world/pull-it/login-success}
+  authorized-cookie-domains:
+    - ${JWT_COOKIE_DOMAIN_1:portfolio.yeon.world}
+
 app:
   storage:
     s3:
@@ -38,6 +46,13 @@ app:
 
 server:
   forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        name: ${SERVER_SERVLET_SESSION_COOKIE_NAME:PULLIT_OAUTH_SESSION}
+        path: ${SERVER_SERVLET_SESSION_COOKIE_PATH:/pull-it}
+        same-site: none
+        secure: true
   error:
     whitelabel:
       enabled: false
