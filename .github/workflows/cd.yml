@@ -2,7 +2,7 @@ name: Deploy Pull-it backend
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
     paths: ["src/**", "gradle/**", "build.gradle", "settings.gradle", "Dockerfile", "docker-compose.prod.yml", "ops/production/**", ".github/workflows/cd.yml"]
 
 permissions:

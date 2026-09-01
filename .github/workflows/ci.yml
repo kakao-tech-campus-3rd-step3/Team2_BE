@@ -2,10 +2,10 @@ name: Pull-it BE check
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
     paths: ["src/**", "gradle/**", "build.gradle", "settings.gradle", "Dockerfile", ".github/workflows/ci.yml"]
   pull_request:
-    branches: [main]
+    branches: [develop]
     paths: ["src/**", "gradle/**", "build.gradle", "settings.gradle", "Dockerfile", ".github/workflows/ci.yml"]
 
 permissions:
