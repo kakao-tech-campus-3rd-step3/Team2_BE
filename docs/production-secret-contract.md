@@ -29,6 +29,12 @@
 
 키를 새로 만들거나 재발급하면 기준본 → 서버 실행 복사본 순서로 같은 작업 안에서 갱신하고, 배포 후 해당 기능을 검증한다. GitHub은 기준본이 아니다.
 
+## 레거시 데이터 원본 조회 전용 경계
+
+과거 Pull-it 원본을 찾기 위한 접속값은 운영용 `pullit-production` Environment나 기존 `qa` Environment에 넣지 않는다. 이 저장소의 별도 `pullit-legacy-readonly` Environment에만 `LEGACY_PULLIT_EC2_HOST`, `LEGACY_PULLIT_EC2_SSH_KEY`를 등록한다. 두 값은 원본 보유자가 복구 가능한 사본으로 확인했을 때만 Mac 키체인 서비스 `pullit-legacy-readonly`에도 보관한다.
+
+`legacy-data-inventory.yml`은 이 Environment를 사용하는 수동 실행 전용 workflow다. 원격 명령은 디스크·컨테이너·volume 이름과 백업 파일 메타데이터만 읽으며, DB 접속, 환경변수 열람, 파일 내용 열람, 컨테이너 시작/중지, volume 생성/삭제를 하지 않는다. 원본을 찾지 못했거나 두 값 중 하나라도 없으면 네트워크 연결 전 실패해야 한다.
+
 ## Backend 실행 비밀값
 
 | 키 | 값의 출처·형식 | GitHub/서버 사용처 | 발급 또는 회전 |

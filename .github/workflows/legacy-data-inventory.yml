@@ -9,17 +9,17 @@ permissions:
 jobs:
   inventory:
     name: Read-only legacy host inventory
-    environment: qa
+    environment: pullit-legacy-readonly
     runs-on: ubuntu-latest
     steps:
       - name: Prepare an ephemeral SSH key without printing it
         env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.LEGACY_PULLIT_EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.LEGACY_PULLIT_EC2_SSH_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${EC2_HOST:-}" ] || [ -z "${EC2_SSH_KEY:-}" ]; then
-            echo 'QA environment did not provide both legacy-host connection secrets; stopping before any network request.' >&2
+            echo 'Legacy-readonly environment did not provide both connection secrets; stopping before any network request.' >&2
             exit 1
           fi
 
