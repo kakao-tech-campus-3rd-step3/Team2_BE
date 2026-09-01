@@ -57,7 +57,7 @@
 
 | 레포 | Environment | 필요한 값 | 금지 값 |
 | --- | --- | --- | --- |
-| Team2_FE | Vercel Production 프로젝트 설정 | `VITE_PUBLIC_BASE_PATH=/pull-it/`, `VITE_API_BASE_URL=/pull-it`, `VITE_SENTRY_DSN` | DB, JWT, Kakao client secret, AWS secret, Gemini key |
+| Team2_FE | GitHub Environment `pullit-frontend-production` | `VITE_PUBLIC_BASE_PATH=/pull-it/`, `VITE_API_BASE_URL=/pull-it`, 선택 `VITE_SENTRY_DSN` | DB, JWT, Kakao client secret, AWS secret, Gemini key |
 | pullit-docs-server | Vercel `Production` Environment | `DATABASE_URL`, `POSTGRES_URL_NON_POOLING` | Pull-it DB, JWT, Kakao, AWS, Gemini 값 |
 
 Vite의 `VITE_*` 값은 브라우저에 공개된다. `VITE_SENTRY_DSN`은 식별자일 뿐 인증 비밀값으로 취급하지 않지만, 다른 secret을 이 접두사로 선언해서는 안 된다.
@@ -68,7 +68,7 @@ Vite의 `VITE_*` 값은 브라우저에 공개된다. `VITE_SENTRY_DSN`은 식�
 2. 전용 Gemini API key, 전용 Kakao 앱/Client Secret, 전용 Sentry 프로젝트를 만든다.
 3. 로컬에서 DB·Rabbit·Grafana 비밀번호와 JWT 키를 생성해 즉시 키체인에 기록한다. 채팅이나 파일에 출력하지 않는다.
 4. `Team2_BE`의 `pullit-production` Environment에는 위 표의 Pull-it 전용 secret과 runtime secret만 등록한다. 전용 EC2에는 `pullit-production` label의 self-hosted runner를 설치하고, runner root guard는 이 저장소와 `/opt/pullit`만 허용한다. PR CI에는 어떤 production secret도 주입하지 않는다.
-5. FE Vercel Production 설정과 Docs Vercel `Production` Environment에는 각 표에 적힌 값만 등록한다. Docs DB는 문서 전용 PostgreSQL이어야 한다.
+5. FE GitHub Environment `pullit-frontend-production`과 Docs Vercel `Production` Environment에는 각 표에 적힌 값만 등록한다. FE build job과 deploy job은 같은 FE Environment만 사용한다. Docs DB는 문서 전용 PostgreSQL이어야 한다.
 6. 서버의 `/opt/pullit/pullit-production.env`를 배포 전용 runner 계정 소유 `0600`으로 만든다. workflow는 `umask 077` 임시 파일을 형식 검증한 뒤 `install`로 교체하며, 로그·Compose 명령행·원격 셸에 비밀값을 출력하지 않는지 검토한다.
 
 ## 배포 전 불변 검사
