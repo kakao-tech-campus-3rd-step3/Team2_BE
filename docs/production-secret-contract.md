@@ -35,6 +35,8 @@
 
 `legacy-data-inventory.yml`은 이 Environment를 사용하는 수동 실행 전용 workflow다. 원격 명령은 디스크·컨테이너·volume 이름과 백업 파일 메타데이터만 읽으며, DB 접속, 환경변수 열람, 파일 내용 열람, 컨테이너 시작/중지, volume 생성/삭제를 하지 않는다. 원본을 찾지 못했거나 두 값 중 하나라도 없으면 네트워크 연결 전 실패해야 한다.
 
+원본 SQL 덤프가 확보되면 checksum을 별도 기록하고, `restore-legacy-data.yml` 수동 workflow만 실행한다. 이 workflow는 새 전용 EC2의 기존 volume이 하나라도 있으면 중단하고, app/worker/public tunnel을 시작하지 않은 채 DB·Redis·RabbitMQ만 기동한다. 이어 `/opt/pullit/restore-legacy-database.sh`가 명시 acknowledgement, 절대 경로의 일반 `.sql`/`.sql.gz` 파일, SHA-256 일치, 고정 전용 DB volume, app/worker 중지, MariaDB 실행, 대상 schema의 table 0개를 모두 확인한 뒤에만 import한다. 어떤 기존 table이라도 있으면 덮어쓰지 않고 실패한다. 복원 뒤 table 1개 이상을 다시 확인하기 전에는 backend CD를 실행하지 않는다.
+
 ## Backend 실행 비밀값
 
 | 키 | 값의 출처·형식 | GitHub/서버 사용처 | 발급 또는 회전 |

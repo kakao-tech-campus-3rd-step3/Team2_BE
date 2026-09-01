@@ -99,6 +99,8 @@ jobs:
           install -m 640 docker-compose.prod.yml /opt/pullit/docker-compose.prod.yml
           install -m 750 ops/production/deploy-production.sh /opt/pullit/deploy-production.sh
           install -m 750 ops/production/bootstrap-empty-data.sh /opt/pullit/bootstrap-empty-data.sh
+          install -m 750 ops/production/bootstrap-legacy-restore.sh /opt/pullit/bootstrap-legacy-restore.sh
+          install -m 750 ops/production/restore-legacy-database.sh /opt/pullit/restore-legacy-database.sh
           install -m 600 "$runtime_env" /opt/pullit/pullit-production.env
       - name: Deploy the already validated revision
         env:
