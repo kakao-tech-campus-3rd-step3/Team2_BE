@@ -45,7 +45,7 @@
 
 `DB_USERNAME=pullit_app`, `RABBITMQ_DEFAULT_USER=pullit_app`, `S3_REGION=ap-northeast-2`와 경로/도메인 값은 secret이 아닌 versioned configuration이다. `S3_BUCKET_NAME`도 별도 Pull-it 버킷 이름으로 확정한 뒤 공개 설정으로 둔다. S3 접근은 이 인스턴스에만 연결된 최소권한 IAM 역할의 임시 자격 증명을 사용하므로 장기 access key를 만들거나 저장하지 않는다.
 
-백엔드는 EC2의 loopback 포트와 Pull-it 전용 Cloudflare Tunnel에만 연결한다. Yeon Docker network, Yeon runner, 기존 Cloudflare Tunnel에는 연결하지 않는다. Tunnel의 public hostname은 `pullit-api.yeon.world`처럼 Pull-it 전용 이름으로 만들고, Yeon edge의 `PULLIT_BACKEND_ORIGIN`만 그 hostname을 가리킨다. 따라서 production profile은 `X-Forwarded-Host`/`Proto`를 신뢰하도록 설정한다. EC2 security group은 HTTP/HTTPS 인바운드를 열지 않는다.
+백엔드는 EC2의 loopback 포트와 Pull-it 전용 Cloudflare Tunnel에만 연결한다. Yeon Docker network, Yeon runner, 기존 Cloudflare Tunnel에는 연결하지 않는다. Tunnel upstream은 edge만 사용하는 별도 origin으로 만들고, `PULLIT_BACKEND_ORIGIN`에만 저장한다. 이 origin은 브라우저 링크ㆍOAuth redirect URIㆍ문서에 공개하는 주소가 아니며, 사용자가 보는 모든 Pull-it 주소는 `https://portfolio.yeon.world/pull-it` 아래만 사용한다. 따라서 production profile은 `X-Forwarded-Host`/`Proto`를 신뢰하도록 설정한다. EC2 security group은 HTTP/HTTPS 인바운드를 열지 않는다.
 
 ## Frontend와 Docs의 Environment 경계
 
