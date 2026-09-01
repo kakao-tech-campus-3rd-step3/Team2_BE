@@ -2,10 +2,6 @@ name: Pull-it legacy data inventory
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [develop]
-    paths:
-      - '.github/workflows/legacy-data-inventory.yml'
 
 permissions:
   contents: read
@@ -22,7 +18,13 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           set -euo pipefail
+          if [ -z "${EC2_HOST:-}" ] || [ -z "${EC2_SSH_KEY:-}" ]; then
+            echo 'QA environment did not provide both legacy-host connection secrets; stopping before any network request.' >&2
+            exit 1
+          fi
+
           umask 077
+          install -d -m 700 "$HOME/.ssh"
           key_file="$(mktemp)"
           trap 'rm -f "$key_file"' EXIT
           printf '%s\n' "$EC2_SSH_KEY" > "$key_file"
