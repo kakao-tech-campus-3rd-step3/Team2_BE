@@ -134,6 +134,7 @@ services:
       - PULLIT_CLOUDFLARE_TUNNEL_TOKEN
     networks:
       - pullit-prod
+      - pullit-internal
     security_opt:
       - no-new-privileges:true
 
@@ -154,3 +155,7 @@ secrets:
 
 networks:
   pullit-prod:
+  # This is deliberately a stable, Pull-it-only bridge shared by the tunnel
+  # and the separately deployed static frontend. It is not a Yeon network.
+  pullit-internal:
+    name: pullit-internal

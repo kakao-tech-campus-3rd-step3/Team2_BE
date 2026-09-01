@@ -55,6 +55,17 @@
 
 백엔드는 EC2의 loopback 포트와 Pull-it 전용 Cloudflare Tunnel에만 연결한다. Yeon Docker network, Yeon runner, 기존 Cloudflare Tunnel에는 연결하지 않는다. Tunnel upstream은 edge만 사용하는 별도 origin으로 만들고, `PULLIT_BACKEND_ORIGIN`에만 저장한다. 이 origin은 브라우저 링크ㆍOAuth redirect URIㆍ문서에 공개하는 주소가 아니며, 사용자가 보는 모든 Pull-it 주소는 `https://portfolio.yeon.world/pull-it` 아래만 사용한다. 따라서 production profile은 `X-Forwarded-Host`/`Proto`를 신뢰하도록 설정한다. EC2 security group은 HTTP/HTTPS 인바운드를 열지 않는다.
 
+터널과 정적 프런트는 전용 서버의 Docker network `pullit-internal`에서만 서로 통신한다. backend Compose가 이 bridge를 생성하고, frontend Compose는 이를 `external`로 요구하므로 backend 복구·배포 전의 프런트 단독 실행은 실패한다. 이는 잘못된 호스트 loopback 연결이나 Yeon network 연결을 막기 위한 fail-closed 조건이다.
+
+실제 Cloudflare published route는 새 tunnel이 연결되고 hostname 비점유가 확인된 뒤에만 다음 계약으로 **추가**한다. 기존 hostname, DNS record, tunnel route는 수정하거나 삭제하지 않는다.
+
+| 전용 edge origin hostname | tunnel service | Yeon edge 환경변수 |
+| --- | --- | --- |
+| `pullit-fe.yeon.world` | `http://pullit-frontend:18081` | `PULLIT_FRONTEND_ORIGIN` |
+| `pullit-api.yeon.world` | `http://pullit-prod-app:8080` | `PULLIT_BACKEND_ORIGIN` |
+
+두 origin hostname에는 브라우저가 직접 로그인하거나 OAuth callback을 받지 않는다. 모든 사용자 요청은 `portfolio.yeon.world/pull-it`에서 Yeon edge proxy를 거친다. remote tunnel config의 마지막 ingress rule은 반드시 `http_status:404`로 둔다.
+
 ## Frontend와 Docs의 Environment 경계
 
 | 레포 | Environment | 필요한 값 | 금지 값 |
