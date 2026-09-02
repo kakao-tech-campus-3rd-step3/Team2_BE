@@ -45,7 +45,9 @@ if [[ ! -d "$release" ]]; then
   cp -a "$incoming/." "$release/"
   find "$release" -type d -exec chmod 750 {} +
   find "$release" -type f -exec chmod 640 {} +
-  chmod 750 "$release"/*.sh
+  # 새 배포는 실행 스크립트를 전송하지 않고 root 소유 정적 경로에서만 실행한다.
+  # find는 일치 파일이 없어도 성공하므로 환경 파일만 전송한 release도 허용한다.
+  find "$release" -maxdepth 1 -type f -name '*.sh' -exec chmod 750 {} +
 fi
 
 previous_current=''
