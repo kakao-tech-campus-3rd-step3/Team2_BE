@@ -29,7 +29,7 @@ spring:
       client:
         registration:
           kakao:
-            redirect-uri: "${KAKAO_REDIRECT_URI:https://portfolio.yeon.world/pull-it/login/oauth2/code/{registrationId}}"
+            redirect-uri: "${KAKAO_REDIRECT_URI:https://qa.api.pull.it.kr/login/oauth2/code/{registrationId}}"
 
 server:
   error:

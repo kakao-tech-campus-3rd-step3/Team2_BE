@@ -30,7 +30,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify the release candidate before it can be published
+        run: ./gradlew codeCheck build --stacktrace --no-daemon
   transport-preflight:
+    needs: verify
+    if: always() && (github.event_name == 'workflow_dispatch' && inputs.operation == 'preflight' || needs.verify.result == 'success')
     runs-on: ubuntu-latest
     environment: pullit-backend-production
     steps:
@@ -63,9 +76,11 @@ jobs:
           S3_REGION: ${{ vars.S3_REGION }}
           S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
           S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
         run: |
           set -euo pipefail
-          required=(DEPLOY_KEY KNOWN_HOSTS DEPLOY_HOST PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY)
+          required=(DEPLOY_KEY KNOWN_HOSTS DEPLOY_HOST PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY MINIO_ROOT_USER MINIO_ROOT_PASSWORD)
           for name in "${required[@]}"; do test -n "${!name}"; done
           case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" in 'CF-Access-Client-Id:'*) exit 1 ;; esac
           case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" in 'CF-Access-Client-Secret:'*) exit 1 ;; esac
@@ -85,7 +100,7 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes "pullit-deploy@$DEPLOY_HOST" \
             'test -d /opt/pullit/incoming && test -w /opt/pullit/incoming && sudo -n -l /usr/local/sbin/pullit-deploy >/dev/null'
   build:
-    needs: transport-preflight
+    needs: [verify, transport-preflight]
     if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
     steps:
@@ -106,7 +121,7 @@ jobs:
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
   deploy:
-    needs: [transport-preflight, build]
+    needs: [verify, transport-preflight, build]
     if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
     environment: pullit-backend-production
@@ -137,6 +152,8 @@ jobs:
           S3_REGION: ${{ vars.S3_REGION }}
           S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
           S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
           DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
@@ -145,7 +162,7 @@ jobs:
           PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
         run: |
           set -euo pipefail
-          required=(PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY DEPLOY_KEY DEPLOY_HOST KNOWN_HOSTS PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET)
+          required=(PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY MINIO_ROOT_USER MINIO_ROOT_PASSWORD DEPLOY_KEY DEPLOY_HOST KNOWN_HOSTS PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET)
           for name in "${required[@]}"; do test -n "${!name}"; done
           umask 077
           staging="$(mktemp -d)"; trap 'rm -rf "$staging"' EXIT
@@ -165,10 +182,10 @@ jobs:
             printf 'S3_REGION=%s\n' "$S3_REGION"
             printf 'S3_ACCESS_KEY=%s\n' "$S3_ACCESS_KEY"
             printf 'S3_SECRET_KEY=%s\n' "$S3_SECRET_KEY"
+            printf 'MINIO_ROOT_USER=%s\n' "$MINIO_ROOT_USER"
+            printf 'MINIO_ROOT_PASSWORD=%s\n' "$MINIO_ROOT_PASSWORD"
             printf 'SENTRY_DSN=%s\n' "$SENTRY_DSN"
           } > "$staging/pullit-production.env"
-          install -m 640 docker-compose.prod.yml "$staging/docker-compose.prod.yml"
-          install -m 750 ops/production/deploy-production.sh "$staging/deploy-production.sh"
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh-key-pullit
           chmod 600 ~/.ssh-key-pullit
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh-known-hosts-pullit

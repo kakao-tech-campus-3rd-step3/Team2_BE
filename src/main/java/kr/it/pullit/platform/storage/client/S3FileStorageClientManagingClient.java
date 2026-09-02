@@ -80,7 +80,9 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   public String getFileUrl(String filePath) {
     String publicEndpoint = s3StorageProps.getPublicEndpoint();
     if (!StringUtils.hasText(publicEndpoint)) {
-      throw new IllegalStateException("공개 파일 URL endpoint가 설정되지 않았습니다.");
+      return String.format(
+          "https://%s.s3.%s.amazonaws.com/%s",
+          s3StorageProps.getBucketName(), s3StorageProps.getRegion(), filePath);
     }
     return String.format(
         "%s/%s/%s", publicEndpoint.replaceAll("/+$", ""), s3StorageProps.getBucketName(), filePath);

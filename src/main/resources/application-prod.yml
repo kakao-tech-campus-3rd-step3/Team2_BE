@@ -10,8 +10,8 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST:?REDIS_HOST is required}
+      port: ${REDIS_PORT:?REDIS_PORT is required}
 
   jpa:
     hibernate:

@@ -33,7 +33,7 @@
 
 | 저장소 | Environment | Secret | Variable |
 | --- | --- | --- | --- |
-| `Team2_BE` | `pullit-backend-production` | DB/Rabbit/JWT/Kakao/Gemini/MinIO/Sentry, deploy SSH key, Cloudflare Access id/secret | DB username/name, Rabbit user, S3 bucket/region, deploy host/known-hosts |
+| `Team2_BE` | `pullit-backend-production` | DB/Rabbit/JWT/Kakao/Gemini/MinIO app credential/MinIO root credential/Sentry, deploy SSH key, Cloudflare Access id/secret | DB username/name, Rabbit user, S3 bucket/region, deploy host/known-hosts |
 | `Team2_FE` | `pullit-frontend-production` | deploy SSH key, Cloudflare Access id/secret | `VITE_SENTRY_DSN`, deploy host/known-hosts |
 | `pullit-docs-server` | `pullit-docs-production` | docs DB password, deploy SSH key, Cloudflare Access id/secret | deploy host/known-hosts |
 
@@ -43,7 +43,7 @@
 
 - GitHub Actions는 Cloudflare Access 전용 hostname `pullit-deploy-ssh.yeon.world`만 사용한다. 기존 `ssh.yeon.world` Access 정책과 credentials는 수정하지 않는다.
 - Pi 계정 `pullit-deploy`는 `/opt/pullit/incoming`에 revision 업로드와 `sudo /usr/local/sbin/pullit-deploy <component> <sha>`만 허용된다. 임의 Docker·root 명령은 금지된다.
-- dispatcher는 완전한 SHA와 필수 산출물만 받으며, 새 runtime 계약을 설치한 뒤 health check가 성공할 때만 `current` release를 확정한다.
+- dispatcher는 완전한 SHA와 검증된 data-only 산출물만 받는다. Compose 파일과 deploy driver는 Pi에서 운영자가 root 소유로 설치하며 CI 업로드본을 root로 실행하지 않는다. health check가 성공할 때만 `current` release를 확정한다.
 - 배포 실패 시 이전 runtime 계약·release link를 복원하고, 기존 컴포넌트가 있었다면 이전 runtime을 재기동한다. named volume은 생성·삭제·초기화하지 않는다.
 - docs schema 변경은 `prisma migrate deploy`만 사용한다. `prisma db push`, reset, drop은 production deploy에 금지한다.
 
@@ -58,4 +58,5 @@
 
 - Kakao Developers: Pull-it 전용 앱 생성, 플랫폼 Web origin `https://portfolio.yeon.world`, callback은 위의 정확한 값 하나만 등록한다.
 - Google AI Studio, Sentry, S3는 포트폴리오 Pull-it 전용 프로젝트·key·bucket을 생성한다. 기존 Yeon key/bucket 재사용은 금지한다.
+- MinIO root credential은 storage 초기화·관리만 담당한다. application/worker에는 bucket policy를 가진 별도 `S3_ACCESS_KEY`/`S3_SECRET_KEY`만 전달한다.
 - Cloudflare Access 서비스 토큰은 Pull-it deployment application에만 연결한다. 값 유출이 의심되면 Keychain → GitHub Environments → 연결 policy 순서로 교체하고, 새 preflight 성공 뒤 이전 token을 revoke한다.

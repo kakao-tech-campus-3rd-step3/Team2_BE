@@ -38,8 +38,10 @@ jwt:
   audience: pullit-client
   access-token-expiration-minutes: 30
   refresh-token-expiration-days: 7
-  redirect-url: https://localhost:5173/
-  cookie-domain: localhost
+  authorized-redirect-uris:
+    - https://localhost:5173/
+  authorized-cookie-domains:
+    - localhost
 
 app:
   scheme: http

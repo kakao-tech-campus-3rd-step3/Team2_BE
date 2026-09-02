@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Root-owned dispatcher. The GitHub Actions SSH identity can only invoke this
-# program through sudo; it cannot run arbitrary Docker commands on the Pi.
+# Root-owned dispatcher. CI may submit immutable release data only. Docker
+# Compose files and deployment drivers are provisioned by an operator as
+# root-owned runtime contracts and are never executed from /opt/pullit/incoming.
 set -euo pipefail
 
 component="${1:-}"
@@ -16,16 +17,16 @@ readonly destination="/opt/pullit/$component"
 
 case "$component" in
   backend)
-    required=(docker-compose.prod.yml deploy-production.sh pullit-production.env)
-    runtime_files=(docker-compose.prod.yml deploy-production.sh pullit-production.env)
+    required=(pullit-production.env)
+    runtime_files=(pullit-production.env)
     ;;
   frontend)
-    required=(docker-compose.frontend.yml nginx.conf deploy-frontend.sh verify-frontend-bundle.sh dist/index.html)
-    runtime_files=(docker-compose.frontend.yml nginx.conf deploy-frontend.sh verify-frontend-bundle.sh)
+    required=(dist/index.html)
+    runtime_files=()
     ;;
   docs)
-    required=(docker-compose.prod.yml deploy-docs.sh pullit-docs-production.env)
-    runtime_files=(docker-compose.prod.yml deploy-docs.sh pullit-docs-production.env)
+    required=(pullit-docs-production.env)
+    runtime_files=(pullit-docs-production.env)
     ;;
 esac
 
@@ -69,30 +70,80 @@ done
 install_runtime_contract() {
   case "$component" in
     backend)
+      validate_backend_env "$release/pullit-production.env"
       install -m 600 "$release/pullit-production.env" "$destination/pullit-production.env"
-      install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
-      install -m 750 "$release/deploy-production.sh" "$destination/deploy-production.sh"
       ;;
     frontend)
-      install -m 640 "$release/docker-compose.frontend.yml" "$destination/docker-compose.frontend.yml"
-      install -m 640 "$release/nginx.conf" "$destination/nginx.conf"
-      install -m 750 "$release/deploy-frontend.sh" "$destination/deploy-frontend.sh"
-      install -m 750 "$release/verify-frontend-bundle.sh" "$destination/verify-frontend-bundle.sh"
       ;;
     docs)
+      validate_docs_env "$release/pullit-docs-production.env"
       install -m 600 "$release/pullit-docs-production.env" "$destination/pullit-docs-production.env"
-      install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
-      install -m 750 "$release/deploy-docs.sh" "$destination/deploy-docs.sh"
       ;;
   esac
 }
 
+validate_env_file() {
+  local env_file="$1"
+  shift
+  declare -A allowed=()
+  local key
+  for key in "$@"; do allowed["$key"]=1; done
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^([A-Z][A-Z0-9_]*)=(.*)$ ]] || {
+      echo "허용되지 않은 Pull-it runtime 환경변수 형식입니다." >&2
+      exit 65
+    }
+    key="${BASH_REMATCH[1]}"
+    [[ -n "${allowed[$key]:-}" ]] || {
+      echo "허용되지 않은 Pull-it runtime 환경변수입니다: $key" >&2
+      exit 65
+    }
+    unset 'allowed[$key]'
+  done < "$env_file"
+  if (( ${#allowed[@]} != 0 )); then
+    echo "Pull-it runtime 환경변수가 누락되었습니다." >&2
+    exit 65
+  fi
+}
+
+validate_backend_env() {
+  validate_env_file "$1" \
+    PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD \
+    PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS \
+    JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY \
+    S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY MINIO_ROOT_USER \
+    MINIO_ROOT_PASSWORD SENTRY_DSN
+}
+
+validate_docs_env() {
+  validate_env_file "$1" PULLIT_DOCS_IMAGE PULLIT_DOCS_DB_PASSWORD
+}
+
 run_deploy() {
   case "$component" in
-    backend) "$destination/deploy-production.sh" ;;
-    frontend) "$destination/deploy-frontend.sh" "$release/dist" "$revision" ;;
-    docs) "$destination/deploy-docs.sh" ;;
+    backend)
+      require_root_owned "$destination/docker-compose.prod.yml" "$destination/deploy-production.sh"
+      "$destination/deploy-production.sh"
+      ;;
+    frontend)
+      require_root_owned "$destination/docker-compose.frontend.yml" "$destination/nginx.conf" "$destination/deploy-frontend.sh" "$destination/verify-frontend-bundle.sh"
+      "$destination/deploy-frontend.sh" "$release/dist" "$revision"
+      ;;
+    docs)
+      require_root_owned "$destination/docker-compose.prod.yml" "$destination/deploy-docs.sh"
+      "$destination/deploy-docs.sh"
+      ;;
   esac
+}
+
+require_root_owned() {
+  local runtime_file
+  for runtime_file in "$@"; do
+    [[ -f "$runtime_file" && "$(stat -c '%U:%a' "$runtime_file")" =~ ^root:[0-7][0-5][0-5]$ ]] || {
+      echo "운영자만 설치할 수 있는 Pull-it runtime 계약이 없거나 안전하지 않습니다: $runtime_file" >&2
+      exit 65
+    }
+  done
 }
 
 restore_previous_contract() {
