@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Root-owned dispatcher. The GitHub Actions SSH identity can only invoke this
+# program through sudo; it cannot run arbitrary Docker commands on the Pi.
+set -euo pipefail
+
+component="${1:-}"
+revision="${2:-}"
+
+if [[ ! "$component" =~ ^(backend|frontend|docs)$ ]] || [[ ! "$revision" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "허용되지 않은 Pull-it 배포 요청입니다." >&2
+  exit 64
+fi
+
+readonly incoming="/opt/pullit/incoming/$component/$revision"
+readonly destination="/opt/pullit/$component"
+
+case "$component" in
+  backend)
+    required=(docker-compose.prod.yml deploy-production.sh pullit-production.env)
+    ;;
+  frontend)
+    required=(docker-compose.frontend.yml nginx.conf deploy-frontend.sh verify-frontend-bundle.sh dist/index.html)
+    ;;
+  docs)
+    required=(docker-compose.prod.yml deploy-docs.sh pullit-docs-production.env)
+    ;;
+esac
+
+for relative_path in "${required[@]}"; do
+  if [[ ! -f "$incoming/$relative_path" ]]; then
+    echo "배포 산출물에 필수 파일이 없습니다: $relative_path" >&2
+    exit 65
+  fi
+done
+
+install -d -m 750 "$destination"
+install -d -m 750 "$destination/revisions"
+release="$destination/revisions/$revision"
+if [[ ! -d "$release" ]]; then
+  install -d -m 750 "$release"
+  cp -a "$incoming/." "$release/"
+  find "$release" -type d -exec chmod 750 {} +
+  find "$release" -type f -exec chmod 640 {} +
+  chmod 750 "$release"/*.sh
+fi
+
+ln -sfn "$release" "$destination/.next"
+mv -Tf "$destination/.next" "$destination/current"
+
+case "$component" in
+  backend)
+    install -m 600 "$release/pullit-production.env" "$destination/pullit-production.env"
+    install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
+    install -m 750 "$release/deploy-production.sh" "$destination/deploy-production.sh"
+    exec "$destination/deploy-production.sh"
+    ;;
+  frontend)
+    install -m 640 "$release/docker-compose.frontend.yml" "$destination/docker-compose.frontend.yml"
+    install -m 640 "$release/nginx.conf" "$destination/nginx.conf"
+    install -m 750 "$release/deploy-frontend.sh" "$destination/deploy-frontend.sh"
+    install -m 750 "$release/verify-frontend-bundle.sh" "$destination/verify-frontend-bundle.sh"
+    exec "$destination/deploy-frontend.sh" "$release/dist" "$revision"
+    ;;
+  docs)
+    install -m 600 "$release/pullit-docs-production.env" "$destination/pullit-docs-production.env"
+    install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
+    install -m 750 "$release/deploy-docs.sh" "$destination/deploy-docs.sh"
+    exec "$destination/deploy-docs.sh"
+    ;;
+esac
