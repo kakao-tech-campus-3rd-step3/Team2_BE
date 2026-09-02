@@ -29,15 +29,15 @@ spring:
       client:
         registration:
           kakao:
-            redirect-uri: "https://qa.api.pull.it.kr/login/oauth2/code/{registrationId}"
+            redirect-uri: "${KAKAO_REDIRECT_URI:https://portfolio.yeon.world/pull-it/login/oauth2/code/{registrationId}}"
 
 server:
   error:
     whitelabel:
       enabled: false
-    include-exception: true  # QA에서는 예외 정보 확인 가능
-    include-stacktrace: on_param # 요청 시에만 스택트레이스 표시
-    include-message: always
+    include-exception: false
+    include-stacktrace: never
+    include-message: never
   forward-headers-strategy: framework
 
 springdoc:
@@ -92,9 +92,7 @@ management:
 cors:
   allowed-origins:
     - "https://localhost:5173"
-    - "https://www.pull.it.kr"
-    - "https://pull.it.kr"
-    - "https://local.pull.it.kr:5173"
+    - "https://portfolio.yeon.world"
     - "https://pullit-docs-server.vercel.app"
 
 # 나머지 외부 연동 설정(S3, Google, Kakao 키 등)은 application.yml의 정의를 상속
@@ -103,8 +101,8 @@ sentry:
   dsn: ${SENTRY_DSN}
   # Add data like request headers and IP for users,
   # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
-  send-default-pii: true
+  send-default-pii: false
 
 app:
   oauth2:
-    authorized-redirect-uri: ${PULLIT_OAUTH2_REDIRECT_URI:https://pull.it.kr/login-success}
+  authorized-redirect-uri: ${PULLIT_OAUTH2_REDIRECT_URI:https://portfolio.yeon.world/pull-it/login-success}

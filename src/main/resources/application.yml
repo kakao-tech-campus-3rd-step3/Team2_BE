@@ -92,7 +92,7 @@ decorator:
       enable-logging: true
 
 jwt:
-  secret: ${JWT_SECRET_KEY:Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=}
+  secret: ${JWT_SECRET_KEY}
   issuer: ${JWT_ISSUER:pullit-backend}
   audience: ${JWT_AUDIENCE:pullit-client}
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:30m}
@@ -101,7 +101,6 @@ jwt:
   authorized-redirect-uris:
     - ${JWT_REDIRECT_URL_1:https://portfolio.yeon.world/pull-it/login-success}
     - ${JWT_REDIRECT_URL_2:https://localhost:5173/login-success}
-    - ${JWT_REDIRECT_URL_3:https://pull.it.kr/login-success}
   authorized-cookie-domains:
     - ${JWT_COOKIE_DOMAIN_1:portfolio.yeon.world}
     - ${JWT_COOKIE_DOMAIN_2:localhost}
@@ -112,12 +111,13 @@ server:
   error:
     whitelabel:
       enabled: false
-    include-exception: true
-    # TODO : 운영에서 전체 트레이스 포함할지
-    include-stacktrace: ALWAYS
+    include-exception: false
+    include-stacktrace: NEVER
   servlet:
     session:
       cookie:
+        name: ${SERVER_SERVLET_SESSION_COOKIE_NAME:PULLIT_OAUTH_SESSION}
+        path: ${SERVER_SERVLET_SESSION_COOKIE_PATH:/}
         same-site: none
         secure: true
 
@@ -164,7 +164,6 @@ cors:
   allowed-origins:
     - ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:http://localhost:5173}
     - ${ACCESS_CONTROL_ALLOWED_ORIGIN_2:https://portfolio.yeon.world}
-    - ${ACCESS_CONTROL_ALLOWED_ORIGIN_3:https://pull.it.kr}
   # CORS 캐시 시간 (초 단위) - 개발: 5분, 운영: 1시간
   max-age-seconds: ${CORS_MAX_AGE_SECONDS:300}
 

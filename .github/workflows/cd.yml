@@ -1,75 +1,108 @@
-name: Deploy to EC2 (Compose)
+name: Deploy Pull-it backend
 
 on:
-  workflow_run:
-    workflows: ["Code check (linter, formatter)"]
-    types:
-      - completed
-    branches:
-      - develop
+  push:
+    branches: [develop]
+    paths: ["src/**", "gradle/**", "build.gradle", "settings.gradle", "Dockerfile", "docker-compose.prod.yml", "ops/production/**", ".github/workflows/cd.yml"]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: pullit-backend-production
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    if: github.event.workflow_run.conclusion == 'success'
-    environment: qa
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Login to Docker registry
+          ref: ${{ github.sha }}
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.DOCKER_REGISTRY_HOST }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          ecr: false
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push immutable image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/pullit-backend:${{ github.sha }}
 
-      - name: Setup SSH key
+  deploy:
+    needs: build
+    environment: pullit-production
+    runs-on: [self-hosted, Linux, X64, pullit-production]
+    steps:
+      - name: Checkout the deployed revision
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate and install Pull-it runtime contract
+        env:
+          PULLIT_BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/pullit-backend:${{ github.sha }}
+          DB_USERNAME: ${{ vars.PULLIT_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          PULLIT_DATABASE_NAME: ${{ vars.PULLIT_DATABASE_NAME }}
+          PULLIT_DB_VOLUME: ${{ vars.PULLIT_DB_VOLUME }}
+          PULLIT_REDIS_VOLUME: ${{ vars.PULLIT_REDIS_VOLUME }}
+          PULLIT_RABBITMQ_VOLUME: ${{ vars.PULLIT_RABBITMQ_VOLUME }}
+          RABBITMQ_DEFAULT_USER: ${{ vars.RABBITMQ_DEFAULT_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          PULLIT_CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.PULLIT_CLOUDFLARE_TUNNEL_TOKEN }}
         run: |
-          mkdir -p ~/.ssh
-          echo '${{ secrets.EC2_SSH_KEY }}' > ~/.ssh/ec2_key.pem
-          chmod 600 ~/.ssh/ec2_key.pem
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Create app directory on EC2
-        run: ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app/prometheus"
-
-      - name: Upload configs and deployment script
-        run: |
-          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
-          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no prometheus/prometheus.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/prometheus/prometheus.qa.yml
-          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no scripts/deploy-qa.sh ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/deploy-qa.sh
-
-      - name: Execute Blue-Green Deployment
-        run: |
-          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "
-            export DOCKER_IMAGE_NAME='${{ secrets.DOCKER_IMAGE_NAME }}'
-            export IMAGE_TAG='${{ github.event.workflow_run.head_sha }}'
-            export DB_USERNAME='${{ secrets.DB_USERNAME }}'
-            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
-            export DB_ROOT_PASSWORD='${{ secrets.DB_ROOT_PASSWORD }}'
-            export KAKAO_REST_API_KEY='${{ secrets.KAKAO_REST_API_KEY }}'
-            export KAKAO_CLIENT_SECRET='${{ secrets.KAKAO_CLIENT_SECRET }}'
-            export S3_ACCESS_KEY='${{ secrets.S3_ACCESS_KEY }}'
-            export S3_SECRET_KEY='${{ secrets.S3_SECRET_KEY }}'
-            export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}'
-            export JWT_REDIRECT_URL='${{ secrets.JWT_REDIRECT_URL }}'
-            export JWT_COOKIE_DOMAIN='${{ secrets.JWT_COOKIE_DOMAIN }}'
-            export AWS_REGION='ap-northeast-2'
-            export SENTRY_DSN='${{ secrets.SENTRY_DSN }}'
-            export SENTRY_AUTH_TOKEN='${{ secrets.SENTRY_AUTH_TOKEN }}'
-            export GRAFANA_ADMIN_PASSWORD='${{ secrets.GRAFANA_ADMIN_PASSWORD }}'
-            export RABBITMQ_DEFAULT_USER='${{ secrets.RABBITMQ_DEFAULT_USER }}'
-            export RABBITMQ_DEFAULT_PASS='${{ secrets.RABBITMQ_DEFAULT_PASS }}'
-
-            # Make the script executable and run it
-            chmod +x /home/ubuntu/app/deploy-qa.sh
-            bash /home/ubuntu/app/deploy-qa.sh
-          "
-      - name: Cleanup
-        if: always()
-        run: rm -f ~/.ssh/ec2_key.pem
+          set -euo pipefail
+          umask 077
+          runtime_env="$(mktemp)"
+          trap 'rm -f "$runtime_env"' EXIT
+          {
+            printf 'DB_USERNAME=%s\n' "$DB_USERNAME"
+            printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+            printf 'DB_ROOT_PASSWORD=%s\n' "$DB_ROOT_PASSWORD"
+            printf 'PULLIT_DATABASE_NAME=%s\n' "$PULLIT_DATABASE_NAME"
+            printf 'PULLIT_DB_VOLUME=%s\n' "$PULLIT_DB_VOLUME"
+            printf 'PULLIT_REDIS_VOLUME=%s\n' "$PULLIT_REDIS_VOLUME"
+            printf 'PULLIT_RABBITMQ_VOLUME=%s\n' "$PULLIT_RABBITMQ_VOLUME"
+            printf 'RABBITMQ_DEFAULT_USER=%s\n' "$RABBITMQ_DEFAULT_USER"
+            printf 'RABBITMQ_DEFAULT_PASS=%s\n' "$RABBITMQ_DEFAULT_PASS"
+            printf 'JWT_SECRET_KEY=%s\n' "$JWT_SECRET_KEY"
+            printf 'KAKAO_REST_API_KEY=%s\n' "$KAKAO_REST_API_KEY"
+            printf 'KAKAO_CLIENT_SECRET=%s\n' "$KAKAO_CLIENT_SECRET"
+            printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY"
+            printf 'S3_BUCKET_NAME=%s\n' "$S3_BUCKET_NAME"
+            printf 'S3_REGION=%s\n' "$S3_REGION"
+            printf 'SENTRY_DSN=%s\n' "$SENTRY_DSN"
+            printf 'PULLIT_CLOUDFLARE_TUNNEL_TOKEN=%s\n' "$PULLIT_CLOUDFLARE_TUNNEL_TOKEN"
+          } > "$runtime_env"
+          export PULLIT_BACKEND_IMAGE
+          docker compose --env-file "$runtime_env" -f docker-compose.prod.yml config --quiet
+          install -d -m 750 /opt/pullit
+          install -m 640 docker-compose.prod.yml /opt/pullit/docker-compose.prod.yml
+          install -m 750 ops/production/deploy-production.sh /opt/pullit/deploy-production.sh
+          install -m 750 ops/production/bootstrap-empty-data.sh /opt/pullit/bootstrap-empty-data.sh
+          install -m 750 ops/production/bootstrap-legacy-restore.sh /opt/pullit/bootstrap-legacy-restore.sh
+          install -m 750 ops/production/restore-legacy-database.sh /opt/pullit/restore-legacy-database.sh
+          install -m 600 "$runtime_env" /opt/pullit/pullit-production.env
+      - name: Deploy the already validated revision
+        env:
+          PULLIT_BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/pullit-backend:${{ github.sha }}
+        run: /opt/pullit/deploy-production.sh

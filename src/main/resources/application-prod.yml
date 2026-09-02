@@ -4,7 +4,7 @@ spring:
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: ${DB_URL:jdbc:mariadb://localhost:3306/pullit_prod?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -18,6 +18,10 @@ spring:
       ddl-auto: validate  # 프로덕션에서는 validate로 변경
     show-sql: false
 
+  sql:
+    init:
+      mode: never
+
   # 프로덕션에서는 DevTools 비활성화
   devtools:
     restart:
@@ -25,7 +29,30 @@ spring:
     livereload:
       enabled: false
 
+jwt:
+  # Local development callback/domain values must never be accepted by the
+  # portfolio deployment's OAuth success handler.
+  authorized-redirect-uris:
+    - ${JWT_REDIRECT_URL_1:https://portfolio.yeon.world/pull-it/login-success}
+  authorized-cookie-domains:
+    - ${JWT_COOKIE_DOMAIN_1:portfolio.yeon.world}
+
+app:
+  storage:
+    s3:
+      # 운영 EC2 instance profile을 사용한다. 장기 AWS 접근 키를 GitHub/host에 저장하지 않는다.
+      access-key: ${S3_ACCESS_KEY:}
+      secret-key: ${S3_SECRET_KEY:}
+
 server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        name: ${SERVER_SERVLET_SESSION_COOKIE_NAME:PULLIT_OAUTH_SESSION}
+        path: ${SERVER_SERVLET_SESSION_COOKIE_PATH:/pull-it}
+        same-site: none
+        secure: true
   error:
     whitelabel:
       enabled: false
@@ -51,7 +78,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,metrics"  # 프로덕션에서는 제한적 노출
+        include: "health,prometheus"
   endpoint:
     health:
       show-details: when-authorized  # 인증된 사용자만 상세 정보 확인
@@ -59,4 +86,7 @@ management:
 cors:
   allowed-origins:
     - ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:https://portfolio.yeon.world}
-    - ${ACCESS_CONTROL_ALLOWED_ORIGIN_2:https://pull.it.kr}
+
+sentry:
+  dsn: ${SENTRY_DSN}
+  send-default-pii: false

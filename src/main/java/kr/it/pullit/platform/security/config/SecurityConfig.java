@@ -8,7 +8,6 @@ import kr.it.pullit.platform.security.jwt.filter.DevAuthenticationFilter;
 import kr.it.pullit.platform.security.jwt.filter.JwtAuthenticationFilter;
 import kr.it.pullit.platform.security.repository.OAuth2AuthorizationRequestRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,7 +49,12 @@ public class SecurityConfig {
   public SecurityFilterChain actuatorChain(HttpSecurity http) throws Exception {
     http.securityMatcher("/actuator/**")
         .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/actuator/health", "/actuator/prometheus")
+                    .permitAll()
+                    .anyRequest()
+                    .denyAll())
         .requestCache(rc -> rc.disable()) // Saved request 방지
         .exceptionHandling(ex -> ex.disable()) // 불필요한 EntryPoint/Redirect 제거
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -59,21 +63,11 @@ public class SecurityConfig {
 
   private AuthenticationFailureHandler oauth2FailureHandler() {
     return (request, response, ex) -> {
-      LoggerFactory.getLogger("OAuth2Failure")
-          .error(
-              "[OAUTH2_FAILURE] errorClass={}, message={}, state={}, redirectUriFromSession={}",
-              ex.getClass().getSimpleName(),
-              ex.getMessage(),
-              request.getParameter("state"),
-              request.getSession(false) == null
-                  ? null
-                  : request
-                      .getSession(false)
-                      .getAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY));
+      httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequest(request, response);
 
       String targetUrl =
           UriComponentsBuilder.fromUriString(authorizedRedirectUri)
-              .queryParam("error", ex.getLocalizedMessage())
+              .queryParam("error", "oauth2_login_failed")
               .build()
               .toUriString();
 

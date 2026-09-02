@@ -23,7 +23,7 @@ public class CookieManager {
       HttpServletResponse response, String refreshToken, String domain) {
     long maxAge = jwtProps.refreshTokenExpirationDays().getSeconds();
     ResponseCookie cookie = createRefreshTokenCookie(refreshToken, maxAge, domain);
-    log.info("Generated Refresh Token Cookie string: {}", cookie);
+    log.debug("리프레시 토큰 쿠키를 발급했습니다. domain={}, path={}", domain, cookie.getPath());
     response.addHeader("Set-Cookie", cookie.toString());
   }
 

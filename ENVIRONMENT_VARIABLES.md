@@ -1,24 +1,12 @@
-# Pullit 프로젝트 환경 변수 가이드
+# Pullit 환경 변수 가이드
 
-이 문서는 `pullit` 애플리케이션을 실행하는 데 필요한 환경 변수를 설명합니다. 로컬 개발 환경이나 프로덕션 환경에 애플리케이션을 배포하기 전에, 아래 목록의 변수들을 `.env` 파일이나 해당 환경의 설정에 추가해야 합니다.
+프로덕션의 유일한 환경변수 계약은 [production-secret-contract.md](docs/production-secret-contract.md)입니다.
 
----
+- 커밋 가능한 키 이름과 공개값은 `.env.example`만 사용합니다.
+- 실제 키·비밀번호·토큰은 Git, Actions 로그, SSH 명령문, Compose 파일에 절대 넣지 않습니다.
+- `APP_GEMINI_APIKEY`, `GOOGLE_API_KEY` 등 이 문서의 이전 키 이름은 더 이상 사용하지 않습니다.
 
-## 환경 변수 목록
-
-| 환경 변수명                  | 설명                                                              | 예시 값                                |
-| -------------------------- | ----------------------------------------------------------------- | -------------------------------------- |
-| `APP_GEMINI_APIKEY`        | Google Gemini AI 모델 API 사용을 위한 인증 키입니다.                  | `your_gemini_api_key`                  |
-| `AWS_REGION`               | AWS 서비스(S3 등)를 사용할 리전(Region)을 지정합니다.             | `ap-northeast-2`                       |
-| `GOOGLE_API_KEY`           | Google 관련 API(예: 지도, 인증 등) 사용을 위한 인증 키입니다.       | `your_google_api_key`                  |
-| `GRAFANA_ADMIN_PASSWORD`   | Grafana 대시보드의 관리자 계정 비밀번호입니다.                    | `pullit5!`                             |
-| `KAKAO_CLIENT_SECRET`      | Kakao 소셜 로그인 API의 Client Secret 값입니다.                   | `your_kakao_client_secret`             |
-| `KAKAO_REDIRECT_URI`       | Kakao 소셜 로그인 성공 후 리디렉션될 URI 경로입니다.              | `/login/oauth2/code`                   |
-| `KAKAO_REST_API_KEY`       | Kakao 소셜 로그인 API의 REST API 키입니다.                        | `your_kakao_rest_api_key`              |
-| `S3_ACCESS_KEY`            | AWS S3 버킷에 접근하기 위한 Access Key ID입니다.                  | `your_s3_access_key`                   |
-| `S3_SECRET_KEY`            | AWS S3 버킷에 접근하기 위한 Secret Access Key입니다.              | `your_s3_secret_key`                   |
-
----
+아래의 로컬 HTTPS 및 SSE 예시는 개발 참고용입니다. 운영 배포에는 위 계약을 우선합니다.
 
 ## 로컬 환경에서 HTTPS 설정하기
 
@@ -118,4 +106,3 @@ eventSource.onerror = (error) => {
     eventSource.close();
 };
 ```
-

@@ -1,0 +1,66 @@
+name: Pull-it legacy data inventory
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    name: Read-only legacy host inventory
+    environment: pullit-legacy-readonly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare an ephemeral SSH key without printing it
+        env:
+          EC2_HOST: ${{ secrets.LEGACY_PULLIT_EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.LEGACY_PULLIT_EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EC2_HOST:-}" ] || [ -z "${EC2_SSH_KEY:-}" ]; then
+            echo 'Legacy-readonly environment did not provide both connection secrets; stopping before any network request.' >&2
+            exit 1
+          fi
+
+          umask 077
+          install -d -m 700 "$HOME/.ssh"
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s\n' "$EC2_SSH_KEY" > "$key_file"
+          ssh-keyscan -H "$EC2_HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+
+          # This remote script intentionally contains no write, restart, exec,
+          # backup, database-client, or environment-inspection command.
+          if ! ssh -i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 "ubuntu@$EC2_HOST" 'bash -s' <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          printf '%s\n' '== host storage summary =='
+          df -hT
+
+          if command -v docker >/dev/null 2>&1; then
+            printf '%s\n' '== docker containers (names and images only) =='
+            docker ps -a --format '{{.Names}} {{.Image}} {{.Status}}'
+            printf '%s\n' '== docker volumes (names only) =='
+            docker volume ls --format '{{.Name}}'
+            printf '%s\n' '== container mounts (names and paths only) =='
+            container_ids="$(docker ps -aq)"
+            if [ -n "$container_ids" ]; then
+              docker inspect --format '{{.Name}}{{range .Mounts}} {{if .Name}}{{.Name}}{{else}}{{.Source}}{{end}}:{{.Destination}}{{end}}' $container_ids
+            fi
+          fi
+
+          printf '%s\n' '== candidate backup file metadata (no contents) =='
+          for directory in /home/ubuntu /opt /srv /var/backups; do
+            if [ -d "$directory" ]; then
+              find "$directory" -xdev -maxdepth 4 -type f \
+                \( -iname '*.sql' -o -iname '*.sql.gz' -o -iname '*.dump' -o -iname '*.tar.gz' -o -iname '*.zip' \) \
+                -printf '%p %s bytes\n' 2>/dev/null || true
+            fi
+          done
+          REMOTE_SCRIPT
+          then
+            echo 'Legacy host inventory could not connect or complete; no remote state was changed.' >&2
+            exit 1
+          fi

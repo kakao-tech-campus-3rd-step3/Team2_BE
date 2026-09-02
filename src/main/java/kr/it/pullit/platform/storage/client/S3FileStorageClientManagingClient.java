@@ -6,7 +6,10 @@ import java.time.Duration;
 import kr.it.pullit.platform.storage.common.S3StorageProps;
 import kr.it.pullit.platform.storage.dto.S3FileMetadata;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -116,20 +119,30 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   private S3Client createS3Client() {
     return S3Client.builder()
         .region(Region.of(s3StorageProps.getRegion()))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(
-                    s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey())))
+        .credentialsProvider(createCredentialsProvider())
         .build();
   }
 
   private S3Presigner createS3Presigner() {
     return S3Presigner.builder()
         .region(Region.of(s3StorageProps.getRegion()))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(
-                    s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey())))
+        .credentialsProvider(createCredentialsProvider())
         .build();
+  }
+
+  private AwsCredentialsProvider createCredentialsProvider() {
+    boolean hasAccessKey = StringUtils.hasText(s3StorageProps.getAccessKey());
+    boolean hasSecretKey = StringUtils.hasText(s3StorageProps.getSecretKey());
+
+    if (hasAccessKey != hasSecretKey) {
+      throw new IllegalStateException("S3 access key와 secret key는 함께 설정해야 합니다.");
+    }
+
+    if (hasAccessKey) {
+      return StaticCredentialsProvider.create(
+          AwsBasicCredentials.create(s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey()));
+    }
+
+    return DefaultCredentialsProvider.create();
   }
 }
