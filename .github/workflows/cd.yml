@@ -48,6 +48,14 @@ jobs:
     environment: pullit-backend-production
     steps:
       - uses: actions/checkout@v5
+      - name: Install pinned Cloudflare Access client
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/cloudflared \
+            https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-linux-amd64
+          echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
+          install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
+          printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Create isolated runtime environment and deploy it
         env:
           PULLIT_BACKEND_IMAGE: ghcr.io/hyeonjun0527/pullit-backend:${{ github.sha }}
@@ -69,9 +77,11 @@ jobs:
           DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
           DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
           KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
         run: |
           set -euo pipefail
-          required=(PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY DEPLOY_KEY DEPLOY_HOST KNOWN_HOSTS)
+          required=(PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY DEPLOY_KEY DEPLOY_HOST KNOWN_HOSTS PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET)
           for name in "${required[@]}"; do test -n "${!name}"; done
           umask 077
           staging="$(mktemp -d)"; trap 'rm -rf "$staging"' EXIT
@@ -98,6 +108,12 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh-key-pullit
           chmod 600 ~/.ssh-key-pullit
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh-known-hosts-pullit
+          install -d -m 700 ~/.ssh
+          printf 'Host %s\n' "$DEPLOY_HOST" > ~/.ssh/config
+          cat >> ~/.ssh/config <<'EOF'
+            ProxyCommand cloudflared access ssh --hostname %h --service-token-id "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" --service-token-secret "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
+          EOF
+          chmod 600 ~/.ssh/config
           ssh_opts=(-i ~/.ssh-key-pullit -o BatchMode=yes -o UserKnownHostsFile=~/.ssh-known-hosts-pullit)
           ssh "${ssh_opts[@]}" "pullit-deploy@$DEPLOY_HOST" "mkdir -p /opt/pullit/incoming/backend/${{ github.sha }}"
           scp "${ssh_opts[@]}" -r "$staging/." "pullit-deploy@$DEPLOY_HOST:/opt/pullit/incoming/backend/${{ github.sha }}/"
