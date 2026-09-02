@@ -17,12 +17,15 @@ readonly destination="/opt/pullit/$component"
 case "$component" in
   backend)
     required=(docker-compose.prod.yml deploy-production.sh pullit-production.env)
+    runtime_files=(docker-compose.prod.yml deploy-production.sh pullit-production.env)
     ;;
   frontend)
     required=(docker-compose.frontend.yml nginx.conf deploy-frontend.sh verify-frontend-bundle.sh dist/index.html)
+    runtime_files=(docker-compose.frontend.yml nginx.conf deploy-frontend.sh verify-frontend-bundle.sh)
     ;;
   docs)
     required=(docker-compose.prod.yml deploy-docs.sh pullit-docs-production.env)
+    runtime_files=(docker-compose.prod.yml deploy-docs.sh pullit-docs-production.env)
     ;;
 esac
 
@@ -44,27 +47,83 @@ if [[ ! -d "$release" ]]; then
   chmod 750 "$release"/*.sh
 fi
 
-ln -sfn "$release" "$destination/.next"
-mv -Tf "$destination/.next" "$destination/current"
+previous_current=''
+if [[ -L "$destination/current" ]]; then
+  previous_current="$(readlink -f "$destination/current")"
+fi
 
-case "$component" in
-  backend)
-    install -m 600 "$release/pullit-production.env" "$destination/pullit-production.env"
-    install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
-    install -m 750 "$release/deploy-production.sh" "$destination/deploy-production.sh"
-    exec "$destination/deploy-production.sh"
-    ;;
-  frontend)
-    install -m 640 "$release/docker-compose.frontend.yml" "$destination/docker-compose.frontend.yml"
-    install -m 640 "$release/nginx.conf" "$destination/nginx.conf"
-    install -m 750 "$release/deploy-frontend.sh" "$destination/deploy-frontend.sh"
-    install -m 750 "$release/verify-frontend-bundle.sh" "$destination/verify-frontend-bundle.sh"
-    exec "$destination/deploy-frontend.sh" "$release/dist" "$revision"
-    ;;
-  docs)
-    install -m 600 "$release/pullit-docs-production.env" "$destination/pullit-docs-production.env"
-    install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
-    install -m 750 "$release/deploy-docs.sh" "$destination/deploy-docs.sh"
-    exec "$destination/deploy-docs.sh"
-    ;;
-esac
+rollback_directory="$(mktemp -d "$destination/.rollback.XXXXXXXX")"
+cleanup() {
+  rm -rf "$rollback_directory"
+}
+trap cleanup EXIT
+
+had_previous_runtime=false
+for runtime_file in "${runtime_files[@]}"; do
+  if [[ -e "$destination/$runtime_file" ]]; then
+    cp -a "$destination/$runtime_file" "$rollback_directory/$runtime_file"
+    had_previous_runtime=true
+  fi
+done
+
+install_runtime_contract() {
+  case "$component" in
+    backend)
+      install -m 600 "$release/pullit-production.env" "$destination/pullit-production.env"
+      install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
+      install -m 750 "$release/deploy-production.sh" "$destination/deploy-production.sh"
+      ;;
+    frontend)
+      install -m 640 "$release/docker-compose.frontend.yml" "$destination/docker-compose.frontend.yml"
+      install -m 640 "$release/nginx.conf" "$destination/nginx.conf"
+      install -m 750 "$release/deploy-frontend.sh" "$destination/deploy-frontend.sh"
+      install -m 750 "$release/verify-frontend-bundle.sh" "$destination/verify-frontend-bundle.sh"
+      ;;
+    docs)
+      install -m 600 "$release/pullit-docs-production.env" "$destination/pullit-docs-production.env"
+      install -m 640 "$release/docker-compose.prod.yml" "$destination/docker-compose.prod.yml"
+      install -m 750 "$release/deploy-docs.sh" "$destination/deploy-docs.sh"
+      ;;
+  esac
+}
+
+run_deploy() {
+  case "$component" in
+    backend) "$destination/deploy-production.sh" ;;
+    frontend) "$destination/deploy-frontend.sh" "$release/dist" "$revision" ;;
+    docs) "$destination/deploy-docs.sh" ;;
+  esac
+}
+
+restore_previous_contract() {
+  for runtime_file in "${runtime_files[@]}"; do
+    rm -f "$destination/$runtime_file"
+    if [[ -e "$rollback_directory/$runtime_file" ]]; then
+      cp -a "$rollback_directory/$runtime_file" "$destination/$runtime_file"
+    fi
+  done
+
+  if [[ -n "$previous_current" ]]; then
+    ln -sfn "$previous_current" "$destination/.current-rollback"
+    mv -Tf "$destination/.current-rollback" "$destination/current"
+  else
+    rm -f "$destination/current"
+  fi
+}
+
+install_runtime_contract
+
+if ! run_deploy; then
+  echo "Pull-it $component 배포가 실패했습니다. 이전 runtime 계약으로 복구합니다." >&2
+  restore_previous_contract
+  if [[ "$had_previous_runtime" = true ]]; then
+    if ! run_deploy; then
+      echo "이전 Pull-it $component runtime 재기동도 실패했습니다. 즉시 운영자 점검이 필요합니다." >&2
+    fi
+  fi
+  exit 1
+fi
+
+ln -sfn "$release" "$destination/.current-next"
+mv -Tf "$destination/.current-next" "$destination/current"
+echo "Pull-it $component revision $revision 배포를 확정했습니다."

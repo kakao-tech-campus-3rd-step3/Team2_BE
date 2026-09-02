@@ -1,105 +1,61 @@
-# Pull-it 프로덕션 환경·비밀값 계약
+# Pull-it 포트폴리오 환경·비밀값 계약
 
-이 문서는 `portfolio.yeon.world/pull-it` 복구 환경의 유일한 비밀값 계약이다. 실제 값은 이 저장소, 이슈, PR 본문, GitHub Actions 로그, 셸 히스토리에 넣지 않는다.
+이 문서는 `https://portfolio.yeon.world/pull-it` 복구 환경의 설정 계약이다. 실제 비밀값은 저장소, PR, Actions 로그, 셸 히스토리에 넣지 않는다.
 
-## 고정 공개값
+## 공개 라우팅 계약
 
-| 의미 | 현재 값 | 소비 위치 |
+| 항목 | 고정값 | 소유자 |
 | --- | --- | --- |
-| 서비스 원본 | `https://portfolio.yeon.world` | CORS, Cookie domain |
-| 앱 기본 경로 | `/pull-it` | FE Vite base, edge proxy |
-| API 외부 경로 | `/pull-it/api` | edge proxy → backend `/api` |
-| 문서 외부 경로 | `/pull-it/docs` | docs proxy |
-| Kakao callback | `https://portfolio.yeon.world/pull-it/login/oauth2/code/kakao` | Kakao Console, `KAKAO_REDIRECT_URI` |
-| 로그인 완료 경로 | `https://portfolio.yeon.world/pull-it/login-success` | `JWT_REDIRECT_URL_1`, OAuth allow-list |
-| refresh cookie path | `/pull-it/auth/refresh` | `JWT_REFRESH_COOKIE_PATH` |
-| OAuth 세션 cookie name/path | `PULLIT_OAUTH_SESSION` / `/pull-it` | `SERVER_SERVLET_SESSION_COOKIE_NAME/PATH` |
-| S3 리전 | `ap-northeast-2` | `S3_REGION` |
-| 앱 DB/Rabbit 사용자 | `pullit_app` | `DB_USERNAME`, `RABBITMQ_DEFAULT_USER` |
+| 서비스 origin | `https://portfolio.yeon.world` | Yeon edge proxy |
+| Pull-it base path | `/pull-it` | FE Vite base, edge proxy |
+| API 외부 경로 | `/pull-it/api` → backend `/api` | Yeon edge proxy |
+| 문서 경로 | `/pull-it/docs` → docs `/` | Yeon edge proxy |
+| Kakao callback | `https://portfolio.yeon.world/pull-it/login/oauth2/code/kakao` | Kakao Console, backend |
+| 로그인 완료 | `https://portfolio.yeon.world/pull-it/login-success` | backend JWT redirect |
+| refresh cookie path | `/pull-it/auth/refresh` | backend |
+| OAuth 세션 cookie | `PULLIT_OAUTH_SESSION`, path `/pull-it` | backend |
 
-`PULLIT_DATABASE_NAME=pullit`, `PULLIT_DB_VOLUME=pullit-prod-db-data`, `PULLIT_REDIS_VOLUME=pullit-prod-redis-data`, `PULLIT_RABBITMQ_VOLUME=pullit-prod-rabbitmq-data`는 복구 대상의 고정 이름이다. 아직 어느 volume도 생성하지 않았고, 서버의 읽기 전용 인벤토리와 백업 복구 검증이 끝날 때까지 Compose가 이 volume을 생성하거나 초기화하지 않는다.
+`pull.it.kr`, `api.pull.it.kr`, `qa.api.pull.it.kr`은 새 런타임 값·OAuth callback·CORS에 넣지 않는다. 과거 운영 기록에 보존된 URL은 역사 자료이며 런타임 계약이 아니다.
 
-`yeon.world`의 로그인·세션·OAuth 앱과 Pull-it은 공유하지 않는다. Pull-it의 Kakao 앱, JWT 서명 키, `refresh_token` cookie의 `/pull-it/auth/refresh` 경로, `PULLIT_OAUTH_SESSION` cookie, DB 사용자와 데이터는 모두 전용으로 유지한다.
+## 분리 불변조건
 
-## 실제 비밀값의 기준본과 복사본
+- 기존 Yeon 컨테이너, volume, database, Redis, RabbitMQ, Cloudflare Tunnel 설정은 변경하지 않는다.
+- Pull-it Compose project, named volume, internal network, DB 사용자와 비밀값은 모두 `pullit-` 접두사 전용이다.
+- 공유가 허용되는 것은 read-only edge network `yeon-edge`와 Yeon edge proxy의 `pullit-*` upstream alias뿐이다.
+- Pull-it Kakao 앱, JWT signing key, Gemini key, Sentry project와 Pi의 Pull-it 전용 MinIO credentials는 Yeon 것과 별도로 발급한다.
+- Pull-it 쿠키는 host-only이며 Yeon cookie name과 충돌하지 않는다. `yeon.world`와 `portfolio.yeon.world` 로그인은 동일 OAuth/session을 공유하지 않는다.
 
-1. **기준본:** 이 Mac 로그인 키체인. 서비스 이름은 `pullit-production`, 계정명은 아래 키 이름과 정확히 같다.
-2. **배포 제어값:** GitHub `pullit-production` Environment secret. 실행 비밀의 배포 복사본만 둔다. 컨테이너 이미지는 GitHub Actions의 단기 `GITHUB_TOKEN`으로 GHCR에 접근하므로 별도 레지스트리 비밀값을 두지 않는다. 이 Environment는 Pull-it backend 저장소에만 만들며 Yeon의 Environment와 공유하지 않는다.
-3. **실행 복사본:** Pull-it 전용 EC2의 전용 runner 계정만 읽을 수 있는 비밀 파일(`0600`). workflow는 임시 파일의 형식 검증을 통과한 경우에만 이 파일을 원자적으로 교체한다.
+## 기준본과 배포 복사본
 
-키를 새로 만들거나 재발급하면 기준본 → 서버 실행 복사본 순서로 같은 작업 안에서 갱신하고, 배포 후 해당 기능을 검증한다. GitHub은 기준본이 아니다.
+1. 기준본은 이 Mac Keychain의 서비스 `pullit-portfolio-production`이다. 새 비밀은 생성 직후 이곳에만 기록한다.
+2. GitHub은 아래의 각 **repository Environment**에 배포 복사본만 둔다. Yeon repository Environment와 공유하지 않는다.
+3. Pi의 `/opt/pullit/<component>/*.env`는 root 소유 `0600`이고 dispatcher가 전용 release에서만 설치한다. Docker Compose 출력과 CI 로그에 비밀값을 출력하지 않는다.
 
-## 레거시 데이터 원본 조회 전용 경계
-
-과거 Pull-it 원본을 찾기 위한 접속값은 운영용 `pullit-production` Environment나 기존 `qa` Environment에 넣지 않는다. 이 저장소의 별도 `pullit-legacy-readonly` Environment에만 `LEGACY_PULLIT_EC2_HOST`, `LEGACY_PULLIT_EC2_SSH_KEY`를 등록한다. 두 값은 원본 보유자가 복구 가능한 사본으로 확인했을 때만 Mac 키체인 서비스 `pullit-legacy-readonly`에도 보관한다.
-
-`legacy-data-inventory.yml`은 이 Environment를 사용하는 수동 실행 전용 workflow다. 원격 명령은 디스크·컨테이너·volume 이름과 백업 파일 메타데이터만 읽으며, DB 접속, 환경변수 열람, 파일 내용 열람, 컨테이너 시작/중지, volume 생성/삭제를 하지 않는다. 원본을 찾지 못했거나 두 값 중 하나라도 없으면 네트워크 연결 전 실패해야 한다.
-
-원본 SQL 덤프가 확보되면 checksum을 별도 기록하고, `restore-legacy-data.yml` 수동 workflow만 실행한다. 이 workflow는 새 전용 EC2의 기존 volume이 하나라도 있으면 중단하고, app/worker/public tunnel을 시작하지 않은 채 DB·Redis·RabbitMQ만 기동한다. 이어 `/opt/pullit/restore-legacy-database.sh`가 명시 acknowledgement, 절대 경로의 일반 `.sql`/`.sql.gz` 파일, SHA-256 일치, 고정 전용 DB volume, app/worker 중지, MariaDB 실행, 대상 schema의 table 0개를 모두 확인한 뒤에만 import한다. 어떤 기존 table이라도 있으면 덮어쓰지 않고 실패한다. 복원 뒤 table 1개 이상을 다시 확인하기 전에는 backend CD를 실행하지 않는다.
-
-## Backend 실행 비밀값
-
-| 키 | 값의 출처·형식 | GitHub/서버 사용처 | 발급 또는 회전 |
+| 저장소 | Environment | Secret | Variable |
 | --- | --- | --- | --- |
-| `DB_PASSWORD` | 32자 이상 무작위 비밀번호 | MariaDB 앱 계정, Spring datasource | 최초 생성, 유출·권한변경 시 |
-| `DB_ROOT_PASSWORD` | `DB_PASSWORD`와 다른 32자 이상 무작위 비밀번호 | MariaDB 초기화·복구 전용 | 최초 생성, 유출 시 |
-| `RABBITMQ_DEFAULT_PASS` | 32자 이상 무작위 비밀번호 | RabbitMQ 전용 앱 계정 | 최초 생성, 유출 시 |
-| `JWT_SECRET_KEY` | 64바이트 무작위값을 Base64로 인코딩 | Spring JWT 서명 | 최초 생성, 유출 시. 변경하면 모든 Pull-it 세션 무효화 |
-| `KAKAO_REST_API_KEY` | Pull-it 전용 Kakao 앱의 REST API key | OAuth client id | Kakao Console 앱 기준 |
-| `KAKAO_CLIENT_SECRET` | 같은 Kakao 앱의 client secret | OAuth client secret | Kakao Console 재발급 시 |
-| `GEMINI_API_KEY` | Pull-it 전용 Google AI Studio key | Gemini 호출 | Google AI Studio 재발급·사용량 경보 시 |
-| `SENTRY_DSN` | Pull-it 전용 Sentry 프로젝트 DSN | backend 오류 보고 | Sentry 프로젝트 교체·유출 대응 시 |
-| `PULLIT_CLOUDFLARE_TUNNEL_TOKEN` | Pull-it 전용 Cloudflare Tunnel token | `pullit-prod-tunnel` 컨테이너 | Tunnel 재발급·connector 교체 시 |
+| `Team2_BE` | `pullit-backend-production` | DB/Rabbit/JWT/Kakao/Gemini/MinIO/Sentry, deploy SSH key, Cloudflare Access id/secret | DB username/name, Rabbit user, S3 bucket/region, deploy host/known-hosts |
+| `Team2_FE` | `pullit-frontend-production` | deploy SSH key, Cloudflare Access id/secret | `VITE_SENTRY_DSN`, deploy host/known-hosts |
+| `pullit-docs-server` | `pullit-docs-production` | docs DB password, deploy SSH key, Cloudflare Access id/secret | deploy host/known-hosts |
 
-`DB_USERNAME=pullit_app`, `RABBITMQ_DEFAULT_USER=pullit_app`, `S3_REGION=ap-northeast-2`와 경로/도메인 값은 secret이 아닌 versioned configuration이다. `S3_BUCKET_NAME`도 별도 Pull-it 버킷 이름으로 확정한 뒤 공개 설정으로 둔다. S3 접근은 이 인스턴스에만 연결된 최소권한 IAM 역할의 임시 자격 증명을 사용하므로 장기 access key를 만들거나 저장하지 않는다.
+`VITE_*`는 browser public configuration이므로 비밀값을 넣지 않는다. `SENTRY_DSN`은 값이 비어도 backend deploy에 영향이 없지만, 다른 실행 비밀은 모두 empty fail-fast 대상이다.
 
-백엔드는 EC2의 loopback 포트와 Pull-it 전용 Cloudflare Tunnel에만 연결한다. Yeon Docker network, Yeon runner, 기존 Cloudflare Tunnel에는 연결하지 않는다. Tunnel upstream은 edge만 사용하는 별도 origin으로 만들고, `PULLIT_BACKEND_ORIGIN`에만 저장한다. 이 origin은 브라우저 링크ㆍOAuth redirect URIㆍ문서에 공개하는 주소가 아니며, 사용자가 보는 모든 Pull-it 주소는 `https://portfolio.yeon.world/pull-it` 아래만 사용한다. 따라서 production profile은 `X-Forwarded-Host`/`Proto`를 신뢰하도록 설정한다. EC2 security group은 HTTP/HTTPS 인바운드를 열지 않는다.
+## Pi 배포 권한·롤백 계약
 
-터널과 정적 프런트는 전용 서버의 Docker network `pullit-internal`에서만 서로 통신한다. backend Compose가 이 bridge를 생성하고, frontend Compose는 이를 `external`로 요구하므로 backend 복구·배포 전의 프런트 단독 실행은 실패한다. 이는 잘못된 호스트 loopback 연결이나 Yeon network 연결을 막기 위한 fail-closed 조건이다.
+- GitHub Actions는 Cloudflare Access 전용 hostname `pullit-deploy-ssh.yeon.world`만 사용한다. 기존 `ssh.yeon.world` Access 정책과 credentials는 수정하지 않는다.
+- Pi 계정 `pullit-deploy`는 `/opt/pullit/incoming`에 revision 업로드와 `sudo /usr/local/sbin/pullit-deploy <component> <sha>`만 허용된다. 임의 Docker·root 명령은 금지된다.
+- dispatcher는 완전한 SHA와 필수 산출물만 받으며, 새 runtime 계약을 설치한 뒤 health check가 성공할 때만 `current` release를 확정한다.
+- 배포 실패 시 이전 runtime 계약·release link를 복원하고, 기존 컴포넌트가 있었다면 이전 runtime을 재기동한다. named volume은 생성·삭제·초기화하지 않는다.
+- docs schema 변경은 `prisma migrate deploy`만 사용한다. `prisma db push`, reset, drop은 production deploy에 금지한다.
 
-실제 Cloudflare published route는 새 tunnel이 연결되고 hostname 비점유가 확인된 뒤에만 다음 계약으로 **추가**한다. 기존 hostname, DNS record, tunnel route는 수정하거나 삭제하지 않는다.
+## 실행 전 검사와 순서
 
-| 전용 edge origin hostname | tunnel service | Yeon edge 환경변수 |
-| --- | --- | --- |
-| `pullit-fe.yeon.world` | `http://pullit-frontend:18081` | `PULLIT_FRONTEND_ORIGIN` |
-| `pullit-api.yeon.world` | `http://pullit-prod-app:8080` | `PULLIT_BACKEND_ORIGIN` |
+1. 각 배포 workflow의 `operation=preflight`를 한 번 실행한다. 이 job은 Cloudflare HTTP 200, SSH host key, 제한 계정, 허용 sudo command만 검사하며 Pi에 쓰지 않는다.
+2. 세 preflight가 모두 성공한 뒤 backend → frontend → docs 순으로 `operation=deploy`를 각 한 번 실행한다.
+3. Pi에서 Pull-it 컨테이너 health, `yeon-edge` alias, 기존 Yeon 컨테이너 목록이 그대로인지를 확인한다.
+4. Pull-it 서비스가 모두 healthy인 경우에만 Yeon edge proxy의 `/pull-it` route를 merge·배포한다. 이 단계 전에는 외부 공개 라우팅을 켜지 않는다.
 
-두 origin hostname에는 브라우저가 직접 로그인하거나 OAuth callback을 받지 않는다. 모든 사용자 요청은 `portfolio.yeon.world/pull-it`에서 Yeon edge proxy를 거친다. remote tunnel config의 마지막 ingress rule은 반드시 `http_status:404`로 둔다.
+## 발급·회전 경계
 
-## Frontend와 Docs의 Environment 경계
-
-| 레포 | Environment | 필요한 값 | 금지 값 |
-| --- | --- | --- | --- |
-| Team2_FE | GitHub Environment `pullit-frontend-production` | `VITE_PUBLIC_BASE_PATH=/pull-it/`, `VITE_API_BASE_URL=/pull-it`, 선택 `VITE_SENTRY_DSN` | DB, JWT, Kakao client secret, AWS secret, Gemini key |
-| pullit-docs-server | Vercel `Production` Environment | `DATABASE_URL`, `POSTGRES_URL_NON_POOLING` | Pull-it DB, JWT, Kakao, AWS, Gemini 값 |
-
-Vite의 `VITE_*` 값은 브라우저에 공개된다. `VITE_SENTRY_DSN`은 식별자일 뿐 인증 비밀값으로 취급하지 않지만, 다른 secret을 이 접두사로 선언해서는 안 된다.
-
-## 생성 및 등록 순서
-
-1. 전용 S3 버킷과 최소권한 EC2 IAM 역할을 만들고, 그 역할을 Pull-it EC2에만 연결한다. 기존 Yeon IAM key, 버킷, 정책은 재사용하지 않는다.
-2. 전용 Gemini API key, 전용 Kakao 앱/Client Secret, 전용 Sentry 프로젝트를 만든다.
-3. 로컬에서 DB·Rabbit·Grafana 비밀번호와 JWT 키를 생성해 즉시 키체인에 기록한다. 채팅이나 파일에 출력하지 않는다.
-4. `Team2_BE`의 `pullit-production` Environment에는 위 표의 Pull-it 전용 secret과 runtime secret만 등록한다. 전용 EC2에는 `pullit-production` label의 self-hosted runner를 설치하고, runner root guard는 이 저장소와 `/opt/pullit`만 허용한다. PR CI에는 어떤 production secret도 주입하지 않는다.
-5. FE GitHub Environment `pullit-frontend-production`과 Docs Vercel `Production` Environment에는 각 표에 적힌 값만 등록한다. FE build job과 deploy job은 같은 FE Environment만 사용한다. Docs DB는 문서 전용 PostgreSQL이어야 한다.
-6. 서버의 `/opt/pullit/pullit-production.env`를 배포 전용 runner 계정 소유 `0600`으로 만든다. workflow는 `umask 077` 임시 파일을 형식 검증한 뒤 `install`로 교체하며, 로그·Compose 명령행·원격 셸에 비밀값을 출력하지 않는지 검토한다.
-
-## Self-hosted runner 분리 계약
-
-같은 새 Pull-it 전용 EC2를 쓰더라도 backend와 frontend는 별도 runner 등록으로 분리한다. 기존 Yeon runner, 기존 QA runner, 다른 repository runner를 공유하거나 label만 덧붙이지 않는다.
-
-| 역할 | GitHub repository | runner 이름 | 디렉터리 | 전용 label |
-| --- | --- | --- | --- | --- |
-| backend·worker·Compose | `Hyeonjun0527/Team2_BE` | `pullit-production-runner` | `/opt/actions-runner` | `pullit-production` |
-| 정적 frontend | `Hyeonjun0527/Team2_FE` | `pullit-frontend-runner` | `/opt/actions-runner-frontend` | `pullit-frontend-production` |
-
-두 runner는 별도 systemd service와 별도 working directory로 등록한다. frontend workflow에는 `pullit-frontend-production` Environment 값만 주입하고 backend `pullit-production` Environment secret을 절대 주입하지 않는다. backend runtime secret 파일은 계속 배포 계정 소유 `0600`으로 유지한다. 같은 전용 EC2에서 Docker를 사용하는 runner 분리는 실수 방지를 위한 repository·workflow·Environment 경계이지, 악의적인 임의 Docker 명령까지 막는 OS 권한 격리는 아니다. 그 강한 격리가 필요해지면 frontend runner를 별도 EC2로 옮긴다. 등록에는 GitHub가 발행한 짧은 수명의 repository runner registration token만 사용하고, 장기 PAT·registration token을 파일·Keychain·GitHub Environment에 보관하지 않는다. token은 runner 등록 직후 폐기된다.
-
-## 배포 전 불변 검사
-
-- `pull.it.kr`, `api.pull.it.kr`, `qa.api.pull.it.kr`은 production 설정, OAuth callback, CORS, 문서 링크에 남기지 않는다.
-- Pull-it의 servlet session cookie는 기본 `JSESSIONID`가 아니라 `PULLIT_OAUTH_SESSION`, path `/pull-it`로 설정한다.
-- DB URL에는 `createDatabaseIfNotExist=true`를 넣지 않는다.
-- 비밀값은 `docker compose config`, `ps`, 로그, CI 출력에 나타나지 않아야 한다.
-- API worker와 web app 모두 같은 읽기 전용 비밀 파일을 사용하고, 각 서비스의 health check가 통과해야 한다.
-- prod 데이터베이스 volume은 새 compose 실행 전에 이름·마운트·백업 복구 절차를 별도로 확인한다. 새 데이터베이스를 자동 생성하지 않는다.
+- Kakao Developers: Pull-it 전용 앱 생성, 플랫폼 Web origin `https://portfolio.yeon.world`, callback은 위의 정확한 값 하나만 등록한다.
+- Google AI Studio, Sentry, S3는 포트폴리오 Pull-it 전용 프로젝트·key·bucket을 생성한다. 기존 Yeon key/bucket 재사용은 금지한다.
+- Cloudflare Access 서비스 토큰은 Pull-it deployment application에만 연결한다. 값 유출이 의심되면 Keychain → GitHub Environments → 연결 policy 순서로 교체하고, 새 preflight 성공 뒤 이전 token을 revoke한다.

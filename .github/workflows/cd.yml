@@ -2,6 +2,13 @@ name: Deploy Pull-it backend and worker to Yeon Pi
 
 on:
   workflow_dispatch:
+    inputs:
+      operation:
+        description: 'preflight은 Pi에 쓰지 않고 전송 경로만 검증합니다.'
+        required: true
+        default: preflight
+        type: choice
+        options: [preflight, deploy]
   push:
     branches: [develop]
     paths:
@@ -23,7 +30,63 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  transport-preflight:
+    runs-on: ubuntu-latest
+    environment: pullit-backend-production
+    steps:
+      - name: Install pinned Cloudflare Access client
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/cloudflared \
+            https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-linux-amd64
+          echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
+          install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
+          printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Verify Cloudflare Access and the restricted Pi command path
+        env:
+          DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+          DB_USERNAME: ${{ vars.PULLIT_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          PULLIT_DATABASE_NAME: ${{ vars.PULLIT_DATABASE_NAME }}
+          RABBITMQ_DEFAULT_USER: ${{ vars.RABBITMQ_DEFAULT_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          required=(DEPLOY_KEY KNOWN_HOSTS DEPLOY_HOST PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY)
+          for name in "${required[@]}"; do test -n "${!name}"; done
+          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" in 'CF-Access-Client-Id:'*) exit 1 ;; esac
+          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" in 'CF-Access-Client-Secret:'*) exit 1 ;; esac
+          status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --header "CF-Access-Client-Id: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" \
+            --header "CF-Access-Client-Secret: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" "https://$DEPLOY_HOST")"
+          test "$status" = 200 || { echo "Cloudflare Access service-token probe returned HTTP $status" >&2; exit 1; }
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519
+          printf 'Host %s\n' "$DEPLOY_HOST" > ~/.ssh/config
+          cat >> ~/.ssh/config <<'EOF'
+            ProxyCommand cloudflared access ssh --hostname %h --service-token-id "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" --service-token-secret "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes "pullit-deploy@$DEPLOY_HOST" \
+            'test -d /opt/pullit/incoming && test -w /opt/pullit/incoming && sudo -n -l /usr/local/sbin/pullit-deploy >/dev/null'
   build:
+    needs: transport-preflight
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -43,7 +106,8 @@ jobs:
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
   deploy:
-    needs: build
+    needs: [transport-preflight, build]
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
     environment: pullit-backend-production
     steps:
@@ -56,27 +120,6 @@ jobs:
           echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
           install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
           printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - name: Verify Cloudflare Access service token
-        env:
-          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
-          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
-          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
-        run: |
-          set -euo pipefail
-          test -n "$DEPLOY_HOST"
-          test -n "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID"
-          test -n "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
-          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" in
-            'CF-Access-Client-Id:'*) echo 'Cloudflare client ID must be the value only.' >&2; exit 1 ;;
-          esac
-          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" in
-            'CF-Access-Client-Secret:'*) echo 'Cloudflare client secret must be the value only.' >&2; exit 1 ;;
-          esac
-          status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
-            --header "CF-Access-Client-Id: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" \
-            --header "CF-Access-Client-Secret: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" \
-            "https://$DEPLOY_HOST")"
-          test "$status" = 200 || { echo "Cloudflare Access service-token probe returned HTTP $status" >&2; exit 1; }
       - name: Create isolated runtime environment and deploy it
         env:
           PULLIT_BACKEND_IMAGE: ghcr.io/hyeonjun0527/pullit-backend:${{ github.sha }}
