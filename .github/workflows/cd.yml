@@ -56,6 +56,27 @@ jobs:
           echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
           install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
           printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Verify Cloudflare Access service token
+        env:
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST"
+          test -n "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID"
+          test -n "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
+          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" in
+            'CF-Access-Client-Id:'*) echo 'Cloudflare client ID must be the value only.' >&2; exit 1 ;;
+          esac
+          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" in
+            'CF-Access-Client-Secret:'*) echo 'Cloudflare client secret must be the value only.' >&2; exit 1 ;;
+          esac
+          status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --header "CF-Access-Client-Id: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" \
+            --header "CF-Access-Client-Secret: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" \
+            "https://$DEPLOY_HOST")"
+          test "$status" = 200 || { echo "Cloudflare Access service-token probe returned HTTP $status" >&2; exit 1; }
       - name: Create isolated runtime environment and deploy it
         env:
           PULLIT_BACKEND_IMAGE: ghcr.io/hyeonjun0527/pullit-backend:${{ github.sha }}
