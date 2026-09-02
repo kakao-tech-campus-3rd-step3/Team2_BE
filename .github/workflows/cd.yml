@@ -19,11 +19,11 @@ on:
       - Dockerfile
       - docker-compose.prod.yml
       - ops/production/**
+      - .github/actions/**
       - .github/workflows/cd.yml
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: pullit-backend-production
@@ -35,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,16 +47,13 @@ jobs:
     needs: verify
     if: always() && (github.event_name == 'workflow_dispatch' && inputs.operation == 'preflight' || needs.verify.result == 'success')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: pullit-backend-production
     steps:
-      - name: Install pinned Cloudflare Access client
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 --output /tmp/cloudflared \
-            https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-linux-amd64
-          echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
-          install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
-          printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-cloudflared
       - name: Verify Cloudflare Access and the restricted Pi command path
         env:
           DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
@@ -84,7 +83,8 @@ jobs:
           for name in "${required[@]}"; do test -n "${!name}"; done
           case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" in 'CF-Access-Client-Id:'*) exit 1 ;; esac
           case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" in 'CF-Access-Client-Secret:'*) exit 1 ;; esac
-          status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+          status="$(curl --silent --show-error --connect-timeout 10 --max-time 30 \
+            --output /dev/null --write-out '%{http_code}' \
             --header "CF-Access-Client-Id: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" \
             --header "CF-Access-Client-Secret: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" "https://$DEPLOY_HOST")"
           test "$status" = 200 || { echo "Cloudflare Access service-token probe returned HTTP $status" >&2; exit 1; }
@@ -97,14 +97,20 @@ jobs:
             ProxyCommand cloudflared access ssh --hostname %h --service-token-id "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" --service-token-secret "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
           EOF
           chmod 600 ~/.ssh/config
-          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes "pullit-deploy@$DEPLOY_HOST" \
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "pullit-deploy@$DEPLOY_HOST" \
             'test -d /opt/pullit/incoming && test -w /opt/pullit/incoming && sudo -n -l /usr/local/sbin/pullit-deploy >/dev/null'
   build:
     needs: [verify, transport-preflight]
     if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -124,17 +130,13 @@ jobs:
     needs: [verify, transport-preflight, build]
     if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: pullit-backend-production
     steps:
       - uses: actions/checkout@v5
-      - name: Install pinned Cloudflare Access client
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 --output /tmp/cloudflared \
-            https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-linux-amd64
-          echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
-          install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
-          printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-cloudflared
       - name: Create isolated runtime environment and deploy it
         env:
           PULLIT_BACKEND_IMAGE: ghcr.io/hyeonjun0527/pullit-backend:${{ github.sha }}
