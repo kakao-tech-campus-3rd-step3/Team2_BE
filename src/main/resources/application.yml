@@ -180,6 +180,8 @@ app:
       region: ${S3_REGION:ap-northeast-2}
       access-key: ${S3_ACCESS_KEY:test}
       secret-key: ${S3_SECRET_KEY:test}
+      endpoint: ${S3_ENDPOINT:}
+      public-endpoint: ${S3_PUBLIC_ENDPOINT:}
       presigned-url-expiration: PT15M
       base-path: learning-sources
   notification:

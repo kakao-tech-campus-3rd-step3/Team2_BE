@@ -19,25 +19,25 @@ x-pullit-common-environment: &pullit-common-environment
   PULLIT_OAUTH2_REDIRECT_URI: ${PULLIT_OAUTH2_REDIRECT_URI:-https://portfolio.yeon.world/pull-it/login-success}
   ACCESS_CONTROL_ALLOWED_ORIGIN_1: ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:-https://portfolio.yeon.world}
   GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY is required}
-  S3_BUCKET_NAME: ${S3_BUCKET_NAME:?S3_BUCKET_NAME is required}
-  S3_REGION: ${S3_REGION:-ap-northeast-2}
-  SENTRY_DSN: ${SENTRY_DSN:?SENTRY_DSN is required}
+  S3_BUCKET_NAME: ${S3_BUCKET_NAME:-pullit-learning-sources}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY is required}
+  S3_ENDPOINT: http://pullit-prod-storage:9000
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-https://portfolio.yeon.world/pull-it/storage}
+  SENTRY_DSN: ${SENTRY_DSN:-}
   JAVA_OPTS: ${JAVA_OPTS:--Xmx768m -Xms256m -XX:+UseG1GC}
 
 x-pullit-runtime: &pullit-runtime
   image: ${PULLIT_BACKEND_IMAGE:?PULLIT_BACKEND_IMAGE is required}
   restart: unless-stopped
   depends_on:
-    pullit-prod-db:
-      condition: service_healthy
-    pullit-prod-redis:
-      condition: service_healthy
-    pullit-prod-rabbitmq:
-      condition: service_healthy
-  networks:
-    - pullit-prod
-  security_opt:
-    - no-new-privileges:true
+    pullit-prod-db: {condition: service_healthy}
+    pullit-prod-redis: {condition: service_healthy}
+    pullit-prod-rabbitmq: {condition: service_healthy}
+    pullit-prod-storage-init: {condition: service_completed_successfully}
+  networks: [pullit-prod]
+  security_opt: ["no-new-privileges:true"]
 
 services:
   pullit-prod-app:
@@ -45,10 +45,12 @@ services:
     environment:
       <<: *pullit-common-environment
       SPRING_PROFILES_ACTIVE: prod
-    ports:
-      - "127.0.0.1:${PULLIT_BACKEND_PORT:-18082}:8080"
+    networks:
+      pullit-prod:
+      yeon-edge:
+        aliases: [pullit-backend]
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: [CMD, wget, --no-verbose, --tries=1, --spider, "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -61,7 +63,7 @@ services:
       SPRING_PROFILES_ACTIVE: prod,worker
       SPRING_MAIN_WEB_APPLICATION_TYPE: NONE
     healthcheck:
-      test: ["CMD-SHELL", "ps | grep -v grep | grep '[a]pp.jar'"]
+      test: [CMD-SHELL, "ps | grep -v grep | grep '[a]pp.jar'"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -77,31 +79,24 @@ services:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
       MARIADB_CHARSET: utf8mb4
       MARIADB_COLLATION: utf8mb4_unicode_ci
-    volumes:
-      - pullit-prod-db:/var/lib/mysql
-    networks:
-      - pullit-prod
+    volumes: ["pullit-portfolio-db-data:/var/lib/mysql"]
+    networks: [pullit-prod]
     healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      test: [CMD-SHELL, "mariadb-admin ping -h localhost -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --default-time-zone=+09:00
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, "--default-time-zone=+09:00"]
 
   pullit-prod-redis:
     image: redis:8.0.4-alpine
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - pullit-prod-redis:/data
-    networks:
-      - pullit-prod
+    command: [redis-server, --appendonly, "yes"]
+    volumes: ["pullit-portfolio-redis-data:/data"]
+    networks: [pullit-prod]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [CMD, redis-cli, ping]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -112,52 +107,54 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
-    volumes:
-      - pullit-prod-rabbitmq:/var/lib/rabbitmq
-    networks:
-      - pullit-prod
+    volumes: ["pullit-portfolio-rabbitmq-data:/var/lib/rabbitmq"]
+    networks: [pullit-prod]
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: [CMD, rabbitmq-diagnostics, ping]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
 
-  pullit-prod-tunnel:
-    image: cloudflare/cloudflared:2026.3.0@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0
+  pullit-prod-storage:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     restart: unless-stopped
-    command:
-      - tunnel
-      - --no-autoupdate
-      - run
-      - --token-file
-      - /run/secrets/PULLIT_CLOUDFLARE_TUNNEL_TOKEN
-    secrets:
-      - PULLIT_CLOUDFLARE_TUNNEL_TOKEN
-    networks:
-      - pullit-prod
-      - pullit-internal
-    security_opt:
-      - no-new-privileges:true
+    command: "server /data --console-address :9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?S3_SECRET_KEY is required}
+    volumes: ["pullit-portfolio-storage-data:/data"]
+    networks: [pullit-prod]
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  pullit-prod-storage-init:
+    image: minio/mc:RELEASE.2025-05-21T01-59-54Z
+    restart: "no"
+    depends_on:
+      pullit-prod-storage: {condition: service_healthy}
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY is required}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-pullit-learning-sources}
+    networks: [pullit-prod]
+    entrypoint: [/bin/sh, -ec]
+    command: |
+      mc alias set pullit http://pullit-prod-storage:9000 "$${S3_ACCESS_KEY}" "$${S3_SECRET_KEY}"
+      mc mb --ignore-existing "pullit/$${S3_BUCKET_NAME}"
+      mc anonymous set download "pullit/$${S3_BUCKET_NAME}"
 
 volumes:
-  pullit-prod-db:
-    external: true
-    name: ${PULLIT_DB_VOLUME:?PULLIT_DB_VOLUME is required}
-  pullit-prod-redis:
-    external: true
-    name: ${PULLIT_REDIS_VOLUME:?PULLIT_REDIS_VOLUME is required}
-  pullit-prod-rabbitmq:
-    external: true
-    name: ${PULLIT_RABBITMQ_VOLUME:?PULLIT_RABBITMQ_VOLUME is required}
-
-secrets:
-  PULLIT_CLOUDFLARE_TUNNEL_TOKEN:
-    environment: PULLIT_CLOUDFLARE_TUNNEL_TOKEN
+  pullit-portfolio-db-data: {name: pullit-portfolio-db-data}
+  pullit-portfolio-redis-data: {name: pullit-portfolio-redis-data}
+  pullit-portfolio-rabbitmq-data: {name: pullit-portfolio-rabbitmq-data}
+  pullit-portfolio-storage-data: {name: pullit-portfolio-storage-data}
 
 networks:
-  pullit-prod:
-  # This is deliberately a stable, Pull-it-only bridge shared by the tunnel
-  # and the separately deployed static frontend. It is not a Yeon network.
-  pullit-internal:
-    name: pullit-internal
+  pullit-prod: {name: pullit-portfolio-internal}
+  yeon-edge:
+    external: true

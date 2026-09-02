@@ -1,9 +1,17 @@
-name: Deploy Pull-it backend
+name: Deploy Pull-it backend and worker to Yeon Pi
 
 on:
   push:
     branches: [develop]
-    paths: ["src/**", "gradle/**", "build.gradle", "settings.gradle", "Dockerfile", "docker-compose.prod.yml", "ops/production/**", ".github/workflows/cd.yml"]
+    paths:
+      - src/**
+      - gradle/**
+      - build.gradle
+      - settings.gradle
+      - Dockerfile
+      - docker-compose.prod.yml
+      - ops/production/**
+      - .github/workflows/cd.yml
 
 permissions:
   contents: read
@@ -17,48 +25,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.sha }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push immutable image
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
+          platforms: linux/arm64
           tags: ghcr.io/${{ github.repository_owner }}/pullit-backend:${{ github.sha }}
 
   deploy:
     needs: build
-    environment: pullit-production
-    runs-on: [self-hosted, Linux, X64, pullit-production]
+    runs-on: ubuntu-latest
+    environment: pullit-backend-production
     steps:
-      - name: Checkout the deployed revision
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.sha }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Validate and install Pull-it runtime contract
+      - uses: actions/checkout@v5
+      - name: Create isolated runtime environment and deploy it
         env:
           PULLIT_BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/pullit-backend:${{ github.sha }}
           DB_USERNAME: ${{ vars.PULLIT_DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           PULLIT_DATABASE_NAME: ${{ vars.PULLIT_DATABASE_NAME }}
-          PULLIT_DB_VOLUME: ${{ vars.PULLIT_DB_VOLUME }}
-          PULLIT_REDIS_VOLUME: ${{ vars.PULLIT_REDIS_VOLUME }}
-          PULLIT_RABBITMQ_VOLUME: ${{ vars.PULLIT_RABBITMQ_VOLUME }}
           RABBITMQ_DEFAULT_USER: ${{ vars.RABBITMQ_DEFAULT_USER }}
           RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
@@ -67,21 +61,24 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
           S3_REGION: ${{ vars.S3_REGION }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          PULLIT_CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.PULLIT_CLOUDFLARE_TUNNEL_TOKEN }}
+          DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
+          required=(PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY DEPLOY_KEY DEPLOY_HOST KNOWN_HOSTS)
+          for name in "${required[@]}"; do test -n "${!name}"; done
           umask 077
-          runtime_env="$(mktemp)"
-          trap 'rm -f "$runtime_env"' EXIT
+          staging="$(mktemp -d)"; trap 'rm -rf "$staging"' EXIT
           {
+            printf 'PULLIT_BACKEND_IMAGE=%s\n' "$PULLIT_BACKEND_IMAGE"
             printf 'DB_USERNAME=%s\n' "$DB_USERNAME"
             printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
             printf 'DB_ROOT_PASSWORD=%s\n' "$DB_ROOT_PASSWORD"
             printf 'PULLIT_DATABASE_NAME=%s\n' "$PULLIT_DATABASE_NAME"
-            printf 'PULLIT_DB_VOLUME=%s\n' "$PULLIT_DB_VOLUME"
-            printf 'PULLIT_REDIS_VOLUME=%s\n' "$PULLIT_REDIS_VOLUME"
-            printf 'PULLIT_RABBITMQ_VOLUME=%s\n' "$PULLIT_RABBITMQ_VOLUME"
             printf 'RABBITMQ_DEFAULT_USER=%s\n' "$RABBITMQ_DEFAULT_USER"
             printf 'RABBITMQ_DEFAULT_PASS=%s\n' "$RABBITMQ_DEFAULT_PASS"
             printf 'JWT_SECRET_KEY=%s\n' "$JWT_SECRET_KEY"
@@ -90,19 +87,16 @@ jobs:
             printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY"
             printf 'S3_BUCKET_NAME=%s\n' "$S3_BUCKET_NAME"
             printf 'S3_REGION=%s\n' "$S3_REGION"
+            printf 'S3_ACCESS_KEY=%s\n' "$S3_ACCESS_KEY"
+            printf 'S3_SECRET_KEY=%s\n' "$S3_SECRET_KEY"
             printf 'SENTRY_DSN=%s\n' "$SENTRY_DSN"
-            printf 'PULLIT_CLOUDFLARE_TUNNEL_TOKEN=%s\n' "$PULLIT_CLOUDFLARE_TUNNEL_TOKEN"
-          } > "$runtime_env"
-          export PULLIT_BACKEND_IMAGE
-          docker compose --env-file "$runtime_env" -f docker-compose.prod.yml config --quiet
-          install -d -m 750 /opt/pullit
-          install -m 640 docker-compose.prod.yml /opt/pullit/docker-compose.prod.yml
-          install -m 750 ops/production/deploy-production.sh /opt/pullit/deploy-production.sh
-          install -m 750 ops/production/bootstrap-empty-data.sh /opt/pullit/bootstrap-empty-data.sh
-          install -m 750 ops/production/bootstrap-legacy-restore.sh /opt/pullit/bootstrap-legacy-restore.sh
-          install -m 750 ops/production/restore-legacy-database.sh /opt/pullit/restore-legacy-database.sh
-          install -m 600 "$runtime_env" /opt/pullit/pullit-production.env
-      - name: Deploy the already validated revision
-        env:
-          PULLIT_BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/pullit-backend:${{ github.sha }}
-        run: /opt/pullit/deploy-production.sh
+          } > "$staging/pullit-production.env"
+          install -m 640 docker-compose.prod.yml "$staging/docker-compose.prod.yml"
+          install -m 750 ops/production/deploy-production.sh "$staging/deploy-production.sh"
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh-key-pullit
+          chmod 600 ~/.ssh-key-pullit
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh-known-hosts-pullit
+          ssh_opts=(-i ~/.ssh-key-pullit -o BatchMode=yes -o UserKnownHostsFile=~/.ssh-known-hosts-pullit)
+          ssh "${ssh_opts[@]}" "pullit-deploy@$DEPLOY_HOST" "mkdir -p /opt/pullit/incoming/backend/${{ github.sha }}"
+          scp "${ssh_opts[@]}" -r "$staging/." "pullit-deploy@$DEPLOY_HOST:/opt/pullit/incoming/backend/${{ github.sha }}/"
+          ssh "${ssh_opts[@]}" "pullit-deploy@$DEPLOY_HOST" "sudo /usr/local/sbin/pullit-deploy backend ${{ github.sha }}"
