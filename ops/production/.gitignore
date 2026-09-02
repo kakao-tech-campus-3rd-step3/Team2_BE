@@ -1,0 +1,5 @@
+*
+!.gitignore
+!pullit-production.env.example
+!bootstrap-legacy-restore.sh
+!restore-legacy-database.sh

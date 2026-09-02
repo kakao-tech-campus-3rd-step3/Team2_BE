@@ -1,15 +1,20 @@
 package kr.it.pullit.platform.storage.client;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import kr.it.pullit.platform.storage.common.S3StorageProps;
 import kr.it.pullit.platform.storage.dto.S3FileMetadata;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -47,7 +52,7 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
             .putObjectRequest(putObjectRequest)
             .build();
 
-    return s3Presigner.presignPutObject(presignRequest).url();
+    return toPublicUrl(s3Presigner.presignPutObject(presignRequest).url());
   }
 
   @Override
@@ -73,9 +78,14 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
 
   @Override
   public String getFileUrl(String filePath) {
+    String publicEndpoint = s3StorageProps.getPublicEndpoint();
+    if (!StringUtils.hasText(publicEndpoint)) {
+      return String.format(
+          "https://%s.s3.%s.amazonaws.com/%s",
+          s3StorageProps.getBucketName(), s3StorageProps.getRegion(), filePath);
+    }
     return String.format(
-        "https://%s.s3.%s.amazonaws.com/%s",
-        s3StorageProps.getBucketName(), s3StorageProps.getRegion(), filePath);
+        "%s/%s/%s", publicEndpoint.replaceAll("/+$", ""), s3StorageProps.getBucketName(), filePath);
   }
 
   @Override
@@ -114,22 +124,81 @@ public class S3FileStorageClientManagingClient implements FileStorageClient {
   }
 
   private S3Client createS3Client() {
-    return S3Client.builder()
-        .region(Region.of(s3StorageProps.getRegion()))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(
-                    s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey())))
-        .build();
+    S3ClientBuilder builder =
+        S3Client.builder()
+            .region(Region.of(s3StorageProps.getRegion()))
+            .credentialsProvider(createCredentialsProvider());
+    applyEndpoint(builder);
+    return builder.build();
   }
 
   private S3Presigner createS3Presigner() {
-    return S3Presigner.builder()
-        .region(Region.of(s3StorageProps.getRegion()))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(
-                    s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey())))
-        .build();
+    S3Presigner.Builder builder =
+        S3Presigner.builder()
+            .region(Region.of(s3StorageProps.getRegion()))
+            .credentialsProvider(createCredentialsProvider());
+
+    String endpoint = s3StorageProps.getEndpoint();
+    if (StringUtils.hasText(endpoint)) {
+      builder
+          .endpointOverride(URI.create(endpoint))
+          .serviceConfiguration(
+              software.amazon.awssdk.services.s3.S3Configuration.builder()
+                  .pathStyleAccessEnabled(true)
+                  .build());
+    }
+    return builder.build();
+  }
+
+  /**
+   * 브라우저에는 portfolio 경로를 노출하되, 서명은 MinIO가 실제로 받는 내부 endpoint로 만든다. 리버스 프록시는 요청 URI와 Host를 내부
+   * endpoint와 동일하게 복원해야 SigV4 검증이 일치한다.
+   */
+  private URL toPublicUrl(URL signedInternalUrl) {
+    String publicEndpoint = s3StorageProps.getPublicEndpoint();
+    if (!StringUtils.hasText(publicEndpoint)) {
+      return signedInternalUrl;
+    }
+
+    try {
+      URI signedUri = signedInternalUrl.toURI();
+      String query = signedUri.getRawQuery();
+      String externalUrl =
+          publicEndpoint.replaceAll("/+$", "")
+              + signedUri.getRawPath()
+              + (query == null ? "" : "?" + query);
+      return URI.create(externalUrl).toURL();
+    } catch (Exception e) {
+      throw new IllegalStateException("외부 MinIO 업로드 URL을 만들지 못했습니다.", e);
+    }
+  }
+
+  private void applyEndpoint(S3ClientBuilder builder) {
+    String endpoint = s3StorageProps.getEndpoint();
+    if (!StringUtils.hasText(endpoint)) {
+      return;
+    }
+    builder
+        .endpointOverride(URI.create(endpoint))
+        .serviceConfiguration(
+            software.amazon.awssdk.services.s3.S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build());
+  }
+
+  private AwsCredentialsProvider createCredentialsProvider() {
+    boolean hasAccessKey = StringUtils.hasText(s3StorageProps.getAccessKey());
+    boolean hasSecretKey = StringUtils.hasText(s3StorageProps.getSecretKey());
+
+    if (hasAccessKey != hasSecretKey) {
+      throw new IllegalStateException("S3 access key와 secret key는 함께 설정해야 합니다.");
+    }
+
+    if (hasAccessKey) {
+      return StaticCredentialsProvider.create(
+          AwsBasicCredentials.create(s3StorageProps.getAccessKey(), s3StorageProps.getSecretKey()));
+    }
+
+    return DefaultCredentialsProvider.create();
   }
 }

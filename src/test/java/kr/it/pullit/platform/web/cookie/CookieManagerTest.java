@@ -43,8 +43,9 @@ class CookieManagerTest {
     void addsRefreshTokenCookie() {
       // given
       String refreshToken = "test-refresh-token";
-      String domain = ".pull.it.kr";
+      String domain = "portfolio.yeon.world";
       given(jwtProps.refreshTokenExpirationDays()).willReturn(Duration.ofDays(7));
+      given(jwtProps.refreshTokenCookiePath()).willReturn("/pull-it/auth/refresh");
 
       // when
       cookieManager.addRefreshTokenCookie(response, refreshToken, domain);
@@ -52,8 +53,8 @@ class CookieManagerTest {
       // then
       String setCookieHeader = response.getHeader("Set-Cookie");
       assertThat(setCookieHeader).contains("refresh_token=test-refresh-token");
-      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
-      assertThat(setCookieHeader).contains("Path=" + CookieManager.REFRESH_TOKEN_COOKIE_PATH);
+      assertThat(setCookieHeader).contains("Domain=portfolio.yeon.world");
+      assertThat(setCookieHeader).contains("Path=/pull-it/auth/refresh");
       assertThat(setCookieHeader).contains("HttpOnly");
       assertThat(setCookieHeader).contains("Secure");
       assertThat(setCookieHeader).contains("SameSite=None");
@@ -101,8 +102,8 @@ class CookieManagerTest {
     void expiresCookie() {
       // given
       String cookieName = "test-cookie";
-      request.setServerName("frontend.pull.it.kr");
-      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
+      request.setServerName("portfolio.yeon.world");
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
 
       // when
       cookieManager.expireCookie(request, response, cookieName);
@@ -111,7 +112,7 @@ class CookieManagerTest {
       String setCookieHeader = response.getHeader("Set-Cookie");
       assertThat(setCookieHeader).contains("test-cookie=");
       assertThat(setCookieHeader).contains("Max-Age=0");
-      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
+      assertThat(setCookieHeader).contains("Domain=portfolio.yeon.world");
       assertThat(setCookieHeader).contains("Path=/");
     }
 
@@ -119,9 +120,10 @@ class CookieManagerTest {
     @DisplayName("리프레시 토큰 쿠키를 만료시킬 때 올바른 경로를 사용한다")
     void expiresRefreshTokenCookieWithCorrectPath() {
       // given
+      request.setServerName("portfolio.yeon.world");
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
+      given(jwtProps.refreshTokenCookiePath()).willReturn("/pull-it/auth/refresh");
       String cookieName = "refresh_token";
-      request.setServerName("frontend.pull.it.kr");
-      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
 
       // when
       cookieManager.expireCookie(request, response, cookieName);
@@ -130,8 +132,8 @@ class CookieManagerTest {
       String setCookieHeader = response.getHeader("Set-Cookie");
       assertThat(setCookieHeader).contains("refresh_token=");
       assertThat(setCookieHeader).contains("Max-Age=0");
-      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
-      assertThat(setCookieHeader).contains("Path=" + CookieManager.REFRESH_TOKEN_COOKIE_PATH);
+      assertThat(setCookieHeader).contains("Domain=portfolio.yeon.world");
+      assertThat(setCookieHeader).contains("Path=/pull-it/auth/refresh");
     }
 
     @Test
@@ -140,14 +142,14 @@ class CookieManagerTest {
       // given
       String cookieName = "test-cookie";
       request.setServerName(null);
-      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
 
       // when
       cookieManager.expireCookie(request, response, cookieName);
 
       // then
       String setCookieHeader = response.getHeader("Set-Cookie");
-      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
+      assertThat(setCookieHeader).contains("Domain=portfolio.yeon.world");
     }
 
     @Test
@@ -156,14 +158,14 @@ class CookieManagerTest {
       // given
       String cookieName = "test-cookie";
       request.setServerName("other-domain.com");
-      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
 
       // when
       cookieManager.expireCookie(request, response, cookieName);
 
       // then
       String setCookieHeader = response.getHeader("Set-Cookie");
-      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
+      assertThat(setCookieHeader).contains("Domain=portfolio.yeon.world");
     }
 
     @Test
@@ -171,15 +173,15 @@ class CookieManagerTest {
     void usesMatchingDomainWhenHostEndsWithDomain() {
       // given
       String cookieName = "test-cookie";
-      request.setServerName("frontend.pull.it.kr");
-      given(jwtProps.authorizedCookieDomains()).willReturn(List.of(".pull.it.kr"));
+      request.setServerName("portfolio.yeon.world");
+      given(jwtProps.authorizedCookieDomains()).willReturn(List.of("portfolio.yeon.world"));
 
       // when
       cookieManager.expireCookie(request, response, cookieName);
 
       // then
       String setCookieHeader = response.getHeader("Set-Cookie");
-      assertThat(setCookieHeader).contains("Domain=.pull.it.kr");
+      assertThat(setCookieHeader).contains("Domain=portfolio.yeon.world");
     }
 
     @Test
@@ -197,8 +199,8 @@ class CookieManagerTest {
     }
 
     @Test
-    @DisplayName("쿠키 도메인이 null이면 NullPointerException을 던진다")
-    void throwsNullPointerExceptionWhenCookieDomainsIsNull() {
+    @DisplayName("쿠키 도메인이 null이면 설정 예외를 던진다")
+    void throwsExceptionWhenCookieDomainsIsNull() {
       // given
       String cookieName = "test-cookie";
       request.setServerName("other-domain.com");
@@ -206,7 +208,8 @@ class CookieManagerTest {
 
       // when & then
       assertThatThrownBy(() -> cookieManager.expireCookie(request, response, cookieName))
-          .isInstanceOf(NullPointerException.class);
+          .isInstanceOf(IllegalStateException.class)
+          .hasMessageContaining("No authorized cookie domains configured");
     }
   }
 }

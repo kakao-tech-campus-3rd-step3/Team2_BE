@@ -1,75 +1,203 @@
-name: Deploy to EC2 (Compose)
+name: Deploy Pull-it backend and worker to Yeon Pi
 
 on:
-  workflow_run:
-    workflows: ["Code check (linter, formatter)"]
-    types:
-      - completed
-    branches:
-      - develop
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'preflight은 Pi에 쓰지 않고 전송 경로만 검증합니다.'
+        required: true
+        default: preflight
+        type: choice
+        options: [preflight, deploy]
+  push:
+    branches: [develop]
+    paths:
+      - src/**
+      - gradle/**
+      - build.gradle
+      - settings.gradle
+      - Dockerfile
+      - docker-compose.prod.yml
+      - ops/production/**
+      - .github/actions/**
+      - .github/workflows/cd.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pullit-backend-production
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    if: github.event.workflow_run.conclusion == 'success'
-    environment: qa
+  verify:
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Login to Docker registry
-        uses: docker/login-action@v3
+          persist-credentials: false
+      - uses: actions/setup-java@v4
         with:
-          registry: ${{ secrets.DOCKER_REGISTRY_HOST }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          ecr: false
-
-      - name: Setup SSH key
+          distribution: temurin
+          java-version: '21'
+      - name: Verify the release candidate before it can be published
+        run: ./gradlew codeCheck build --stacktrace --no-daemon
+  transport-preflight:
+    needs: verify
+    if: always() && (github.event_name == 'workflow_dispatch' && inputs.operation == 'preflight' || needs.verify.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: pullit-backend-production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-cloudflared
+      - name: Verify Cloudflare Access and the restricted Pi command path
+        env:
+          DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+          DB_USERNAME: ${{ vars.PULLIT_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          PULLIT_DATABASE_NAME: ${{ vars.PULLIT_DATABASE_NAME }}
+          RABBITMQ_DEFAULT_USER: ${{ vars.RABBITMQ_DEFAULT_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
         run: |
-          mkdir -p ~/.ssh
-          echo '${{ secrets.EC2_SSH_KEY }}' > ~/.ssh/ec2_key.pem
-          chmod 600 ~/.ssh/ec2_key.pem
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          set -euo pipefail
+          required=(DEPLOY_KEY KNOWN_HOSTS DEPLOY_HOST PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY MINIO_ROOT_USER MINIO_ROOT_PASSWORD)
+          for name in "${required[@]}"; do test -n "${!name}"; done
+          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" in 'CF-Access-Client-Id:'*) exit 1 ;; esac
+          case "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" in 'CF-Access-Client-Secret:'*) exit 1 ;; esac
+          status="$(curl --silent --show-error --connect-timeout 10 --max-time 30 \
+            --output /dev/null --write-out '%{http_code}' \
+            --header "CF-Access-Client-Id: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" \
+            --header "CF-Access-Client-Secret: $PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET" "https://$DEPLOY_HOST")"
+          test "$status" = 200 || { echo "Cloudflare Access service-token probe returned HTTP $status" >&2; exit 1; }
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519
+          printf 'Host %s\n' "$DEPLOY_HOST" > ~/.ssh/config
+          cat >> ~/.ssh/config <<'EOF'
+            ProxyCommand cloudflared access ssh --hostname %h --service-token-id "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" --service-token-secret "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "pullit-deploy@$DEPLOY_HOST" \
+            'test -d /opt/pullit/incoming && test -w /opt/pullit/incoming && sudo -n -l /usr/local/sbin/pullit-deploy >/dev/null'
+  build:
+    needs: [verify, transport-preflight]
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/arm64
+          tags: ghcr.io/hyeonjun0527/pullit-backend:${{ github.sha }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
-      - name: Create app directory on EC2
-        run: ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "mkdir -p /home/ubuntu/app/prometheus"
-
-      - name: Upload configs and deployment script
+  deploy:
+    needs: [verify, transport-preflight, build]
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: pullit-backend-production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-cloudflared
+      - name: Create isolated runtime environment and deploy it
+        env:
+          PULLIT_BACKEND_IMAGE: ghcr.io/hyeonjun0527/pullit-backend:${{ github.sha }}
+          DB_USERNAME: ${{ vars.PULLIT_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          PULLIT_DATABASE_NAME: ${{ vars.PULLIT_DATABASE_NAME }}
+          RABBITMQ_DEFAULT_USER: ${{ vars.RABBITMQ_DEFAULT_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          DEPLOY_KEY: ${{ secrets.PULLIT_DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_HOST: ${{ vars.PULLIT_DEPLOY_HOST }}
+          KNOWN_HOSTS: ${{ vars.PULLIT_DEPLOY_SSH_KNOWN_HOSTS }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID }}
+          PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET }}
         run: |
-          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no docker-compose.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/docker-compose.qa.yml
-          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no prometheus/prometheus.qa.yml ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/prometheus/prometheus.qa.yml
-          scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no scripts/deploy-qa.sh ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/deploy-qa.sh
-
-      - name: Execute Blue-Green Deployment
-        run: |
-          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "
-            export DOCKER_IMAGE_NAME='${{ secrets.DOCKER_IMAGE_NAME }}'
-            export IMAGE_TAG='${{ github.event.workflow_run.head_sha }}'
-            export DB_USERNAME='${{ secrets.DB_USERNAME }}'
-            export DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
-            export DB_ROOT_PASSWORD='${{ secrets.DB_ROOT_PASSWORD }}'
-            export KAKAO_REST_API_KEY='${{ secrets.KAKAO_REST_API_KEY }}'
-            export KAKAO_CLIENT_SECRET='${{ secrets.KAKAO_CLIENT_SECRET }}'
-            export S3_ACCESS_KEY='${{ secrets.S3_ACCESS_KEY }}'
-            export S3_SECRET_KEY='${{ secrets.S3_SECRET_KEY }}'
-            export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}'
-            export JWT_REDIRECT_URL='${{ secrets.JWT_REDIRECT_URL }}'
-            export JWT_COOKIE_DOMAIN='${{ secrets.JWT_COOKIE_DOMAIN }}'
-            export AWS_REGION='ap-northeast-2'
-            export SENTRY_DSN='${{ secrets.SENTRY_DSN }}'
-            export SENTRY_AUTH_TOKEN='${{ secrets.SENTRY_AUTH_TOKEN }}'
-            export GRAFANA_ADMIN_PASSWORD='${{ secrets.GRAFANA_ADMIN_PASSWORD }}'
-            export RABBITMQ_DEFAULT_USER='${{ secrets.RABBITMQ_DEFAULT_USER }}'
-            export RABBITMQ_DEFAULT_PASS='${{ secrets.RABBITMQ_DEFAULT_PASS }}'
-
-            # Make the script executable and run it
-            chmod +x /home/ubuntu/app/deploy-qa.sh
-            bash /home/ubuntu/app/deploy-qa.sh
-          "
-      - name: Cleanup
-        if: always()
-        run: rm -f ~/.ssh/ec2_key.pem
+          set -euo pipefail
+          required=(PULLIT_BACKEND_IMAGE DB_USERNAME DB_PASSWORD DB_ROOT_PASSWORD PULLIT_DATABASE_NAME RABBITMQ_DEFAULT_USER RABBITMQ_DEFAULT_PASS JWT_SECRET_KEY KAKAO_REST_API_KEY KAKAO_CLIENT_SECRET GEMINI_API_KEY S3_BUCKET_NAME S3_REGION S3_ACCESS_KEY S3_SECRET_KEY MINIO_ROOT_USER MINIO_ROOT_PASSWORD DEPLOY_KEY DEPLOY_HOST KNOWN_HOSTS PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET)
+          for name in "${required[@]}"; do test -n "${!name}"; done
+          umask 077
+          staging="$(mktemp -d)"; trap 'rm -rf "$staging"' EXIT
+          {
+            printf 'PULLIT_BACKEND_IMAGE=%s\n' "$PULLIT_BACKEND_IMAGE"
+            printf 'DB_USERNAME=%s\n' "$DB_USERNAME"
+            printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+            printf 'DB_ROOT_PASSWORD=%s\n' "$DB_ROOT_PASSWORD"
+            printf 'PULLIT_DATABASE_NAME=%s\n' "$PULLIT_DATABASE_NAME"
+            printf 'RABBITMQ_DEFAULT_USER=%s\n' "$RABBITMQ_DEFAULT_USER"
+            printf 'RABBITMQ_DEFAULT_PASS=%s\n' "$RABBITMQ_DEFAULT_PASS"
+            printf 'JWT_SECRET_KEY=%s\n' "$JWT_SECRET_KEY"
+            printf 'KAKAO_REST_API_KEY=%s\n' "$KAKAO_REST_API_KEY"
+            printf 'KAKAO_CLIENT_SECRET=%s\n' "$KAKAO_CLIENT_SECRET"
+            printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY"
+            printf 'S3_BUCKET_NAME=%s\n' "$S3_BUCKET_NAME"
+            printf 'S3_REGION=%s\n' "$S3_REGION"
+            printf 'S3_ACCESS_KEY=%s\n' "$S3_ACCESS_KEY"
+            printf 'S3_SECRET_KEY=%s\n' "$S3_SECRET_KEY"
+            printf 'MINIO_ROOT_USER=%s\n' "$MINIO_ROOT_USER"
+            printf 'MINIO_ROOT_PASSWORD=%s\n' "$MINIO_ROOT_PASSWORD"
+            printf 'SENTRY_DSN=%s\n' "$SENTRY_DSN"
+          } > "$staging/pullit-production.env"
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh-key-pullit
+          chmod 600 ~/.ssh-key-pullit
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh-known-hosts-pullit
+          install -d -m 700 ~/.ssh
+          printf 'Host %s\n' "$DEPLOY_HOST" > ~/.ssh/config
+          cat >> ~/.ssh/config <<'EOF'
+            ProxyCommand cloudflared access ssh --hostname %h --service-token-id "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_ID" --service-token-secret "$PULLIT_CLOUDFLARE_ACCESS_CLIENT_SECRET"
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh_opts=(-i ~/.ssh-key-pullit -o BatchMode=yes -o UserKnownHostsFile=~/.ssh-known-hosts-pullit)
+          ssh "${ssh_opts[@]}" "pullit-deploy@$DEPLOY_HOST" "mkdir -p /opt/pullit/incoming/backend/${{ github.sha }}"
+          scp "${ssh_opts[@]}" -r "$staging/." "pullit-deploy@$DEPLOY_HOST:/opt/pullit/incoming/backend/${{ github.sha }}/"
+          ssh "${ssh_opts[@]}" "pullit-deploy@$DEPLOY_HOST" "sudo /usr/local/sbin/pullit-deploy backend ${{ github.sha }}"

@@ -1,73 +1,169 @@
+x-pullit-common-environment: &pullit-common-environment
+  DB_URL: jdbc:mariadb://pullit-prod-db:3306/${PULLIT_DATABASE_NAME:?PULLIT_DATABASE_NAME is required}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+  DB_USERNAME: ${DB_USERNAME:?DB_USERNAME is required}
+  DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+  REDIS_HOST: pullit-prod-redis
+  REDIS_PORT: 6379
+  RABBITMQ_HOST: pullit-prod-rabbitmq
+  SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+  SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
+  KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:?KAKAO_REST_API_KEY is required}
+  KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:?KAKAO_CLIENT_SECRET is required}
+  KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI:-https://portfolio.yeon.world/pull-it/login/oauth2/code/kakao}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+  JWT_REDIRECT_URL_1: ${JWT_REDIRECT_URL_1:-https://portfolio.yeon.world/pull-it/login-success}
+  JWT_COOKIE_DOMAIN_1: ${JWT_COOKIE_DOMAIN_1:-portfolio.yeon.world}
+  JWT_REFRESH_COOKIE_PATH: ${JWT_REFRESH_COOKIE_PATH:-/pull-it/auth/refresh}
+  SERVER_SERVLET_SESSION_COOKIE_NAME: ${SERVER_SERVLET_SESSION_COOKIE_NAME:-PULLIT_OAUTH_SESSION}
+  SERVER_SERVLET_SESSION_COOKIE_PATH: ${SERVER_SERVLET_SESSION_COOKIE_PATH:-/pull-it}
+  PULLIT_OAUTH2_REDIRECT_URI: ${PULLIT_OAUTH2_REDIRECT_URI:-https://portfolio.yeon.world/pull-it/login-success}
+  ACCESS_CONTROL_ALLOWED_ORIGIN_1: ${ACCESS_CONTROL_ALLOWED_ORIGIN_1:-https://portfolio.yeon.world}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY is required}
+  S3_BUCKET_NAME: ${S3_BUCKET_NAME:-pullit-learning-sources}
+  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY is required}
+  S3_ENDPOINT: http://pullit-prod-storage:9000
+  S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-https://portfolio.yeon.world/pull-it/storage}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  JAVA_OPTS: ${JAVA_OPTS:--Xmx768m -Xms256m -XX:+UseG1GC}
+
+x-pullit-runtime: &pullit-runtime
+  image: ${PULLIT_BACKEND_IMAGE:?PULLIT_BACKEND_IMAGE is required}
+  restart: unless-stopped
+  depends_on:
+    pullit-prod-db: {condition: service_healthy}
+    pullit-prod-redis: {condition: service_healthy}
+    pullit-prod-rabbitmq: {condition: service_healthy}
+    pullit-prod-storage-init: {condition: service_completed_successfully}
+  networks: [pullit-prod]
+  security_opt: ["no-new-privileges:true"]
 
 services:
-  # 운영용 Spring Boot 애플리케이션
   pullit-prod-app:
-    image: ${DOCKER_REGISTRY}:latest
-    container_name: pullit-prod-app
-    restart: unless-stopped
-    ports:
-      - "80:8080"  # 80 포트로 외부 노출
+    <<: *pullit-runtime
     environment:
-      # 데이터베이스 연결 설정
-      - DB_URL=jdbc:mariadb://pullit-prod-db:3306/pullit_prod?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      # Spring 프로필 - 운영 환경
-      - SPRING_PROFILES_ACTIVE=prod
-      # JVM 옵션 (메모리 및 GC 최적화)
-      - JAVA_OPTS=-Xmx1g -Xms512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
-      # CORS 설정
-      - ACCESS_CONTROL_ALLOWED_ORIGINS=${ACCESS_CONTROL_ALLOWED_ORIGINS}
-    depends_on:
-      pullit-prod-db:
-        condition: service_healthy
+      <<: *pullit-common-environment
+      SPRING_PROFILES_ACTIVE: prod
     networks:
-      - pullit-prod-network
+      pullit-prod:
+      yeon-edge:
+        aliases: [pullit-backend]
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      test: [CMD, wget, --no-verbose, --tries=1, --spider, "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-    security_opt:
-      - no-new-privileges:true  # 보안 강화
 
-  # 운영용 MariaDB 데이터베이스
-  pullit-prod-db:
-    image: mariadb:10.11
-    container_name: pullit-prod-db
-    restart: unless-stopped
+  pullit-prod-worker:
+    <<: *pullit-runtime
     environment:
-      - MARIADB_DATABASE=pullit_prod
-      - MARIADB_USER=${DB_USERNAME}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
-      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MARIADB_CHARSET=utf8mb4
-      - MARIADB_COLLATION=utf8mb4_unicode_ci
-    volumes:
-      - pullit_prod_data:/var/lib/mysql
-      - ./db/init:/docker-entrypoint-initdb.d:ro  # 읽기 전용으로 마운트
-    networks:
-      - pullit-prod-network
+      <<: *pullit-common-environment
+      SPRING_PROFILES_ACTIVE: prod,worker
+      SPRING_MAIN_WEB_APPLICATION_TYPE: NONE
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USERNAME}", "-p${DB_PASSWORD}" ]
-      interval: 20s
+      test: [CMD-SHELL, "ps | grep -v grep | grep '[a]pp.jar'"]
+      interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 90s
+
+  pullit-prod-db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${PULLIT_DATABASE_NAME:?PULLIT_DATABASE_NAME is required}
+      MARIADB_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      MARIADB_CHARSET: utf8mb4
+      MARIADB_COLLATION: utf8mb4_unicode_ci
+    volumes: ["pullit-portfolio-db-data:/var/lib/mysql"]
+    networks: [pullit-prod]
+    healthcheck:
+      test: [CMD-SHELL, "mariadb-admin ping -h localhost -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
       start_period: 30s
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --default-time-zone=+09:00
-      - --innodb-buffer-pool-size=256M  # 운영용 메모리 설정
-      - --max-connections=200  # 최대 연결 수 제한
-    security_opt:
-      - no-new-privileges:true  # 보안 강화
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, "--default-time-zone=+09:00"]
+
+  pullit-prod-redis:
+    image: redis:8.0.4-alpine
+    restart: unless-stopped
+    command: [redis-server, --appendonly, "yes"]
+    volumes: ["pullit-portfolio-redis-data:/data"]
+    networks: [pullit-prod]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  pullit-prod-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
+    volumes: ["pullit-portfolio-rabbitmq-data:/var/lib/rabbitmq"]
+    networks: [pullit-prod]
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  pullit-prod-storage:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: "server /data --console-address :9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+    volumes: ["pullit-portfolio-storage-data:/data"]
+    networks: [pullit-prod]
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  pullit-prod-storage-init:
+    image: minio/mc:RELEASE.2025-05-21T01-59-54Z
+    restart: "no"
+    depends_on:
+      pullit-prod-storage: {condition: service_healthy}
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY is required}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-pullit-learning-sources}
+    networks: [pullit-prod]
+    entrypoint: [/bin/sh, -ec]
+    command: |
+      mc alias set pullit http://pullit-prod-storage:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
+      mc mb --ignore-existing "pullit/$${S3_BUCKET_NAME}"
+      policy_file=$$(mktemp)
+      cat > "$$policy_file" <<EOF
+      {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:ListBucket"],"Resource":["arn:aws:s3:::$${S3_BUCKET_NAME}","arn:aws:s3:::$${S3_BUCKET_NAME}/*"]}]}
+      EOF
+      mc admin policy create pullit pullit-app-policy "$$policy_file" || mc admin policy update pullit pullit-app-policy "$$policy_file"
+      mc admin user add pullit "$${S3_ACCESS_KEY}" "$${S3_SECRET_KEY}" || true
+      mc admin policy attach pullit pullit-app-policy --user "$${S3_ACCESS_KEY}"
+      mc anonymous set download "pullit/$${S3_BUCKET_NAME}"
 
 volumes:
-  pullit_prod_data:
-    driver: local
+  pullit-portfolio-db-data: {name: pullit-portfolio-db-data}
+  pullit-portfolio-redis-data: {name: pullit-portfolio-redis-data}
+  pullit-portfolio-rabbitmq-data: {name: pullit-portfolio-rabbitmq-data}
+  pullit-portfolio-storage-data: {name: pullit-portfolio-storage-data}
 
 networks:
-  pullit-prod-network:
-    driver: bridge
+  pullit-prod: {name: pullit-portfolio-internal}
+  yeon-edge:
+    external: true

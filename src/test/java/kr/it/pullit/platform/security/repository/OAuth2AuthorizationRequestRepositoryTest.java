@@ -1,7 +1,6 @@
 package kr.it.pullit.platform.security.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import jakarta.servlet.http.HttpSession;
@@ -72,8 +71,6 @@ class OAuth2AuthorizationRequestRepositoryTest {
     void savesAuthorizationRequestToSession() {
       // given
       var authRequest = mock(OAuth2AuthorizationRequest.class);
-      given(authRequest.getState()).willReturn("test-state");
-      given(authRequest.getRedirectUri()).willReturn("https://example.com/callback");
 
       // when
       repository.saveAuthorizationRequest(authRequest, request, response);
@@ -92,9 +89,7 @@ class OAuth2AuthorizationRequestRepositoryTest {
     void savesRedirectUriToSessionWhenParameterExists() {
       // given
       var authRequest = mock(OAuth2AuthorizationRequest.class);
-      given(authRequest.getState()).willReturn("test-state");
-      given(authRequest.getRedirectUri()).willReturn("https://example.com/callback");
-      String redirectUri = "https://frontend.pull.it.kr/callback";
+      String redirectUri = "https://portfolio.yeon.world/callback";
       request.setParameter("redirect_uri", redirectUri);
 
       // when
@@ -113,14 +108,14 @@ class OAuth2AuthorizationRequestRepositoryTest {
     void doesNotSaveRedirectUriWhenParameterIsMissing() {
       // given
       var authRequest = mock(OAuth2AuthorizationRequest.class);
-      given(authRequest.getState()).willReturn("test-state");
-      given(authRequest.getRedirectUri()).willReturn("https://example.com/callback");
 
       // when
+      HttpSession session = request.getSession();
+      session.setAttribute(
+          OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, "stale-uri");
       repository.saveAuthorizationRequest(authRequest, request, response);
 
       // then
-      HttpSession session = request.getSession();
       String savedRedirectUri =
           (String)
               session.getAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY);
@@ -132,8 +127,6 @@ class OAuth2AuthorizationRequestRepositoryTest {
     void doesNotSaveRedirectUriWhenParameterIsBlank() {
       // given
       var authRequest = mock(OAuth2AuthorizationRequest.class);
-      given(authRequest.getState()).willReturn("test-state");
-      given(authRequest.getRedirectUri()).willReturn("https://example.com/callback");
       request.setParameter("redirect_uri", "");
 
       // when
@@ -181,6 +174,8 @@ class OAuth2AuthorizationRequestRepositoryTest {
       session.setAttribute(
           OAuth2AuthorizationRequestRepository.OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME,
           authRequest);
+      session.setAttribute(
+          OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY, "saved-uri");
 
       // when
       OAuth2AuthorizationRequest result = repository.removeAuthorizationRequest(request, response);
@@ -191,6 +186,8 @@ class OAuth2AuthorizationRequestRepositoryTest {
           session.getAttribute(
               OAuth2AuthorizationRequestRepository.OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
       assertThat(saved).isNull();
+      assertThat(session.getAttribute(OAuth2AuthenticationSuccessHandler.REDIRECT_URI_SESSION_KEY))
+          .isNull();
     }
 
     @Test

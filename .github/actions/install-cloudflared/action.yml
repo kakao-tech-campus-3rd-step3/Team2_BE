@@ -1,0 +1,13 @@
+name: Install pinned Cloudflare Access client
+description: Install the checksum-pinned cloudflared binary used by Pull-it deployment jobs.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        curl --fail --location --retry 3 --connect-timeout 10 --max-time 120 --output /tmp/cloudflared \
+          https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-linux-amd64
+        echo '0095e46fdc88855d801c4d304cb1f5dd4bd656116c47ab94c2ad0ae7cda1c7ec  /tmp/cloudflared' | sha256sum --check -
+        install -D -m 0755 /tmp/cloudflared "$HOME/.local/bin/cloudflared"
+        printf '%s\n' "$HOME/.local/bin" >> "$GITHUB_PATH"
